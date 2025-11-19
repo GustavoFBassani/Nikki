@@ -7,17 +7,21 @@
 
 import UIKit
 import SwiftUI
+import SwiftData
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
+    private let dataManager = SwiftDataManager.shared
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
         // Create the SwiftUI view that provides the window contents.
-        let contentView = ContentView()
+        let contentView = NavigationStack {
+            ContentView()
+        }
+        .modelContainer(SwiftDataManager.shared.container)
 
         // Use a UIHostingController as window root view controller.
         let window = UIWindow(frame: UIScreen.main.bounds)

@@ -15,9 +15,22 @@
 		C43B06E62ECBF263006145AE /* NikkiProject */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = NikkiProject; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B861050C2ECE72F6000148AB /* Exceptions for "Nikki" folder in "Nikki" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C43B06D12ECBF1DE006145AE /* Nikki */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C43B06D42ECBF1DE006145AE /* Nikki */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B861050C2ECE72F6000148AB /* Exceptions for "Nikki" folder in "Nikki" target */,
+			);
 			path = Nikki;
 			sourceTree = "<group>";
 		};
@@ -276,7 +289,9 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = W35YJ39H5L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Nikki/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = CAMERA_USAGE_DESCRIPTION;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Permissão para usar o microfone";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
@@ -316,7 +331,9 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = W35YJ39H5L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Nikki/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = CAMERA_USAGE_DESCRIPTION;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Permissão para usar o microfone";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
@@ -331,7 +348,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = br.academy.Nikki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				// NOTE: The provisioning profile requirement "NikkiProPro" should be documented in the project's README.md or CONTRIBUTING.md file to help new developers set up the project.
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = NikkiProPro;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
