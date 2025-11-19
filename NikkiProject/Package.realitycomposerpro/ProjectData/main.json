@@ -1,9 +1,11 @@
 {
   "pathsToIds" : {
-    "\/NikkiProject\/Sources\/NikkiProject\/NikkiProject.rkassets\/Scene.usda" : "F0A05C26-1A81-4D70-8108-DFC9BEE2B70B"
+    "\/NikkiProject\/Sources\/NikkiProject\/NikkiProject.rkassets\/Scene.usda" : "F0A05C26-1A81-4D70-8108-DFC9BEE2B70B",
+    "NikkiProject\/Sources\/NikkiProject\/NikkiProject.rkassets\/Scene.usda" : "FFC58350-29AE-427E-B132-68A0AF6B14CD"
   },
   "projectID" : -8746886436461178514,
   "uuidToIntID" : {
-    "F0A05C26-1A81-4D70-8108-DFC9BEE2B70B" : -47909176968365462
+    "F0A05C26-1A81-4D70-8108-DFC9BEE2B70B" : -47909176968365462,
+    "FFC58350-29AE-427E-B132-68A0AF6B14CD" : -5973955141738266841
   }
 }
