@@ -11,9 +11,7 @@ import NikkiProject
 
 @Observable
 class SceneViewModel {
-    
     var scene: Entity?
-    
     func loadScene() async {
         do {
             self.scene = try await Entity(named: "Scene", in: nikkiProjectBundle)
