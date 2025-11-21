@@ -29,7 +29,7 @@ def "Root" (
 
     over "Japan_HW"
     {
-        float3 xformOp:translate = (1.052618, 0, 3.5)
+        float3 xformOp:translate = (0, 0, -3.5)
     }
 
     over "SkyDome"

@@ -23,7 +23,7 @@ class SceneViewModel {
     var isZooming = false
     // MARK: - Propriedades da Câmera Orbital
     /// Distância da câmera em relação ao centro da cena (raio da órbita)
-    private var distance: Float = 3.0
+    private var distance: Float = 10.0
     /// Ângulo azimutal (theta/θ) - rotação horizontal em radianos
     /// Controla a rotação da câmera ao redor do eixo Y (esquerda/direita)
     /// Valores positivos rotacionam no sentido anti-horário visto de cima
@@ -77,9 +77,9 @@ class SceneViewModel {
         /// - Isso significa que arrastar 175 pixels = uma volta completa (360°/2π)
         ///
         /// **Limitação de Phi:**
-        /// O ângulo phi é limitado entre -1.5 e 1.5 radianos (~-86° a +86°)
-        /// para evitar que a câmera vire completamente de cabeça para baixo,
-        /// o que causaria uma inversão confusa dos controles
+        /// O ângulo phi é limitado entre 0 e 2π/3 radianos (0° a 120°)
+        /// para manter a câmera sempre acima do plano horizontal, mas permitindo
+        /// uma visão um pouco além da vertical
         
         // Atualiza theta (rotação horizontal) sem limites
         // Permite rotação infinita ao redor do objeto
@@ -88,10 +88,10 @@ class SceneViewModel {
         // Atualiza phi (rotação vertical)
         phi += dy * 0.01
         
-        // Limita phi para não virar de cabeça pra baixo
-        // -1.5 rad ≈ -86° (quase olhando de baixo)
-        // +1.5 rad ≈ +86° (quase olhando de cima)
-        phi = max(-1, min(1.5, phi))
+        // Limita phi entre 0 (plano horizontal) e 2π/3 (120°)
+        // 0 rad = 0° (câmera no plano XZ, olhando horizontalmente)
+        // π/2 rad = 90° (câmera além da vertical, permitindo ver "por trás")
+        phi = max(0, min( Float.pi / 2, phi))
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
@@ -219,6 +219,4 @@ class SceneViewModel {
         // Este método ajusta automaticamente a rotação da câmera
         camera.look(at: [0, 0, 0], from: camera.position, relativeTo: nil)
     }
-
-
 }
