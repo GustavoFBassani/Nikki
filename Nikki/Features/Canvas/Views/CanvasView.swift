@@ -38,6 +38,14 @@ struct CanvasView: View {
         .sheet(isPresented: $viewModel.showAudioRecorder) {
             audioRecorderSheet
         }
+        .sheet(isPresented: $viewModel.showStickers) {
+                 StickersSheet(
+                     stickers: viewModel.stickers,
+                     onSelect: { stickerName in
+                         viewModel.insertSticker(named: stickerName)
+                     }
+                 )
+        }
         .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem)
         .onChange(of: viewModel.photoItem) { _, _ in
             Task {
@@ -72,6 +80,9 @@ struct CanvasView: View {
                 }
                 Button("Play Audio") {
                     viewModel.showAudioPicker = true
+                }
+                Button ("Stickers"){
+                    viewModel.showStickers.toggle()
                 }
                 Button("Salvar") {
                     Task {
@@ -132,6 +143,51 @@ struct AudioPickerSheet: View {
                 }
             }
             .navigationTitle("Escolher Áudio")
+        }
+    }
+}
+
+struct StickersSheet: View {
+    let stickers: [String]
+    let onSelect: (String) -> Void
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    private let columns = [
+        GridItem(.adaptive(minimum: 80), spacing: 16)
+    ]
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(stickers, id: \.self) { stickerName in
+                        Button {
+                            onSelect(stickerName)
+                            dismiss()
+                        } label: {
+                            Image(stickerName)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipped()
+                                .background(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Stickers")
+            //   .tint(.white)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Fechar") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }
