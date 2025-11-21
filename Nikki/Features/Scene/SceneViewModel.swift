@@ -22,22 +22,23 @@ class SceneViewModel {
     /// Flag que indica se o gesto de zoom está ativo no momento
     var isZooming = false
     // MARK: - Propriedades da Câmera Orbital
-    /// Distância da câmera em relação ao centro da cena (raio da órbita)
-    private var distance: Float = 10.0
+    /// Raio da órbita (ρ) - distância da câmera em relação ao centro da cena
+    /// Em coordenadas esféricas, representa a distância radial do centro até o ponto
+    private var rho: Float = 10.0
     /// Ângulo azimutal (theta/θ) - rotação horizontal em radianos
-    /// Controla a rotação da câmera ao redor do eixo Y (esquerda/direita)
+    /// Controla a rotação da câmera ao redor do eixo Z (esquerda/direita)
     /// Valores positivos rotacionam no sentido anti-horário visto de cima
     private var theta: Float = 0.0
-    /// Ângulo polar (phi/φ) - rotação vertical em radianos
+    /// Ângulo polar (phi/φ) - ângulo em relação ao eixo Z positivo
     /// Controla a elevação da câmera (cima/baixo)
-    /// - Valor 0: câmera no plano XZ (altura neutra)
-    /// - Valores positivos: câmera acima do objeto
-    /// - Valores negativos: câmera abaixo do objeto
-    private var phi: Float = 0.0
-    /// Distância salva no início do gesto de zoom para cálculo relativo
+    /// - Valor 0: câmera no polo norte (topo, olhando para baixo)
+    /// - Valor π/2: câmera no equador (plano XY)
+    /// - Valor π: câmera no polo sul (embaixo, olhando para cima)
+    private var phi: Float = Float.pi / 2
+    /// Raio salvo no início do gesto de zoom para cálculo relativo
     /// Permite que o zoom seja calculado baseado na escala do gesto de pinch,
-    /// mantendo a distância inicial como referência durante todo o gesto
-    private var lastDistance: Float = 3.0
+    /// mantendo o raio inicial como referência durante todo o gesto
+    private var lastRho: Float = 3.0
     
     func loadScene() async {
         do {
@@ -66,32 +67,23 @@ class SceneViewModel {
         ///
         /// **Parâmetros:**
         /// - `dx`: Delta X (movimento horizontal em pixels)
-        ///   - Valores positivos: arrasta para direita → câmera orbita para esquerda
-        ///   - Valores negativos: arrasta para esquerda → câmera orbita para direita
         /// - `dy`: Delta Y (movimento vertical em pixels)
-        ///   - Valores positivos: arrasta para baixo → câmera sobe
-        ///   - Valores negativos: arrasta para cima → câmera desce
         ///
-        /// **Sensibilidade:** 0.01 radianos por pixel de movimento
-        /// - Aproximadamente 0.57° por pixel
-        /// - Isso significa que arrastar 175 pixels = uma volta completa (360°/2π)
-        ///
-        /// **Limitação de Phi:**
-        /// O ângulo phi é limitado entre 0 e 2π/3 radianos (0° a 120°)
-        /// para manter a câmera sempre acima do plano horizontal, mas permitindo
-        /// uma visão um pouco além da vertical
+        /// **Comportamento (Drag Scene):**
+        /// - Arrastar para Direita (dx > 0): A cena gira para direita (Câmera orbita para esquerda) -> Theta diminui
+        /// - Arrastar para Baixo (dy > 0): A cena inclina para baixo (Câmera sobe para o topo) -> Phi diminui
         
-        // Atualiza theta (rotação horizontal) sem limites
-        // Permite rotação infinita ao redor do objeto
-        theta += dx * 0.01
+        // Atualiza theta (rotação horizontal - Azimute)
+        // Invertido (-=) para sensação de "pegar e arrastar" a cena
+        theta -= dx * 0.01
         
-        // Atualiza phi (rotação vertical)
-        phi += dy * 0.01
+        // Atualiza phi (rotação vertical - Elevação)
+        // Invertido (-=) para que arrastar para baixo leve a câmera para o topo (phi -> 0)
+        phi -= dy * 0.01
         
-        // Limita phi entre 0 (plano horizontal) e 2π/3 (120°)
-        // 0 rad = 0° (câmera no plano XZ, olhando horizontalmente)
-        // π/2 rad = 90° (câmera além da vertical, permitindo ver "por trás")
-        phi = max(0, min( Float.pi / 2, phi))
+        // Limita phi entre π/6 (30° do topo) e 2π/3 (120° = 30° abaixo do horizonte)
+        // Phi = 0 é o Polo Norte (Topo)
+        phi = max(Float.pi / 6, min(57 * Float.pi / 100, phi))
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
@@ -101,18 +93,18 @@ class SceneViewModel {
         
         // MARK: - Controle de Zoom
         
-        /// Salva a distância atual no início do gesto de zoom
+        /// Salva o raio atual no início do gesto de zoom
         ///
         /// Chamado quando o usuário inicia o gesto de pinch (dois dedos).
-        /// Armazena a distância atual para que o zoom seja calculado
-        /// relativamente a esta distância durante todo o gesto.
+        /// Armazena o raio atual para que o zoom seja calculado
+        /// relativamente a este raio durante todo o gesto.
         ///
         /// **Exemplo:**
-        /// - Distância inicial: 3.0
+        /// - Raio inicial: 3.0
         /// - Usuário faz pinch com escala 2.0 (afasta dedos)
-        /// - Nova distância: 3.0 / 2.0 = 1.5 (zoom in - câmera mais perto)
+        /// - Novo raio: 3.0 / 2.0 = 1.5 (zoom in - câmera mais perto)
         
-        lastDistance = distance
+        lastRho = rho
     }
     
     func zoom(scale: Float) {
@@ -127,22 +119,22 @@ class SceneViewModel {
         ///
         /// **Cálculo:**
         /// ```
-        /// distance = lastDistance / scale
+        /// rho = lastRho / scale
         /// ```
-        /// - Se scale = 2.0: distance = lastDistance / 2 (metade da distância = mais perto)
-        /// - Se scale = 0.5: distance = lastDistance / 0.5 (dobro da distância = mais longe)
+        /// - Se scale = 2.0: rho = lastRho / 2 (metade da distância = mais perto)
+        /// - Se scale = 0.5: rho = lastRho / 0.5 (dobro da distância = mais longe)
         ///
         /// **Limites:**
-        /// - Mínimo: 0.5 unidades (muito próximo, evita atravessar o objeto)
-        /// - Máximo: 30.0 unidades (visão ampla, evita câmera muito distante)
+        /// - Mínimo: 2.0 unidades (muito próximo, evita atravessar o objeto)
+        /// - Máximo: 20.0 unidades (visão ampla, evita câmera muito distante)
         
-        // Calcula nova distância inversamente proporcional à escala
+        // Calcula novo raio inversamente proporcional à escala
         // Divisão por scale inverte o comportamento: afastar dedos = aproximar câmera
-        distance = lastDistance / scale
+        rho = lastRho / scale
         
-        // Limita entre 0.5 (muito perto) e 30 (muito longe)
+        // Limita entre 2 (muito perto) e 20 (muito longe)
         // Evita que a câmera atravesse o objeto ou fique distante demais
-        distance = max(2, min(20, distance))
+        rho = max(2, min(20, rho))
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
@@ -152,71 +144,41 @@ class SceneViewModel {
         
         // MARK: - Atualização da Câmera
         
-        /// Atualiza a posição da câmera convertendo coordenadas esféricas para cartesianas
+        /// Atualiza a posição da câmera convertendo coordenadas esféricas matemáticas (Z-up)
+        /// para o sistema de coordenadas do RealityKit (Y-up).
         ///
-        /// **Conversão de Coordenadas Esféricas → Cartesianas:**
-        ///
-        /// Coordenadas esféricas são mais intuitivas para órbita:
-        /// - `theta` (θ): "para que lado estou olhando" (bússola)
-        /// - `phi` (φ): "quão alto estou" (elevação)
-        /// - `distance` (r): "quão longe estou" (raio)
-        ///
-        /// Fórmulas de conversão:
-        /// ```
-        /// x = r * cos(φ) * sin(θ)  ← posição horizontal (eixo X)
-        /// y = r * sin(φ)            ← altura (eixo Y)
-        /// z = r * cos(φ) * cos(θ)  ← profundidade (eixo Z)
-        /// ```
-        ///
-        /// **Visualização:**
-        /// ```
-        ///        Y (cima)
-        ///        |
-        ///        |  * câmera (x,y,z)
-        ///        | /
-        ///        |/_____ X (direita)
-        ///       /|
-        ///      / |
-        ///     Z (frente)
-        ///   origem (0,0,0) = centro da cena
-        /// ```
-        ///
-        /// **Processo:**
-        /// 1. Calcula coordenadas cartesianas (x, y, z) usando as fórmulas
-        /// 2. Define a posição da câmera com estas coordenadas
-        /// 3. Faz a câmera olhar sempre para o centro da cena (0, 0, 0)
-        ///
-        /// - Note: O método `look(at:from:relativeTo:)` ajusta automaticamente
-        ///   a orientação da câmera para apontar ao alvo especificado
-
+        /// **Mapeamento de Eixos:**
+        /// - Math X  -> RealityKit X
+        /// - Math Y  -> RealityKit Z (Profundidade)
+        /// - Math Z  -> RealityKit Y (Altura)
         
         // Garante que a câmera existe antes de tentar atualizar
         guard let camera else { return }
         
-        // Converte coordenadas esféricas (theta, phi, distance) para
-        // coordenadas cartesianas (x, y, z)
+        // 1. Cálculo Matemático (Convenção ISO: Z é altura)
+        // x = ρ * sin(φ) * cos(θ)
+        // y = ρ * sin(φ) * sin(θ)
+        // z = ρ * cos(φ)
         
-        // X: posição horizontal (esquerda-direita)
-        // cos(phi) projeta no plano XZ, sin(theta) define posição no círculo
-        let x = distance * cos(phi) * sin(theta)
+        let sinPhi = sin(phi)
+        let cosPhi = cos(phi)
+        let sinTheta = sin(theta)
+        let cosTheta = cos(theta)
         
-        // Y: altura (cima-baixo)
-        // sin(phi) eleva ou abaixa a câmera
-        let y = distance * sin(phi)
+        let mathX = rho * sinPhi * cosTheta
+        let mathY = rho * sinPhi * sinTheta
+        let mathZ = rho * cosPhi
         
-        // Z: profundidade (frente-trás)
-        // cos(phi) projeta no plano XZ, cos(theta) define posição no círculo
-        let z = distance * cos(phi) * cos(theta)
+        // 2. Aplicação no RealityKit (Y é altura)
+        // Trocamos o Y matemático pelo Z do RealityKit e o Z matemático pelo Y do RealityKit
+        let rkX = mathX
+        let rkY = mathZ // Altura vem do Z matemático
+        let rkZ = mathY // Profundidade vem do Y matemático
         
         // Define a posição calculada na câmera
-        // SIMD3 é um vetor 3D otimizado para operações matemáticas
-        camera.position = [x, y, z]
+        camera.position = [rkX, rkY, rkZ]
         
         // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
-        // - at: ponto alvo (centro da cena)
-        // - from: posição da câmera (calculada acima)
-        // - relativeTo: nil = coordenadas absolutas no mundo
-        // Este método ajusta automaticamente a rotação da câmera
         camera.look(at: [0, 0, 0], from: camera.position, relativeTo: nil)
     }
 }
