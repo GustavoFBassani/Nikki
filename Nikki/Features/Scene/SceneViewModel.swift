@@ -81,7 +81,7 @@ class SceneViewModel {
         // Invertido (-=) para que arrastar para baixo leve a câmera para o topo (phi -> 0)
         phi -= dy * 0.01
         
-        // Limita phi entre π/6 (30° do topo) e 2π/3 (120° = 30° abaixo do horizonte)
+        // Limita phi entre pi/60 e 57pi/100
         // Phi = 0 é o Polo Norte (Topo)
         phi = max(Float.pi / 6, min(57 * Float.pi / 100, phi))
         
@@ -144,9 +144,6 @@ class SceneViewModel {
         
         // MARK: - Atualização da Câmera
         
-        /// Atualiza a posição da câmera convertendo coordenadas esféricas matemáticas (Z-up)
-        /// para o sistema de coordenadas do RealityKit (Y-up).
-        ///
         /// **Mapeamento de Eixos:**
         /// - Math X  -> RealityKit X
         /// - Math Y  -> RealityKit Z (Profundidade)
@@ -169,8 +166,7 @@ class SceneViewModel {
         let mathY = rho * sinPhi * sinTheta
         let mathZ = rho * cosPhi
         
-        // 2. Aplicação no RealityKit (Y é altura)
-        // Trocamos o Y matemático pelo Z do RealityKit e o Z matemático pelo Y do RealityKit
+        //  Aplicação no RealityKit (Y é altura)
         let rkX = mathX
         let rkY = mathZ // Altura vem do Z matemático
         let rkZ = mathY // Profundidade vem do Y matemático
