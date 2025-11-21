@@ -29,6 +29,33 @@ class CanvasViewModel {
     var showITunesSearch = false
     var showAudioRecorder = false
     var showAudioPicker = false
+    var showStickers = false
+    
+    let stickers: [String] = [
+            "redLetter",
+            "sparkle",
+            "leque",
+            "bamboo",
+            "blueDragon",
+            "cloud",
+            "dragon",
+            "envelope",
+            "fish",
+            "flower",
+            "fuji",
+            "goldenStar",
+            "greenBamboo",
+            "house",
+            "lamp",
+            "letter",
+            "redEnvelope",
+            "moth",
+            "orangeFish",
+            "redTorii",
+            "star",
+            "teaBag",
+            "zen"
+      ]
     
     var photoItem: PhotosPickerItem?
     
@@ -86,6 +113,17 @@ class CanvasViewModel {
             audioPlayer.play(url: track.previewURL)
         }
     }
+    
+    //MARK: - Stickers
+    func insertSticker(named name: String) {
+          guard let image = UIImage(named: name) else { return }
+          
+          let size = CGSize(width: 200, height: 200)
+          let origin = CGPoint(x: 20, y: 20)
+          let rect = CGRect(origin: origin, size: size)
+          
+          editorData.insertImage(image, rect: rect)
+      }
     
     // MARK: - Persistence Methods
     
