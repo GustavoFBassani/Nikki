@@ -10,6 +10,7 @@ import SwiftData
 
 struct PageListView: View {
     @Query var pages: [Page]
+    @Environment(\.modelContext) private var context
     
     var body: some View {
         NavigationStack {
@@ -18,6 +19,13 @@ struct PageListView: View {
                     NavigationLink(destination: CanvasView(page: page)) {
                         Text(page.title ?? "Sem título")
                     }
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        let page = pages[index]
+                        context.delete(page)
+                    }
+                    try? context.save()
                 }
             }
             .navigationTitle("Minhas Páginas")
