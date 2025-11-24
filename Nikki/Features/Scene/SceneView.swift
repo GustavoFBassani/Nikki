@@ -11,10 +11,6 @@ import RealityKit
 struct SceneView: View {
     
     @State var vm = SceneViewModel()
-    @State private var showCanvas = false
-    
-    
-
     
     var body: some View {
         ZStack {
@@ -28,7 +24,9 @@ struct SceneView: View {
             }
             .edgesIgnoringSafeArea(.all)
             .task {
-                await vm.loadScene()
+                if vm.scene == nil {
+                    await vm.loadScene()
+                }
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -64,7 +62,7 @@ struct SceneView: View {
                         // Prepara para o próximo gesto
                         vm.lastDragPosition = .zero
                     }
-            )
+            ) // movimentar para o lado
             .gesture(
                 // MARK: - Gesto de Zoom (Pinch)
                 
@@ -87,32 +85,25 @@ struct SceneView: View {
                     .onEnded { _ in
                         vm.lastScale = vm.currentScale
                     }
-            )
+            ) // zoom
             
-            
-            // Overlay com botão para acessar o Canvas
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button("Canvas"){
-                        showCanvas = true
-                    }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            NavigationLink {
+                PageListView()
+            } label: {
+                Text("Canvas")
                     .padding()
                     .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
                     .padding()
-                }
             }
         }
-        
-        .navigationDestination(isPresented: $showCanvas) {
-            PageListView()
-        }
+
     }
 }
-
-#Preview {
-    SceneView()
-}
+    
+    #Preview {
+        SceneView()
+    }
