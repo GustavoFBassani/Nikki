@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 import PaperKit
 import PhotosUI
 import MusicKit
@@ -145,6 +146,15 @@ class CanvasViewModel {
             try dataManager.savePage(newPage)
             currentPage = newPage
         }
+    }
+    
+    func deleteCurrentPage(using context: ModelContext) throws {
+        guard let page = currentPage else { return }
+        
+        context.delete(page)
+        try context.save()
+        
+        currentPage = nil
     }
     
     // MARK: - Photo Handling
