@@ -15,11 +15,8 @@ import AVFoundation
 struct CanvasView: View {
     @State var viewModel: CanvasViewModel
     
-//    private let pageSize: CGFloat = 1080
-//    private let minPageSize: CGFloat = 361
-    
-    init(page: Page? = nil) {
-        _viewModel = State(initialValue: CanvasViewModel(page: page))
+    init(page: Page? = nil, paperStyle: String? = nil) {
+        _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
     }
     
     var body: some View {
