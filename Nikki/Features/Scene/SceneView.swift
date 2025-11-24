@@ -13,6 +13,9 @@ struct SceneView: View {
     @State var vm = SceneViewModel()
     @State private var showCanvas = false
     
+    
+
+    
     var body: some View {
         ZStack {
             // RealityView para o conteúdo 3D
@@ -40,27 +43,26 @@ struct SceneView: View {
                 DragGesture()
                     .onChanged { value in
                         // Na primeira chamada, apenas salva a posição inicial
-                        if vm.lastPos == .zero {
-                            vm.lastPos = value.location
+                        if vm.lastDragPosition == .zero {
+                            vm.lastDragPosition = value.location
                             return
                         }
                         
                         // Calcula quanto o dedo se moveu desde o último frame
-                        // dx: movimento horizontal (+ = direita, - = esquerda)
-                        let dx = Float(value.location.x - vm.lastPos.x)
-                        // dy: movimento vertical (+ = baixo, - = cima)
-                        let dy = Float(value.location.y - vm.lastPos.y)
+                        // dTheta: movimento horizontal (+ = direita, - = esquerda)
+                        let dTheta = Float(value.location.x - vm.lastDragPosition.x)
+                        // dPhi: movimento vertical (+ = baixo, - = cima)
+                        let dPhi = Float(value.location.y - vm.lastDragPosition.y)
                         
                         // Envia os deltas para o ViewModel atualizar theta e phi
-                        vm.rotate(dx: dx, dy: dy)
-                        
+                        vm.rotate(dTheta: dTheta, dPhi: dPhi)
                         // Atualiza a última posição para o próximo frame
-                        vm.lastPos = value.location
+                        vm.lastDragPosition = value.location
                     }
                     .onEnded { _ in
                         // Reseta a posição quando o usuário solta o dedo
                         // Prepara para o próximo gesto
-                        vm.lastPos = .zero
+                        vm.lastDragPosition = .zero
                     }
             )
             .gesture(
@@ -72,29 +74,18 @@ struct SceneView: View {
                 /// **Fluxo:**
                 /// 1. Usuário coloca dois dedos na tela
                 /// 2. `onChanged` é chamado enquanto afasta/aproxima os dedos
-                /// 3. No primeiro frame, chama `startZoom()` para salvar distância inicial
+                /// 3. Calcula a escala acumulada
                 /// 4. Passa a escala para o ViewModel calcular nova distância
-                /// 5. `onEnded` reseta a flag quando o usuário solta os dedos
-                ///
-                /// **Escala:**
-                /// - value > 1.0: dedos se afastando (zoom in)
-                /// - value < 1.0: dedos se aproximando (zoom out)
-                /// - value = 1.0: sem movimento
+                /// 5. `onEnded` salva a escala final para o próximo gesto
                 MagnificationGesture()
                     .onChanged { value in
-                        // Na primeira vez, salva a distância atual como referência
-                        if !vm.isZooming {
-                            vm.startZoom()
-                            vm.isZooming = true
-                        }
-                        
-                        // Envia a escala do gesto para calcular nova distância
-                        vm.zoom(scale: Float(value))
+                        vm.currentScale = vm.lastScale * value
+                        print(vm.currentScale)
+                        vm.zoom(scale: Float(vm.currentScale))
+                        print("lastscale", vm.lastScale)
                     }
                     .onEnded { _ in
-                        // Reseta a flag quando termina o gesto
-                        // Prepara para o próximo zoom
-                        vm.isZooming = false
+                        vm.lastScale = vm.currentScale
                     }
             )
             
