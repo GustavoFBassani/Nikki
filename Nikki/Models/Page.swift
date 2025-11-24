@@ -13,17 +13,17 @@ class Page {
     var title: String?
     var createdAt: Date?
     var markupData: Data?
-    var backgroundImageName: String?
+    var paperStyle: String?
     
     init(
         title: String,
         createdAt: Date = Date(),
         markupData: Data? = nil,
-        backgroundImageName: String? = nil
+        paperStyle: String? = nil
     ) {
         self.title = title
         self.createdAt = createdAt
         self.markupData = markupData
-        self.backgroundImageName = backgroundImageName
+        self.paperStyle = paperStyle
     }
 }
