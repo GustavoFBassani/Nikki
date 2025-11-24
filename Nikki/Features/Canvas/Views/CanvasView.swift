@@ -15,13 +15,16 @@ import AVFoundation
 struct CanvasView: View {
     @State var viewModel: CanvasViewModel
     
+//    private let pageSize: CGFloat = 1080
+//    private let minPageSize: CGFloat = 361
+    
     init(page: Page? = nil) {
         _viewModel = State(initialValue: CanvasViewModel(page: page))
     }
     
     var body: some View {
         NavigationStack {
-            EditorView(size: .init(width: 350, height: 670), data: viewModel.editorData)
+            EditorView(size: .init(width: 3610, height: 3610), data: viewModel.editorData)
                 .ignoresSafeArea()
                 .toolbar {
                     toolbarContent
