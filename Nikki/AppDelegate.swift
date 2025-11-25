@@ -13,19 +13,21 @@ import SwiftData
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    private let dataManager = SwiftDataManager.shared
-
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-
+        
         // Create the SwiftUI view that provides the window contents.
-        let scenetView = NavigationStack {
-            SceneView()
-        }
-        .modelContainer(SwiftDataManager.shared.container)
+        // Usando in-memory temporariamente para evitar problemas de storage
+        let contentView = SceneView()
+            .modelContainer(for: [Page.self], inMemory: true)
 
         // Use a UIHostingController as window root view controller.
+//        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+//            return false
+//        }
+//        let window = UIWindow(windowScene: windowScene)
         let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = UIHostingController(rootView: scenetView)
+        window.rootViewController = UIHostingController(rootView: contentView)
         self.window = window
         window.makeKeyAndVisible()
         return true
