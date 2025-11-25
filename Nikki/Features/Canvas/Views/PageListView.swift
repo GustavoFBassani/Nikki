@@ -17,7 +17,16 @@ struct PageListView: View {
             List {
                 ForEach(pages) { page in
                     NavigationLink(destination: CanvasView(page: page, paperStyle: page.paperStyle)) {
-                        Text(page.title ?? "Sem título")
+                        VStack(alignment: .leading, spacing: 4){
+                            Text(page.title ?? "Sem título")
+                                .font(.headline)
+                            
+                            if let createdAt = page.createdAt {
+                                Text(createdAt, style: .date)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
+                        }
                     }
                 }
                 .onDelete { indexSet in
