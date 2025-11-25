@@ -11,7 +11,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		B882EA872ED61C77002DB85A /* PBXContainerItemProxy */ = {
+		B882EC562ED64322002DB85A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C43B06CA2ECBF1DE006145AE /* Project object */;
 			proxyType = 1;
@@ -21,7 +21,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		B882EA832ED61C77002DB85A /* NikkiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NikkiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B882EC522ED64322002DB85A /* NikkiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NikkiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C43B06D22ECBF1DE006145AE /* Nikki.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nikki.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C43B06E62ECBF263006145AE /* NikkiProject */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = NikkiProject; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -37,7 +37,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		B882EA842ED61C77002DB85A /* NikkiTests */ = {
+		B882EC532ED64322002DB85A /* NikkiTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = NikkiTests;
 			sourceTree = "<group>";
@@ -53,7 +53,7 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		B882EA802ED61C77002DB85A /* Frameworks */ = {
+		B882EC4F2ED64322002DB85A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -76,7 +76,7 @@
 			children = (
 				C43B06E62ECBF263006145AE /* NikkiProject */,
 				C43B06D42ECBF1DE006145AE /* Nikki */,
-				B882EA842ED61C77002DB85A /* NikkiTests */,
+				B882EC532ED64322002DB85A /* NikkiTests */,
 				C43B06F22ECBF48B006145AE /* Frameworks */,
 				C43B06D32ECBF1DE006145AE /* Products */,
 			);
@@ -86,7 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				C43B06D22ECBF1DE006145AE /* Nikki.app */,
-				B882EA832ED61C77002DB85A /* NikkiTests.xctest */,
+				B882EC522ED64322002DB85A /* NikkiTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -101,27 +101,27 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B882EA822ED61C77002DB85A /* NikkiTests */ = {
+		B882EC512ED64322002DB85A /* NikkiTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B882EA892ED61C77002DB85A /* Build configuration list for PBXNativeTarget "NikkiTests" */;
+			buildConfigurationList = B882EC582ED64322002DB85A /* Build configuration list for PBXNativeTarget "NikkiTests" */;
 			buildPhases = (
-				B882EA7F2ED61C77002DB85A /* Sources */,
-				B882EA802ED61C77002DB85A /* Frameworks */,
-				B882EA812ED61C77002DB85A /* Resources */,
+				B882EC4E2ED64322002DB85A /* Sources */,
+				B882EC4F2ED64322002DB85A /* Frameworks */,
+				B882EC502ED64322002DB85A /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				B882EA882ED61C77002DB85A /* PBXTargetDependency */,
+				B882EC572ED64322002DB85A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				B882EA842ED61C77002DB85A /* NikkiTests */,
+				B882EC532ED64322002DB85A /* NikkiTests */,
 			);
 			name = NikkiTests;
 			packageProductDependencies = (
 			);
 			productName = NikkiTests;
-			productReference = B882EA832ED61C77002DB85A /* NikkiTests.xctest */;
+			productReference = B882EC522ED64322002DB85A /* NikkiTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		C43B06D12ECBF1DE006145AE /* Nikki */ = {
@@ -157,7 +157,7 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					B882EA822ED61C77002DB85A = {
+					B882EC512ED64322002DB85A = {
 						CreatedOnToolsVersion = 26.0.1;
 						TestTargetID = C43B06D12ECBF1DE006145AE;
 					};
@@ -181,13 +181,13 @@
 			projectRoot = "";
 			targets = (
 				C43B06D12ECBF1DE006145AE /* Nikki */,
-				B882EA822ED61C77002DB85A /* NikkiTests */,
+				B882EC512ED64322002DB85A /* NikkiTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		B882EA812ED61C77002DB85A /* Resources */ = {
+		B882EC502ED64322002DB85A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -204,7 +204,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		B882EA7F2ED61C77002DB85A /* Sources */ = {
+		B882EC4E2ED64322002DB85A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -221,15 +221,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		B882EA882ED61C77002DB85A /* PBXTargetDependency */ = {
+		B882EC572ED64322002DB85A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C43B06D12ECBF1DE006145AE /* Nikki */;
-			targetProxy = B882EA872ED61C77002DB85A /* PBXContainerItemProxy */;
+			targetProxy = B882EC562ED64322002DB85A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		B882EA8A2ED61C77002DB85A /* Debug */ = {
+		B882EC592ED64322002DB85A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -250,7 +250,7 @@
 			};
 			name = Debug;
 		};
-		B882EA8B2ED61C77002DB85A /* Release */ = {
+		B882EC5A2ED64322002DB85A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -479,11 +479,11 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B882EA892ED61C77002DB85A /* Build configuration list for PBXNativeTarget "NikkiTests" */ = {
+		B882EC582ED64322002DB85A /* Build configuration list for PBXNativeTarget "NikkiTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B882EA8A2ED61C77002DB85A /* Debug */,
-				B882EA8B2ED61C77002DB85A /* Release */,
+				B882EC592ED64322002DB85A /* Debug */,
+				B882EC5A2ED64322002DB85A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
