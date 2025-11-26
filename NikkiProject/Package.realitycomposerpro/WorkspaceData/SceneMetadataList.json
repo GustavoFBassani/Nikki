@@ -27,6 +27,93 @@
     "objectMetadataList" : [
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2_2"
+      ],
+      {
+        "disallowsFraming" : false,
+        "isExpanded" : false,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Cylinder",
+        "DefaultMaterial"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2_1"
+      ],
+      {
+        "disallowsFraming" : false,
+        "isExpanded" : false,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Cylinder"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material3_28"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material3_38"
+      ],
+      {
+        "disallowsFraming" : true,
+        "isExpanded" : false,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root"
       ],
       {
