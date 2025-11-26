@@ -101,7 +101,7 @@ struct SwiftDataManagerTest {
         let page = Page(title: "Page 1",
                         markupData: nil,
                         paperStyle: "recycledPaper")
-        
+        try? manager.savePage(page)
         let fetchedPage = try? manager.fetchPage(by: page.id)
         
         // Then
