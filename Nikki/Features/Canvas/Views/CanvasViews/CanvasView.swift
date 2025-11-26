@@ -11,16 +11,16 @@ import PhotosUI
 import MusicKit
 import AVFoundation
 
-// MARK: - CanvasView
 struct CanvasView: View {
+    //MARK: VIEW MODEL
     @State var viewModel: CanvasViewModel
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var context
-    
+
     //MARK: UI LOGIC States
     @State var showDeleteAlert: Bool = false
     @State var hiddenTabBarToolKit: Bool = true
     @State var showCheckMark: Bool = false
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var context
     
     init(page: Page? = nil, paperStyle: String? = nil) {
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
@@ -103,7 +103,6 @@ struct CanvasView: View {
     }
     
     
-    
     // MARK: - Toolbar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
@@ -141,7 +140,6 @@ struct CanvasView: View {
             
         }
     }
-        
     
     //        ToolbarItem {
     //            Menu("Itens") {
@@ -182,6 +180,7 @@ struct CanvasView: View {
     //        } // BOTAO ITENS
     //TOOLS E ITENS
     // MARK: - Audio Recorder Sheet
+
     private var audioRecorderSheet: some View {
         VStack(spacing: 16) {
             Text("Gravador de Áudio")
@@ -205,77 +204,6 @@ struct CanvasView: View {
             }
         }
         .padding()
-    } //A
-}
-
-// MARK: - Audio Picker Sheet
-struct AudioPickerSheet: View {
-    @State var audioRecorder: AudioRecorder
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                ForEach(audioRecorder.recordings) { recording in
-                    Button(action: {
-                        audioRecorder.playRecording(url: recording.url)
-                    }) {
-                        HStack {
-                            Image(systemName: "waveform")
-                            Text("Áudio \(recording.sequence + 1)")
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Escolher Áudio")
-        }
-    }
-}
-struct StickersSheet: View {
-    let stickers: [String]
-    let onSelect: (String) -> Void
-    
-    @Environment(\.dismiss) private var dismiss
-    
-
-    
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: [GridItem(),GridItem()], spacing: 37) {
-                    ForEach(stickers, id: \.self) { stickerName in
-                        Button {
-                            onSelect(stickerName)
-                            dismiss()
-                        } label: {
-                            Image(stickerName)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 133, height: 133)
-                                .background(.gray.opacity(0.10))
-                                .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8).stroke(Color.customStroke, lineWidth: 0.5)
-                                )
-                        }
-                    }
-                }
-                .padding()
-            }
-            .navigationTitle("Carimbos")
-//            .navigationTitleFont(<#T##font: UIFont##UIFont#>) COLOCAR A FONTE DE PREFERENCIA AQUIII
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        dismiss()
-                    } label : {
-                        Image(systemName: "xmark")
-                    }
-                }
-            }
-        }
-        .background(Color.clear)
     }
 }
 
