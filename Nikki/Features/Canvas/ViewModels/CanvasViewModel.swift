@@ -118,6 +118,9 @@ class CanvasViewModel {
         }
     }
     
+   
+
+    
     //MARK: - Stickers
     func insertSticker(named name: String) {
           guard let image = UIImage(named: name) else { return }
