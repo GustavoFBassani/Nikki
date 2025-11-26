@@ -19,17 +19,6 @@ class SwiftDataManager {
     let context: ModelContext
     
     // MARK: - Initialization
-//    private init() {
-//        do {
-//            // Configura o container do SwiftData
-//            let schema = Schema([Page.self])
-//            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-//            container = try ModelContainer(for: schema, configurations: [modelConfiguration])
-//            context = ModelContext(container)
-//        } catch {
-//            fatalError("Erro ao criar ModelContainer: \(error)")
-//        }
-//    }
     private init() {
         do {
             // Versão simples e recomendada
