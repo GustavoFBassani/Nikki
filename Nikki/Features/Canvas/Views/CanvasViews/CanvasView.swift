@@ -14,7 +14,7 @@ import AVFoundation
 struct CanvasView: View {
     //MARK: VIEW MODEL
     @State var viewModel: CanvasViewModel
-
+    
     //MARK: UI LOGIC States
     @State var showDeleteAlert: Bool = false
     @State var hiddenTabBarToolKit: Bool = true
@@ -37,8 +37,8 @@ struct CanvasView: View {
                 .overlay(alignment: .bottom) {
                     if hiddenTabBarToolKit {
                         TabBarToolKit(
-                            showPaperKit: {
-                                
+                            showTextEditor: {
+                                viewModel.editorData.insertText(.init("Nikki"), rect: .zero)
                             },
                             showPencilTool: {
                                 viewModel.showTools.toggle()  // mostra o pencilkit
@@ -61,9 +61,6 @@ struct CanvasView: View {
             AudioPickerSheet(audioRecorder: viewModel.audioRecorder)
                 .presentationDetents([.medium])
         }
-        .sheet(isPresented: $viewModel.showAudioRecorder) {
-            audioRecorderSheet
-        }
         .sheet(isPresented: $viewModel.showStickers) {
             StickersSheet(
                 stickers: viewModel.stickers,
@@ -72,7 +69,7 @@ struct CanvasView: View {
                 }
             )
             .presentationDetents([.medium])
-
+            
         }
         .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem)
         .onChange(of: viewModel.photoItem) { _, _ in
@@ -107,14 +104,21 @@ struct CanvasView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
-            Button {
-                
+            Button(role: .destructive) {
+                showDeleteAlert = true
             } label: { Image(.customGarbage) }
             Button {
                 
             } label: { Image(.undo) }
             Button {
-                
+                Task {
+                    do {
+                        try await viewModel.savePage()
+                        dismiss()
+                    } catch {
+                        print("Erro ao salvar: \(error)")
+                    }
+                }
             } label: { Image(.tsuruBird) }
         }
         if showCheckMark  {
@@ -162,14 +166,7 @@ struct CanvasView: View {
     //                    viewModel.showStickers.toggle()
     //                }
     //                Button("Save") {
-    //                    Task {
-    //                        do {
-    //                            try await viewModel.savePage()
-    //                            dismiss()
-    //                        } catch {
-    //                            print("Erro ao salvar: \(error)")
-    //                        }
-    //                    }
+    //                   TIREI DAQUI
     //                }
     //                Button(role: .destructive) {
     //                    showDeleteAlert = true
@@ -180,31 +177,7 @@ struct CanvasView: View {
     //        } // BOTAO ITENS
     //TOOLS E ITENS
     // MARK: - Audio Recorder Sheet
-
-    private var audioRecorderSheet: some View {
-        VStack(spacing: 16) {
-            Text("Gravador de Áudio")
-                .font(.title2)
-                .padding(.top)
-            
-            Button("Iniciar Gravação") {
-                viewModel.startRecording()
-            }
-            
-            Button("Parar e Inserir") {
-                viewModel.stopRecording()
-                
-                if viewModel.audioRecorder.recordings.last != nil {
-                    let image = viewModel.createAudioIcon()
-                    let rect = CGRect(origin: .zero, size: CGSize(width: 60, height: 60))
-                    viewModel.editorData.insertImage(image, rect: rect)
-                }
-                
-                viewModel.showAudioRecorder = false
-            }
-        }
-        .padding()
-    }
+    
 }
 
 #Preview {

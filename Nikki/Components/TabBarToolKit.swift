@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TabBarToolKit: View {
     
-    var showPaperKit: () -> Void
+    var showTextEditor: () -> Void
     var showPencilTool: () -> Void
     var showImages: () -> Void
     var showMusics: () -> Void
@@ -17,7 +17,7 @@ struct TabBarToolKit: View {
     
     var body: some View {
         HStack(spacing: 41) {
-                Button(action: showPaperKit) {
+                Button(action: showTextEditor) {
                     Image("paper")
                 }
                 .padding(.leading, 35)
@@ -49,5 +49,5 @@ struct TabBarToolKit: View {
 }
 
 #Preview {
-    TabBarToolKit(showPaperKit: {}, showPencilTool: {}, showImages: {}, showMusics: {}, showStickers: {})
+    TabBarToolKit(showTextEditor: {}, showPencilTool: {}, showImages: {}, showMusics: {}, showStickers: {})
 }
