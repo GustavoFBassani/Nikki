@@ -28,10 +28,14 @@ class EditorData {
     /// Dados iniciais para carregar uma página existente
     var data: Data?
     
+    /// Paper Style
+    var paperStyle: String?
+    
     // MARK: - Initialization
     
-    init(data: Data?) {
+    init(data: Data?, paperStyle: String?) {
         self.data = data
+        self.paperStyle = paperStyle
     }
     
     // MARK: - Controller Initialization
@@ -77,7 +81,7 @@ class EditorData {
         }
         
         // Configura imagem de fundo (template)
-        let template = UIImage(named: "recycledPaper")
+        let template = UIImage(named: paperStyle ?? "recycledPaper")
         let templateView = UIImageView(image: template)
         controller.contentView = templateView
     }

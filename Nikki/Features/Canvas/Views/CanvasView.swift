@@ -14,12 +14,12 @@ import AVFoundation
 // MARK: - CanvasView
 struct CanvasView: View {
     @State var viewModel: CanvasViewModel
+    @State var showDeleteAlert: Bool = false
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var context
     
-//    private let pageSize: CGFloat = 1080
-//    private let minPageSize: CGFloat = 361
-    
-    init(page: Page? = nil) {
-        _viewModel = State(initialValue: CanvasViewModel(page: page))
+    init(page: Page? = nil, paperStyle: String? = nil) {
+        _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
     }
     
     var body: some View {
@@ -55,6 +55,27 @@ struct CanvasView: View {
                 await viewModel.handlePhotoSelection()
             }
         }
+        
+        .alert(
+            "Delete page?",
+            isPresented: $showDeleteAlert
+        ) {
+            Button("Cancel", role: .cancel) {
+            }
+            
+            Button("Delete", role: .destructive) {
+                do {
+                    try viewModel.deleteCurrentPage(using: context)
+                        dismiss()
+                    } catch {
+                        print("Failed to delete page: \(error)")
+                }
+                dismiss()
+            }
+        } message: {
+            Text("This action can't be undone, are you sure you want to delete this page?")
+        }
+
     }
     
     // MARK: - Toolbar
@@ -87,14 +108,20 @@ struct CanvasView: View {
                 Button ("Stickers"){
                     viewModel.showStickers.toggle()
                 }
-                Button("Salvar") {
+                Button("Save") {
                     Task {
                         do {
                             try await viewModel.savePage()
+                            dismiss()
                         } catch {
                             print("Erro ao salvar: \(error)")
                         }
                     }
+                }
+                Button(role: .destructive) {
+                    showDeleteAlert = true
+                } label: {
+                    Text("Delete")
                 }
             }
         }

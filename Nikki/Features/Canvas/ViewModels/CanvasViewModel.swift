@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 import PaperKit
 import PhotosUI
 import MusicKit
@@ -62,10 +63,13 @@ class CanvasViewModel {
     // MARK: - Page Reference
     var currentPage: Page?
     
+    let paperStyle: String?
+    
     // MARK: - Initialization
-    init(page: Page? = nil) {
+    init(page: Page? = nil, paperStyle: String?) {
         self.currentPage = page
-        self.editorData = EditorData(data: page?.markupData)
+        self.paperStyle = paperStyle
+        self.editorData = EditorData(data: page?.markupData, paperStyle: paperStyle)
     }
     
     // MARK: - Audio Methods
@@ -138,10 +142,19 @@ class CanvasViewModel {
             try dataManager.updatePage(page)
         } else {
             // Cria nova página
-            let newPage = Page(title: "Nova Página", markupData: data)
+            let newPage = Page(title: "Nova Página", markupData: data, paperStyle: paperStyle)
             try dataManager.savePage(newPage)
             currentPage = newPage
         }
+    }
+    
+    func deleteCurrentPage(using context: ModelContext) throws {
+        guard let page = currentPage else { return }
+        
+        context.delete(page)
+        try context.save()
+        
+        currentPage = nil
     }
     
     // MARK: - Photo Handling

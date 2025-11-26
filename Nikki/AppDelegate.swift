@@ -24,7 +24,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         .modelContainer(SwiftDataManager.shared.container)
 
         // Use a UIHostingController as window root view controller.
-        let window = UIWindow(frame: UIScreen.main.bounds)
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            return false
+        }
+        let window = UIWindow(windowScene: windowScene)
         window.rootViewController = UIHostingController(rootView: scenetView)
         self.window = window
         window.makeKeyAndVisible()
