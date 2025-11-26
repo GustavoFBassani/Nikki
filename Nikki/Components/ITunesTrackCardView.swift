@@ -54,9 +54,6 @@ struct ITunesTrackCardView: View {
                     .fill(Color.iTunesCardBackground)
             )
         }
-//        .frame(width: 384, height: 384, alignment: .leading)
-//        .frame(width: 384, height: 384)
-
     }
 }
 
@@ -73,7 +70,7 @@ struct ITunesTrackCardView: View {
             ),
             cover: UIImage(named: "coverTeste")
         )
-        .frame(width: 615, height: 384) // 👈 aqui sim
+        .frame(width: 615, height: 384) 
         .padding()
     }
 }

@@ -36,7 +36,7 @@ struct PageListView: View {
                     }
                     try? context.save()
                 }
-            }
+            }            
             
             .navigationTitle("Minhas Páginas")
             
