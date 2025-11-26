@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+//MARK: Essa tela navega pro canvasView depois de colocar o papel...
 struct PageListView: View {
     @Query var pages: [Page]
     @Environment(\.modelContext) private var context

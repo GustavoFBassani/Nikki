@@ -63,19 +63,28 @@ class SceneViewModel {
     }
     
     func rotate(dTheta: Float, dPhi: Float) {
-        
-        // MARK: - Controle de Rotação
-        
-        /// Rotaciona a câmera orbital baseado no movimento do dedo na tela
+        /// Rotaciona a câmera orbital em torno da cena com base no gesto de arrastar.
         ///
-        /// **Parâmetros:**
-        /// - `dPhi`: Delta dPhi (movimento horizontal em pixels)
-        /// - `dTheta`: Delta dTheta (movimento vertical em pixels)
+        /// Use esta função para atualizar os ângulos esféricos da câmera e, em seguida,
+        /// recalcular sua posição olhando para a origem (0, 0, 0). Os deltas recebidos
+        /// normalmente vêm de um `DragGesture` na tela e são convertidos em variações
+        /// nos ângulos azimutal (θ) e polar (φ).
         ///
-        /// **Comportamento (Drag Scene):**
-        /// - Arrastar para Direita (dTheta > 0): A cena gira para direita (Câmera orbita para esquerda) -> Theta diminui
-        /// - Arrastar para Baixo (dPhi > 0): A cena inclina para baixo (Câmera sobe para o topo) -> Phi diminui
-        
+        /// Comportamento (arrastar a cena):
+        /// - Arrastar para a direita (dTheta > 0): a cena parece girar para a direita
+        ///   (a câmera orbita para a esquerda) → `theta` diminui.
+        /// - Arrastar para baixo (dPhi > 0): a cena inclina para baixo
+        ///   (a câmera sobe em direção ao topo) → `phi` diminui.
+        ///
+        /// A função também limita `phi` para evitar que a câmera ultrapasse os polos,
+        /// garantindo um intervalo confortável de visualização.
+        ///
+        /// - Parameters:
+        ///   - dTheta: Delta horizontal do gesto (em pixels ou pontos), aplicado ao azimute (θ).
+        ///   - dPhi: Delta vertical do gesto (em pixels ou pontos), aplicado à elevação (φ).
+        ///
+        /// - Note: Após ajustar `theta` e `phi`, a função chama `updateCamera()`
+        ///   para aplicar imediatamente a nova posição/olhar da câmera.
         // Atualiza theta (rotação horizontal - Azimute)
         // Invertido (-=) para sensação de "pegar e arrastar" a cena
         theta -= dTheta * 0.01
@@ -144,3 +153,4 @@ class SceneViewModel {
         camera.look(at: [0, 0, 0], from: camera.position, relativeTo: nil)
     }
 }
+
