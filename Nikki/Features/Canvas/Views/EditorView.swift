@@ -52,6 +52,6 @@ private struct PaperControllerView: UIViewControllerRepresentable {
     
 }
 
-//#Preview {
-//    EditorView(size: .init(width: 390, height: 844), data: EditorData())
-//}
+#Preview {
+    EditorView(size: .init(width: 390, height: 844), data: EditorData(data: .init(), paperStyle: "recycledPaper"))
+}

@@ -72,14 +72,14 @@ class CanvasViewModel {
         self.editorData = EditorData(data: page?.markupData, paperStyle: paperStyle)
     }
     
-    // MARK: - Audio Methods
-    func startRecording() {
-        audioRecorder.startRecording()
-    }
-    
-    func stopRecording() {
-        audioRecorder.stopRecording()
-    }
+//    // MARK: - Audio Methods
+//    func startRecording() {
+//        audioRecorder.startRecording()
+//    }
+//    
+//    func stopRecording() {
+//        audioRecorder.stopRecording()
+//    }
     
     /// Cria um ícone visual para representar áudio
     func createAudioIcon() -> UIImage {
