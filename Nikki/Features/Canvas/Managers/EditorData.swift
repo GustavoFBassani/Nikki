@@ -103,6 +103,11 @@ class EditorData {
         // Atualiza o controller
         refreshController()
     }
+    /// Desfaz última ação
+    func undo() {
+        controller?.undoManager?.undo()
+    }
+
     
     /// Insere uma imagem no markup
     /// - Parameters:

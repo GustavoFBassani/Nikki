@@ -177,7 +177,7 @@ struct CanvasView: View {
     /// Desfaz a última ação no canvas
     /// TODO: Implementar funcionalidade de undo
     private func handleUndo() {
-        // TODO: Implement undo functionality
+        viewModel.undoAction()
     }
     
     /// Salva a página atual no SwiftData e fecha a view
