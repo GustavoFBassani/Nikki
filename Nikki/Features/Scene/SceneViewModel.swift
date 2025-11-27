@@ -47,6 +47,8 @@ class SceneViewModel {
     // Objects positions
     var obj: Entity?
     
+    var tree: Entity?
+    
     var data = SwiftDataManager.shared
     var orderedPages: [Page?] = []
     var positions: [SIMD3<Float>] = [
@@ -78,6 +80,7 @@ class SceneViewModel {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
             let scene = try await Entity(named: "Scene", in: nikkiProjectBundle)
             self.scene = scene
+            tree = scene.findEntity(named: "Cherry_Tree_2")
             
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
@@ -86,7 +89,7 @@ class SceneViewModel {
             self.camera = camera
             
 //            try orderedPages = data.fetchAllPages()
-//            await loadPages()
+            await loadPages()
             
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
             updateCamera()
@@ -150,36 +153,37 @@ class SceneViewModel {
     }
     
     private func updateCamera() {
-        
-        // MARK: - Atualização da Câmera
-        
-        /// **Mapeamento de Eixos:**
-        /// - Math X  -> RealityKit X
-        /// - Math Y  -> RealityKit Z (Profundidade)
-        /// - Math Z  -> RealityKit Y (Altura)
-        
-        // Garante que a câmera existe antes de tentar atualizar
-        guard let camera else { return }
-        
-        
-        // 1. Cálculo Matemático (Convenção ISO: Z é altura)
-        // x = ρ * sin(φ) * cos(θ)
-        // y = ρ * sin(φ) * sin(θ)
-        // z = ρ * cos(φ)
-        let mathX = rho * sin(phi) * cos(theta)
-        let mathY = rho * sin(phi) * sin(theta)
-        let mathZ = rho * cos(phi)
-        
-        // pos arv -3.8192542, -5.0, 3.6760635
-//        let treePosition: SIMD3<Float> = [-3.8, -5.0, 3.7]
-        
-        // posição câmera  ( x  ,   z  ,   y)
-        camera.position = [mathX, mathZ, mathY]
-        
-        
-        // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
-        camera.look(at: [0,0,0], from: camera.position, relativeTo: nil)
-    }
+            
+            // MARK: - Atualização da Câmera
+            
+            /// **Mapeamento de Eixos:**
+            /// - Math X  -> RealityKit X
+            /// - Math Y  -> RealityKit Z (Profundidade)
+            /// - Math Z  -> RealityKit Y (Altura)
+            
+            // Garante que a câmera existe antes de tentar atualizar
+            guard let camera else { return }
+            
+            // 1. Cálculo Matemático (Convenção ISO: Z é altura)
+            // x = ρ * sin(φ) * cos(θ)
+            // y = ρ * sin(φ) * sin(θ)
+            // z = ρ * cos(φ)
+            
+            if let tree {
+                
+                
+                let mathX = rho * sin(phi) * cos(theta) + tree.position.x - 5
+                let mathY = rho * sin(phi) * sin(theta) + tree.position.z
+                let mathZ = rho * cos(phi) + tree.position.y
+                
+                
+                // posição câmera  ( x  ,   z  ,   y)
+                camera.position = [mathX, mathZ, mathY]
+                
+                // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
+                camera.look(at: [tree.position.x - 5, tree.position.y, tree.position.z], from: camera.position, relativeTo: nil)
+            }
+        }
     
     func loadPages() async {
         do {
@@ -190,8 +194,10 @@ class SceneViewModel {
             
             // Only for placement test
             for i in 0..<positions.count {
-                let obj = try await Entity(named: "Cube", in: nikkiProjectBundle)
-                print(obj.debugDescription)
+                let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
+//                print(obj.debugDescription)
+                print(obj.scale)
+                obj.scale = [0.003,0.003, 0.003]
                 obj.position = positions[i]
                 scene.addChild(obj)
             }
