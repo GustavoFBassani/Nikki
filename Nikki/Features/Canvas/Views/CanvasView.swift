@@ -30,6 +30,7 @@ struct CanvasView: View {
     /// - Parameters:
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
+
     init(page: Page? = nil, paperStyle: String? = nil) {
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
     }
@@ -214,6 +215,9 @@ struct CanvasView: View {
 }
 
 // MARK: - Preview
+
+
 #Preview {
-    CanvasView()
+    Text("Delete")
+    .font(.custom("Caveat-Regular", size: 99))
 }

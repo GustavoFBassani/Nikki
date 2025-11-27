@@ -18,7 +18,16 @@ struct PageListView: View {
             List {
                 ForEach(pages) { page in
                     NavigationLink(destination: CanvasView(page: page, paperStyle: page.paperStyle)) {
-                        Text(page.title ?? "Sem título")
+                        VStack(alignment: .leading, spacing: 4){
+                            Text(page.title ?? "Sem título")
+                                .font(.headline)
+                            
+                            if let createdAt = page.createdAt {
+                                Text(createdAt, style: .date)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
+                        }
                     }
                 }
                 .onDelete { indexSet in
@@ -29,7 +38,7 @@ struct PageListView: View {
                     try? context.save()
                 }
             }
-            .navigationTitle("Minhas Páginas")
+            .navigationTitle("Minhas Páginas")            
             .toolbar {
                 Menu {
                     ForEach(PaperStyles.allCases, id: \.self) { style in
@@ -50,4 +59,8 @@ struct PageListView: View {
             
         }
     }
+}
+
+#Preview {
+    PageListView()
 }
