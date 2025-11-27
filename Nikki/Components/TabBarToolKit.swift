@@ -18,7 +18,7 @@ struct TabBarToolKit: View {
     var body: some View {
         HStack(spacing: 41) {
                 Button(action: showTextEditor) {
-                    Image("paper")
+                    Image("folha")
                 }
                 .padding(.leading, 35)
 

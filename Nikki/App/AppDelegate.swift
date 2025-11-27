@@ -16,7 +16,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private let dataManager = SwiftDataManager.shared
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-
         // Create the SwiftUI view that provides the window contents.
         let scenetView = NavigationStack {
             SceneView()
