@@ -36,8 +36,10 @@ struct PageListView: View {
                     }
                     try? context.save()
                 }
-            }
+            }            
+            
             .navigationTitle("Minhas Páginas")
+            
             .toolbar {
                 Menu {
                     ForEach(PaperStyles.allCases, id: \.self) { style in

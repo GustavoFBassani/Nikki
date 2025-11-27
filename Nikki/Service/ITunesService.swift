@@ -78,10 +78,10 @@ class ITunesService {
         }
     }
     
-    /// Cria uma imagem de card do iTunes para inserir no canvas
+    // Cria uma imagem de card do iTunes para inserir no canvas
     /// - Parameters:
-    ///   - track: Track do iTunes
-    ///   - cover: Imagem da capa (opcional)
+    /// - track: Track do iTunes
+    /// - cover: Imagem da capa
     /// - Returns: Imagem do card pronta para inserir
     func createTrackCard(track: ITunesTrack, cover: UIImage?) -> UIImage {
         let size = CGSize(width: 615, height: 384)

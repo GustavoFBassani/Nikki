@@ -18,6 +18,7 @@ struct CanvasView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     
+    
     init(page: Page? = nil, paperStyle: String? = nil) {
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
     }
@@ -222,3 +223,8 @@ struct StickersSheet: View {
     }
 }
 
+
+#Preview {
+    Text("Delete")
+    .font(.custom("Caveat-Regular", size: 99))
+}

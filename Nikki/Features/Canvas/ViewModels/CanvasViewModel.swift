@@ -109,14 +109,18 @@ class CanvasViewModel {
             let cardImage = iTunesService.createTrackCard(track: track, cover: cover)
             
             // Insere no canvas
-            let size = CGSize(width: 250, height: 100)
-            let origin = CGPoint(x: 20, y: 20)
+            let size = CGSize(width: 300, height: 150)
+            let origin = CGPoint(x: 50, y: 70)
             editorData.insertImage(cardImage, rect: CGRect(origin: origin, size: size))
             
             // Toca o preview
             audioPlayer.play(url: track.previewURL)
         }
+
     }
+    
+   
+
     
     //MARK: - Stickers
     func insertSticker(named name: String) {
