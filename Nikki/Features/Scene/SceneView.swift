@@ -103,7 +103,5 @@ struct SceneView: View {
 
     }
 }
-    
-    #Preview {
-        SceneView()
-    }
+
+

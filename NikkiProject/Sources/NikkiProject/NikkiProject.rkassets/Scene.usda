@@ -13,7 +13,7 @@ def "Root" (
     customData = {
         float3 rotationEulerHint = (0, 0, 0)
     }
-    prepend references = @Scene.usdz@</Root>
+    references = @Scene.usdz@</Root>
 )
 {
     reorder nameChildren = ["Cherry_Tree_2", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material", "Cylinder"]
@@ -184,7 +184,7 @@ def "Root" (
         customData = {
             float3 rotationEulerHint = (0, 0, 0)
         }
-        prepend references = @Cherry_Tree-2.usdz@
+        references = @Cherry_Tree-2.usdz@
     )
     {
         quatf xformOp:orient = (1, 0, 0, 0)
@@ -206,7 +206,7 @@ def "Root" (
 
     def "Japanese_garden" (
         active = true
-        prepend references = @Japanese_garden.usdz@
+        references = @Japanese_garden.usdz@
     )
     {
         float3 xformOp:scale = (0.05, 0.05, 0.05)
@@ -791,6 +791,518 @@ def "Root" (
     )
     {
         float3 xformOp:translate = (0.6021519, 0.08214331, -27.95842)
+    }
+}
+
+def Cube "Cube_8" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_8/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (180, 180)
+    int ui:nodegraph:node:stackingOrder = 9
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-1.7562534, 0.40212214, 1.6020453)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_8/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_7" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_7/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (160, 160)
+    int ui:nodegraph:node:stackingOrder = 8
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-2.8551676, -0.75198674, 2.5822372)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_7/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_6" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_6/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (140, 140)
+    int ui:nodegraph:node:stackingOrder = 7
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-2.6366322, -0.9384089, 2.4565907)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_6/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_5" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_5/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (120, 120)
+    int ui:nodegraph:node:stackingOrder = 6
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-3.152085, -0.59532636, 2.794426)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_5/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_4" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_4/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (100, 100)
+    int ui:nodegraph:node:stackingOrder = 5
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-3.4327657, -0.3491223, 3.103986)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_4/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_3" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_3/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (80, 80)
+    int ui:nodegraph:node:stackingOrder = 4
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-3.6936524, -0.34912252, 3.3846002)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_3/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_2" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_2/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (60, 60)
+    int ui:nodegraph:node:stackingOrder = 3
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-2.8125756, -0.42199135, 5.009314)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_2/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_1" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_1/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (40, 40)
+    int ui:nodegraph:node:stackingOrder = 2
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-3.2380278, -0.5770068, 5.009314)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_1/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (20, 20)
+    int ui:nodegraph:node:stackingOrder = 1
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-4.1544633, -0.44251108, 5.462732)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_9" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_9/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (40, 40)
+    int ui:nodegraph:node:stackingOrder = 2
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-4.154463, -0.028392285, 5.736276)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_9/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_10" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_10/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (60, 60)
+    int ui:nodegraph:node:stackingOrder = 3
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-5.1599855, 1.7770382, 5.84439)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_10/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_11" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_11/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (80, 80)
+    int ui:nodegraph:node:stackingOrder = 4
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-6.025975, 1.6707641, 5.575284)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_11/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_12" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_12/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (100, 100)
+    int ui:nodegraph:node:stackingOrder = 5
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-5.8147073, 1.4254562, 5.4304585)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_12/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_13" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_13/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (120, 120)
+    int ui:nodegraph:node:stackingOrder = 6
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-5.3358197, 0.85689783, 5.1057296)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_13/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_14" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_14/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (140, 140)
+    int ui:nodegraph:node:stackingOrder = 7
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-5.150784, 0.47735488, 4.8907447)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_14/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
+    }
+}
+
+def Cube "Cube_15" (
+    active = true
+    prepend apiSchemas = ["MaterialBindingAPI"]
+)
+{
+    rel material:binding = </Cube_15/DefaultMaterial>
+    double size = 0.2
+    float2 ui:nodegraph:node:pos = (200, 200)
+    int ui:nodegraph:node:stackingOrder = 10
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
+    float3 xformOp:translate = (-2.0323606, 0.27860117, 1.9455891)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    def Material "DefaultMaterial"
+    {
+        token outputs:mtlx:surface
+        token outputs:realitykit:vertex
+        token outputs:surface.connect = </Cube_15/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+        def Shader "DefaultSurfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0.43494487, 1, 0.26108223) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:roughness = 0.75
+            token outputs:surface
+        }
     }
 }
 

@@ -9,6 +9,7 @@ import SwiftUI
 import RealityKit
 import NikkiProject
 
+@MainActor
 @Observable
 class SceneViewModel {
     
@@ -43,6 +44,35 @@ class SceneViewModel {
     /// Deve corresponder ao valor inicial de rho para evitar saltos no primeiro zoom
     private let baseRho: Float = 10.0
     
+    // Objects positions
+    var obj: Entity?
+    
+    var data = SwiftDataManager.shared
+    var orderedPages: [Page?] = []
+    var positions: [SIMD3<Float>] = [
+        SIMD3<Float>(-1.7,  0.4, 1.6),
+        SIMD3<Float>(-2.8, -0.7, 2.5),
+        SIMD3<Float>(-2.6, -0.9, 2.4),
+        SIMD3<Float>(-3.1, -0.5, 2.7),
+        SIMD3<Float>(-3.4, -0.3, 3.1),
+        SIMD3<Float>(-3.6, -0.3, 3.3),
+        SIMD3<Float>(-2.8, -0.4, 5.0),
+        SIMD3<Float>(-3.2, -0.5, 5.0),
+        SIMD3<Float>(-4.1, -0.4, 5.4),
+        SIMD3<Float>(-4.1,  0.0, 5.7),
+        SIMD3<Float>(-5.1,  1.8, 5.8),
+        SIMD3<Float>(-6.0,  1.7, 5.6),
+        SIMD3<Float>(-5.8,  1.4, 5.4),
+        SIMD3<Float>(-5.3,  0.9, 5.1),
+        SIMD3<Float>(-5.1,  0.5, 4.9),
+        SIMD3<Float>(-2.0,  0.3, 1.9)
+    ]
+
+//    var selectedEntityName: Entity? = nil
+//    var dic: [Entity:Page] = [:]
+//    var currentPage: Page? = nil
+    
+    
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
@@ -54,6 +84,9 @@ class SceneViewModel {
             let camera = PerspectiveCamera()
             scene.addChild(camera)
             self.camera = camera
+            
+//            try orderedPages = data.fetchAllPages()
+//            await loadPages()
             
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
             updateCamera()
@@ -128,6 +161,7 @@ class SceneViewModel {
         // Garante que a câmera existe antes de tentar atualizar
         guard let camera else { return }
         
+        
         // 1. Cálculo Matemático (Convenção ISO: Z é altura)
         // x = ρ * sin(φ) * cos(θ)
         // y = ρ * sin(φ) * sin(θ)
@@ -136,11 +170,98 @@ class SceneViewModel {
         let mathY = rho * sin(phi) * sin(theta)
         let mathZ = rho * cos(phi)
         
+        // pos arv -3.8192542, -5.0, 3.6760635
+//        let treePosition: SIMD3<Float> = [-3.8, -5.0, 3.7]
         
         // posição câmera  ( x  ,   z  ,   y)
         camera.position = [mathX, mathZ, mathY]
         
+        
         // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
-        camera.look(at: [0, 0, 0], from: camera.position, relativeTo: nil)
+        camera.look(at: [0,0,0], from: camera.position, relativeTo: nil)
     }
+    
+    func loadPages() async {
+        do {
+            guard let scene else {
+                print("Cena não carregada")
+                return
+            }
+            
+            // Only for placement test
+            for i in 0..<positions.count {
+                let obj = try await Entity(named: "Cube", in: nikkiProjectBundle)
+                print(obj.debugDescription)
+                obj.position = positions[i]
+                scene.addChild(obj)
+            }
+        }
+        catch {
+            print("n peguei o obj")
+        }
+    }
+    
+//    func loadPages() async {
+//        do {
+//            guard let scene = self.scene else {
+//                print("❌ Cena não carregada")
+//                return
+//            }
+//
+//
+//                while count != 2 {
+//                    // Tenta encontrar o marcador pelo nome
+//                    guard let marker = scene.findEntity(named: "Slot" + "\(count+1)") else {
+//                        print("❌ Marcador Slot1 não encontrado na cena")
+//                        return
+//                    }
+//                    do {
+//                        if let page = pages[count] {
+//                            // Carrega o objeto (ajuste o nome conforme seu asset)
+//                            let obj = try await Entity(named: "Earth", in: nikkiProjectBundle)
+//
+//                            obj.generateCollisionShapes(recursive: true)
+//                            obj.components[InputTargetComponent.self] = .init()
+//
+//                            // 🟢 Opção 1: Adiciona como filho do marcador (recomendado)
+//                            marker.addChild(obj)
+//
+//                            dic.updateValue(page, forKey: obj)
+//
+//                            // 🔴 Alternativa (caso prefira adicionar na cena diretamente com posição absoluta):
+//                            // obj.transform = marker.transformMatrix(relativeTo: nil)
+//                            // scene.addChild(obj)
+//                        }
+//                    } catch {
+//                        print("❌ Erro ao carregar objeto 3D: \(error)")
+//                    }
+//                    count += 1
+//                }
+//
+//
+//
+//        }
+//    }
+    
+//    func handleTap(on entity: Entity) {
+//        print("👉 Tocou na entidade: \(entity.name)")
+//
+//        var current: Entity? = entity
+//
+//        // Sobe pela hierarquia até encontrar uma entidade registrada
+//        while let ent = current {
+//            if let page = dic[ent] {
+//                print("✅ Encontrou entidade associada: \(ent.name)")
+//                currentPage = nil
+//                self.currentPage = page
+//                return
+//            }
+//            current = ent.parent
+//        }
+//
+//        print("❌ Nenhuma entidade registrada encontrada na hierarquia")
+//    }
+
 }
+
+
