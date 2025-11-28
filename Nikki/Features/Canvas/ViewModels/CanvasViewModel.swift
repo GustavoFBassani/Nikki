@@ -72,13 +72,8 @@ class CanvasViewModel {
         self.editorData = EditorData(data: page?.markupData, paperStyle: paperStyle)
     }
     
-    // MARK: - Audio Methods
-    func startRecording() {
-        audioRecorder.startRecording()
-    }
-    
-    func stopRecording() {
-        audioRecorder.stopRecording()
+    func undoAction() {
+        editorData.undo()
     }
     
     /// Cria um ícone visual para representar áudio
@@ -116,11 +111,7 @@ class CanvasViewModel {
             // Toca o preview
             audioPlayer.play(url: track.previewURL)
         }
-
     }
-    
-   
-
     
     //MARK: - Stickers
     func insertSticker(named name: String) {

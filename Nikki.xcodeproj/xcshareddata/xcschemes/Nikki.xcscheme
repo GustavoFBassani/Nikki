@@ -35,7 +35,7 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B882EC3F2ED642DD002DB85A"
+               BlueprintIdentifier = "B882EC512ED64322002DB85A"
                BuildableName = "NikkiTests.xctest"
                BlueprintName = "NikkiTests"
                ReferencedContainer = "container:Nikki.xcodeproj">

@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+//MARK: Essa tela navega pro canvasView depois de colocar o papel...
 struct PageListView: View {
     @Query var pages: [Page]
     @Environment(\.modelContext) private var context
@@ -36,10 +37,8 @@ struct PageListView: View {
                     }
                     try? context.save()
                 }
-            }            
-            
-            .navigationTitle("Minhas Páginas")
-            
+            }
+            .navigationTitle("Minhas Páginas")            
             .toolbar {
                 Menu {
                     ForEach(PaperStyles.allCases, id: \.self) { style in
@@ -60,4 +59,8 @@ struct PageListView: View {
             
         }
     }
+}
+
+#Preview {
+    PageListView()
 }
