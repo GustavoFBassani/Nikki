@@ -20,6 +20,7 @@ class CanvasViewModel {
     private let dataManager = SwiftDataManager.shared
     let audioRecorder = AudioRecorder()
     private let audioPlayer = AudioPlayer.shared
+    private let canvasSize = CGSize(width: 3610, height: 3610)
     
     // MARK: - Editor Data
     var editorData: EditorData
@@ -76,6 +77,14 @@ class CanvasViewModel {
         editorData.undo()
     }
     
+    private func centeredRect(for itemSize: CGSize) -> CGRect {
+        let origin = CGPoint(
+            x: (canvasSize.width  - itemSize.width)  / 2,
+            y: (canvasSize.height - itemSize.height) / 2
+        )
+        return CGRect(origin: origin, size: itemSize)
+    }
+    
     /// Cria um ícone visual para representar áudio
     func createAudioIcon() -> UIImage {
         let size = CGSize(width: 60, height: 60)
@@ -105,8 +114,10 @@ class CanvasViewModel {
             
             // Insere no canvas
             let size = CGSize(width: 300, height: 150)
-            let origin = CGPoint(x: 50, y: 70)
-            editorData.insertImage(cardImage, rect: CGRect(origin: origin, size: size))
+            let rect = centeredRect(for: size)
+            
+//            let origin = CGPoint(x: 50, y: 70)
+            editorData.insertImage(cardImage, rect: rect)
             
             // Toca o preview
             audioPlayer.play(url: track.previewURL)
@@ -118,8 +129,8 @@ class CanvasViewModel {
           guard let image = UIImage(named: name) else { return }
           
           let size = CGSize(width: 200, height: 200)
-          let origin = CGPoint(x: 20, y: 20)
-          let rect = CGRect(origin: origin, size: size)
+//          let origin = CGPoint(x: 20, y: 20)
+          let rect = centeredRect(for: size)
           
           editorData.insertImage(image, rect: rect)
       }
@@ -164,13 +175,25 @@ class CanvasViewModel {
                 return
             }
             
+            let size = CGSize(width: 300, height: 300)
+            let rect = centeredRect(for: size)
+            
             editorData.insertImage(
                 image,
-                rect: CGRect(origin: .zero, size: CGSize(width: 100, height: 100))
+                rect: rect
             )
             self.photoItem = nil
         } catch {
             print("Erro ao carregar foto: \(error)")
         }
+    }
+    
+    func insertDefaultText(_ string: String = "Nikki") {
+        let attributed = NSAttributedString(string: string)
+        
+        let size = CGSize(width: 600, height: 120)
+        let rect = centeredRect(for: size)
+        
+        editorData.insertText(attributed, rect: rect)
     }
 }
