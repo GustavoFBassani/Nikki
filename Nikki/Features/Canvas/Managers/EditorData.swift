@@ -54,6 +54,10 @@ class EditorData {
         // controller.delegate = self
         controller.loadViewIfNeeded()
         
+        let canvasBackground = UIColor(named: "canvasBackground")
+        controller.view.backgroundColor = canvasBackground
+
+        
         // Cria o modelo de markup novo
         var markup = PaperMarkup(bounds: rect)
         
