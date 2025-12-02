@@ -80,6 +80,7 @@ class EditorData {
             self.controller?.zoomRange = 0.1...3.5
         }
         
+        //TODO: ENTENDER COMO ESSE CONTENT PODE IR COMO IMAGEM DE FUNDO.
         // Configura imagem de fundo (template)
         let template = UIImage(named: paperStyle ?? "recycledPaper")
         let templateView = UIImageView(image: template)
@@ -180,7 +181,16 @@ class EditorData {
             return nil
         }
 
+        // Desenha o contentView (fundo) primeiro
+        if let contentView = controller?.contentView {
+            UIGraphicsPushContext(context)
+            contentView.layer.render(in: context)
+            UIGraphicsPopContext()
+        }
+
+        // Depois desenha o markup por cima
         await markup.draw(in: context, frame: rect)
+        
         guard let cgImage = context.makeImage() else {
             return nil
         }
