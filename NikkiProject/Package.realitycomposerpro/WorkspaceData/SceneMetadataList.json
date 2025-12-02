@@ -49,10 +49,14 @@
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
-        "Japanese_Red_Bridge"
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2_1"
       ],
       {
-        "disallowsFraming" : true,
+        "disallowsFraming" : false,
         "isExpanded" : false,
         "isLocked" : false
       },
@@ -72,28 +76,6 @@
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
-        "Japanese_garden",
-        "Meshes",
-        "Sketchfab_model",
-        "Collada_visual_scene_group",
-        "Material2_2"
-      ],
-      {
-        "disallowsFraming" : false,
-        "isExpanded" : false,
-        "isLocked" : false
-      },
-      [
-        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
-        "Root"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
-        "Root",
         "Cylinder",
         "DefaultMaterial"
       ],
@@ -104,14 +86,10 @@
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
-        "Japanese_garden",
-        "Meshes",
-        "Sketchfab_model",
-        "Collada_visual_scene_group",
-        "Material2_1"
+        "Japanese_Red_Bridge"
       ],
       {
-        "disallowsFraming" : false,
+        "disallowsFraming" : true,
         "isExpanded" : false,
         "isLocked" : false
       },
@@ -131,6 +109,14 @@
       },
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
         "Japanese_garden",
         "Meshes",
@@ -140,6 +126,28 @@
       ],
       {
         "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Cube_13"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2_2"
+      ],
+      {
+        "disallowsFraming" : false,
+        "isExpanded" : false,
         "isLocked" : false
       }
     ]

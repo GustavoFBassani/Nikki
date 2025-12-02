@@ -67,7 +67,25 @@ class SceneViewModel {
         SIMD3<Float>(-5.8,  1.4, 5.4),
         SIMD3<Float>(-5.3,  0.9, 5.1),
         SIMD3<Float>(-5.1,  0.5, 4.9),
-        SIMD3<Float>(-2.0,  0.3, 1.9)
+        SIMD3<Float>(-2.0,  0.3, 1.9),
+        SIMD3<Float>(-3.09, 0.67, 4.58),
+        SIMD3<Float>(-3.0, 0.86, 4.35),
+        SIMD3<Float>(-2.87, 1.01, 4.14),
+        SIMD3<Float>(-2.79, 1.2, 3.95),
+        SIMD3<Float>(-2.69, 1.56, 3.97),
+        SIMD3<Float>(-2.66, 1.59, 5.01),
+        SIMD3<Float>(-2.35, 1.6, 5.1),
+        SIMD3<Float>(-2.36, 1.8, 5.3),
+        SIMD3<Float>(-2.2, 1.9, 5.5),
+        SIMD3<Float>(-3.38, 0.69, 4.47),
+        SIMD3<Float>(-3.23, 0.67, 4.26),
+        SIMD3<Float>(-3.04, 0.66, 4.1),
+        SIMD3<Float>(-2.78, 0.41, 4.118),
+        SIMD3<Float>(-2.54, 0.28, 4.08),
+        
+        
+        
+        
     ]
 
 //    var selectedEntityName: Entity? = nil
@@ -269,5 +287,3 @@ class SceneViewModel {
 //    }
 
 }
-
-
