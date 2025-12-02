@@ -12,8 +12,10 @@ import NikkiProject
 @Observable
 class SceneViewModel {
     
+    //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
+    var tsuru: Entity?
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena
@@ -51,8 +53,8 @@ class SceneViewModel {
             self.scene = scene
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
+            tsuru = scene.findEntity(named: "tsuru")
             
-            print(tree)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
             let camera = PerspectiveCamera()
@@ -66,6 +68,15 @@ class SceneViewModel {
         }
     }
     
+    //MARK: - ENTITIES ANIMATIONS
+    func playTsuruAnimation() {
+        if let tsuruAnimation = tsuru?.availableAnimations.first {
+
+            tsuru?.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
+        }
+    }
+    
+    //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
         /// Rotaciona a câmera orbital em torno da cena com base no gesto de arrastar.
         ///

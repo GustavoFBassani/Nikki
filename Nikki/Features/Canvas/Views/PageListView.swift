@@ -43,10 +43,7 @@ struct PageListView: View {
                 Menu {
                     ForEach(PaperStyles.allCases, id: \.self) { style in
                         NavigationLink(
-                            destination: CanvasView(
-                                page: nil,
-                                paperStyle: style.name
-                            )
+                            destination: CanvasView(page: nil, paperStyle: style.name)
                         ) {
                             Text(style.title)
                         }

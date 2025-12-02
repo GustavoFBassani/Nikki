@@ -22,7 +22,7 @@ struct CanvasView: View {
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
     @Environment(\.dismiss) private var dismiss
-        @Environment(\.modelContext) private var context
+    @Environment(\.modelContext) private var context
     
     // MARK: - Initialization
     

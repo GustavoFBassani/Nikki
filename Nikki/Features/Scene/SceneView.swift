@@ -78,9 +78,7 @@ struct SceneView: View {
                 MagnificationGesture()
                     .onChanged { value in
                         vm.currentScale = vm.lastScale * value
-                        print(vm.currentScale)
                         vm.zoom(scale: Float(vm.currentScale))
-                        print("lastscale", vm.lastScale)
                     }
                     .onEnded { _ in
                         vm.lastScale = vm.currentScale
@@ -89,18 +87,25 @@ struct SceneView: View {
             
         }
         .overlay(alignment: .bottomTrailing) {
-            NavigationLink {
-                PageListView()
-            } label: {
-                Text("Canvas")
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding()
+            
+            HStack {
+                
+                Button("play Animation") {
+                    vm.playTsuruAnimation()
+                }
+                
+                NavigationLink {
+                    PageListView()
+                } label: {
+                    Text("Canvas")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding()
+                }
             }
         }
-
     }
 }
     
