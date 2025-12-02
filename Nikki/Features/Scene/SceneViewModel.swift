@@ -16,6 +16,7 @@ class SceneViewModel {
     var scene: Entity?
     var tree: Entity?
     var tsuru: Entity?
+    var scrapImage: UIImage?
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena
@@ -55,30 +56,7 @@ class SceneViewModel {
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
             
-            
-            //MARK: APLICANDO TEXTURA NO PAPEL
-            // Criar material com a textura
-            guard let texture = try? await TextureResource(named: "teste") else { return } //imagem recuperada como textura
-            var material = PhysicallyBasedMaterial()
-            material.baseColor = .init(tint: .white, texture: .init(texture))
-            material.metallic = 0.0      // Papel não é metálico
-            material.roughness = 0.7     // Papel é meio fosco (0.6-0.8)
-            material.specular = 0.3      // Pouco reflexo especular
-
-            // Aplicar a textura no tsuru
-            if let tsuru = tsuru {
-                print("Tsuru encontrado!")
-                // Encontrar o filho com o modelo
-                if let flappingBird = tsuru.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
-                    if var modelComponent = flappingBird.components[ModelComponent.self] {
-                        print("Aplicando textura no flappingBird")
-                        modelComponent.materials = [material]
-                        flappingBird.components[ModelComponent.self] = modelComponent
-                        print("Textura aplicada com sucesso!")
-                    }
-                }
-            }
-            
+//            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
             let camera = PerspectiveCamera()
@@ -95,8 +73,48 @@ class SceneViewModel {
     //MARK: - ENTITIES ANIMATIONS
     func playTsuruAnimation() {
         if let tsuruAnimation = tsuru?.availableAnimations.first {
-
+            
             tsuru?.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
+        }
+    }
+    
+    func appliyngTextureToTsuru(scrapImage: UIImage?) async {
+        // Prefer the provided scrapImage; fallback to bundled image named "teste"
+        let sourceImage: UIImage? = scrapImage ?? UIImage(named: "teste")
+        guard let cgImage = sourceImage?.cgImage else {
+            print("[SceneViewModel] No image available to create texture.")
+            return
+        }
+
+        // Create material with the texture
+        do {
+            let texture = try await TextureResource(image: cgImage, options: .init(semantic: .color))
+            var material = PhysicallyBasedMaterial()
+            material.baseColor = .init(tint: .white, texture: .init(texture))
+            material.metallic = 0.0      // Paper is not metallic
+            material.roughness = 0.7     // Paper is somewhat matte (0.6-0.8)
+            material.specular = 0.3      // Low specular reflection
+
+            // Apply the texture to tsuru
+            guard let tsuru = tsuru else {
+                print("[SceneViewModel] Tsuru entity not found.")
+                return
+            }
+
+            if let flappingBird = tsuru.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
+                if var modelComponent = flappingBird.components[ModelComponent.self] {
+                    modelComponent.materials = [material]
+                    flappingBird.components[ModelComponent.self] = modelComponent
+                    print("[SceneViewModel] Texture applied successfully to flappingBird.")
+                } else {
+                    print("[SceneViewModel] ModelComponent not found on flappingBird.")
+                }
+            } else {
+                print("[SceneViewModel] flappingBird___0PercentFolded child not found under tsuru.")
+            }
+        } catch {
+            // Properly handle the thrown error from TextureResource initializer
+            print("[SceneViewModel] Failed to create TextureResource: \(error)")
         }
     }
     
