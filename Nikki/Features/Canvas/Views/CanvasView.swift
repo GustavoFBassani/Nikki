@@ -17,13 +17,15 @@ import AVFoundation
 struct CanvasView: View {
     // MARK: - Properties
     @State private var viewModel: CanvasViewModel
-    
     @Binding var scrapToExport: UIImage?
+    @Binding var dismissCanvasView: Bool
     @State private var showDeleteAlert = false
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
+    
+    // appear and dissapear
     
     // MARK: - Initialization
     
@@ -31,9 +33,10 @@ struct CanvasView: View {
     /// - Parameters:
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
-
-    init(scrapToExport: Binding<UIImage?>, page: Page? = nil, paperStyle: String? = nil) {
+    
+    init(scrapToExport: Binding<UIImage?>, dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil) {
         self._scrapToExport = scrapToExport
+        self._dismissCanvasView = dismissCanvasView
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
     }
     
@@ -41,7 +44,7 @@ struct CanvasView: View {
     var body: some View {
         NavigationStack {
             editorContent
-                .toolbar { toolbarContent }
+                .toolbar {  toolbarContent }
                 .overlay(alignment: .bottom) { tabBarOverlay }
         }
         .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
@@ -117,35 +120,37 @@ struct CanvasView: View {
     /// Toolbar superior com ações principais: deletar, desfazer e salvar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItemGroup(placement: .navigationBarTrailing) {
-            // Botão para deletar a página atual
-            Button(role: .destructive, action: { showDeleteAlert = true }) {
-                Image(.customGarbage)
-            }
-            
-            // Botão para desfazer última ação (TODO: implementar funcionalidade)
-            Button(action: handleUndo) {
-                Image(.undo)
-            }
-            
-            // Botão para salvar a página e fechar o canvas
-            Button(action: handleSave) {
-                Image(.tsuruBird)
-            }
-        }
-        
-        // Botão de confirmação que aparece quando a ferramenta de desenho está ativa
-        // Ao clicar, fecha a ferramenta de desenho e mostra a TabBar novamente
-        if showCheckMark {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: handleCheckMark) {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(.white)
-                        .fontWeight(.semibold)
+        if dismissCanvasView {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                // Botão para deletar a página atual
+                Button(role: .destructive, action: { showDeleteAlert = true }) {
+                    Image(.customGarbage)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.cyan)
-                .clipShape(Circle())
+                
+                // Botão para desfazer última ação (TODO: implementar funcionalidade)
+                Button(action: handleUndo) {
+                    Image(.undo)
+                }
+                
+                // Botão para salvar a página e fechar o canvas
+                Button(action: handleSave) {
+                    Image(.tsuruBird)
+                }
+            }
+            
+            // Botão de confirmação que aparece quando a ferramenta de desenho está ativa
+            // Ao clicar, fecha a ferramenta de desenho e mostra a TabBar novamente
+            if showCheckMark {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: handleCheckMark) {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(.white)
+                            .fontWeight(.semibold)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.cyan)
+                    .clipShape(Circle())
+                }
             }
         }
     }
@@ -191,12 +196,9 @@ struct CanvasView: View {
                 try await viewModel.savePage()
                 
                 self.scrapToExport = await viewModel.editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
-
-                if let scrapToExport {
-                    print("scrap depois de salvar: ", scrapToExport.size)
-                }
                 
-                dismiss()
+                dismissCanvasView.toggle()
+                
             } catch {
                 print("Error saving page: \(error)")
             }
@@ -228,5 +230,5 @@ struct CanvasView: View {
 
 #Preview {
     Text("Delete")
-    .font(.custom("Caveat-Regular", size: 99))
+        .font(.custom("Caveat-Regular", size: 99))
 }

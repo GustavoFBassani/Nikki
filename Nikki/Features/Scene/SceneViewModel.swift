@@ -17,6 +17,7 @@ class SceneViewModel {
     var tree: Entity?
     var tsuru: Entity?
     var scrapImage: UIImage?
+    var PaperStyle: String?
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena

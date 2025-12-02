@@ -11,6 +11,7 @@ import RealityKit
 struct SceneView: View {
     
     @State var vm = SceneViewModel()
+    @State var showCanvas = false
     
     var body: some View {
         ZStack {
@@ -84,40 +85,27 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
-            
-        }
-        .overlay(alignment: .bottomTrailing) {
-            
-            HStack {
-                
-                Button("play Animation") {
-                    vm.playTsuruAnimation()
+        
+                CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $showCanvas, page: nil, paperStyle: vm.PaperStyle)
+                .opacity(showCanvas ? 1 : 0)
+                .allowsHitTesting(showCanvas)
+                .onChange(of: showCanvas) { oldValue, newValue in
+                    if !newValue {
+                        Task {
+                            await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage)
+                        }
+                    }
                 }
-                
-                NavigationLink {
-                    PageListView()
-                } label: {
-                    Text("Canvas")
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .padding()
-                }
-            }
+
         }
         .toolbar {
             Menu {
                 ForEach(PaperStyles.allCases, id: \.self) { style in
-                    NavigationLink(
-                        destination: CanvasView(scrapToExport: $vm.scrapImage, page: nil, paperStyle: style.name)
-                            .onDisappear(perform: {
-                                Task  {
-                                    await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage)
-                                }
-                            })
-                    ) {
-                        Text(style.title)
+                    Button(style.name) {
+                        vm.PaperStyle = style.name
+                        withAnimation {
+                            showCanvas.toggle()
+                        }
                     }
                 }
             } label: {
@@ -126,7 +114,7 @@ struct SceneView: View {
         }
     }
 }
-    
-    #Preview {
-        SceneView()
-    }
+
+#Preview {
+    SceneView()
+}
