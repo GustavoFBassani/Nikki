@@ -113,7 +113,7 @@ class CanvasViewModel {
             let cardImage = iTunesService.createTrackCard(track: track, cover: cover)
             
             // Insere no canvas
-            let size = CGSize(width: 300, height: 150)
+            let size = CGSize(width: 1000, height: 500)
             let rect = centeredRect(for: size)
             
 //            let origin = CGPoint(x: 50, y: 70)
@@ -128,7 +128,7 @@ class CanvasViewModel {
     func insertSticker(named name: String) {
           guard let image = UIImage(named: name) else { return }
           
-          let size = CGSize(width: 200, height: 200)
+          let size = CGSize(width: 800, height: 800)
 //          let origin = CGPoint(x: 20, y: 20)
           let rect = centeredRect(for: size)
           
@@ -175,7 +175,7 @@ class CanvasViewModel {
                 return
             }
             
-            let size = CGSize(width: 300, height: 300)
+            let size = CGSize(width: 700, height: 700)
             let rect = centeredRect(for: size)
             
             editorData.insertImage(
@@ -189,11 +189,16 @@ class CanvasViewModel {
     }
     
     func insertDefaultText(_ string: String = "Nikki") {
-        let attributed = NSAttributedString(string: string)
+        let font = UIFont(name: "CaveatBrush-Regular", size: 112)
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font ?? UIFont.systemFont(ofSize: 112, weight: .medium)
+        ]
         
+        let attributed = NSAttributedString(string: string, attributes: attributes)
+
         let size = CGSize(width: 600, height: 120)
         let rect = centeredRect(for: size)
-        
+
         editorData.insertText(attributed, rect: rect)
-    }
-}
+    }}
