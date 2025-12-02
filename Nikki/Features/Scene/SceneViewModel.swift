@@ -79,7 +79,7 @@ class SceneViewModel {
     }
     
     func appliyngTextureToTsuru(scrapImage: UIImage?) async {
-        // Prefer the provided scrapImage; fallback to bundled image named "teste"
+
         let sourceImage: UIImage? = scrapImage ?? UIImage(named: "teste")
         guard let cgImage = sourceImage?.cgImage else {
             print("[SceneViewModel] No image available to create texture.")

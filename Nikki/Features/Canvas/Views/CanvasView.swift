@@ -16,8 +16,9 @@ import AVFoundation
 /// Suporta: desenho com PencilKit, inserção de imagens, stickers, texto e música
 struct CanvasView: View {
     // MARK: - Properties
-        @State private var viewModel: CanvasViewModel
+    @State private var viewModel: CanvasViewModel
     
+    @Binding var scrapToExport: UIImage?
     @State private var showDeleteAlert = false
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
@@ -31,7 +32,8 @@ struct CanvasView: View {
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
 
-    init(page: Page? = nil, paperStyle: String? = nil) {
+    init(scrapToExport: Binding<UIImage?>, page: Page? = nil, paperStyle: String? = nil) {
+        self._scrapToExport = scrapToExport
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
     }
     
@@ -187,6 +189,13 @@ struct CanvasView: View {
         Task {
             do {
                 try await viewModel.savePage()
+                
+                self.scrapToExport = await viewModel.editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
+
+                if let scrapToExport {
+                    print("scrap depois de salvar: ", scrapToExport.size)
+                }
+                
                 dismiss()
             } catch {
                 print("Error saving page: \(error)")

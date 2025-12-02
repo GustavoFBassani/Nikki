@@ -110,7 +110,12 @@ struct SceneView: View {
             Menu {
                 ForEach(PaperStyles.allCases, id: \.self) { style in
                     NavigationLink(
-                        destination: CanvasView(page: nil, paperStyle: style.name)
+                        destination: CanvasView(scrapToExport: $vm.scrapImage, page: nil, paperStyle: style.name)
+                            .onDisappear(perform: {
+                                Task  {
+                                    await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage)
+                                }
+                            })
                     ) {
                         Text(style.title)
                     }
