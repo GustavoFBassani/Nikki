@@ -55,6 +55,30 @@ class SceneViewModel {
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
             
+            
+            //MARK: APLICANDO TEXTURA NO PAPEL
+            // Criar material com a textura
+            guard let texture = try? await TextureResource(named: "teste") else { return } //imagem recuperada como textura
+            var material = PhysicallyBasedMaterial()
+            material.baseColor = .init(tint: .white, texture: .init(texture))
+            material.metallic = 0.0      // Papel não é metálico
+            material.roughness = 0.7     // Papel é meio fosco (0.6-0.8)
+            material.specular = 0.3      // Pouco reflexo especular
+
+            // Aplicar a textura no tsuru
+            if let tsuru = tsuru {
+                print("Tsuru encontrado!")
+                // Encontrar o filho com o modelo
+                if let flappingBird = tsuru.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
+                    if var modelComponent = flappingBird.components[ModelComponent.self] {
+                        print("Aplicando textura no flappingBird")
+                        modelComponent.materials = [material]
+                        flappingBird.components[ModelComponent.self] = modelComponent
+                        print("Textura aplicada com sucesso!")
+                    }
+                }
+            }
+            
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
             let camera = PerspectiveCamera()
@@ -102,11 +126,11 @@ class SceneViewModel {
         ///   para aplicar imediatamente a nova posição/olhar da câmera.
         // Atualiza theta (rotação horizontal - Azimute)
         // Invertido (-=) para sensação de "pegar e arrastar" a cena
-        theta -= dTheta * 0.01
+        theta -= dTheta * 0.005
         
         // Atualiza phi (rotação vertical - Elevação)
         // Invertido (-=) para que arrastar para baixo leve a câmera para o topo (phi -> 0)
-        phi -= dPhi * 0.01
+        phi -= dPhi * 0.005
         
         // Limita phi entre pi/60 e 57pi/100
         // Phi = 0 é o Polo Norte (Topo)

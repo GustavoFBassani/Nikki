@@ -106,6 +106,19 @@ struct SceneView: View {
                 }
             }
         }
+        .toolbar {
+            Menu {
+                ForEach(PaperStyles.allCases, id: \.self) { style in
+                    NavigationLink(
+                        destination: CanvasView(page: nil, paperStyle: style.name)
+                    ) {
+                        Text(style.title)
+                    }
+                }
+            } label: {
+                Label("Nova página", systemImage: "plus")
+            }
+        }
     }
 }
     
