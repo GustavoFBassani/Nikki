@@ -14,7 +14,6 @@ struct SceneView: View {
     @State private var isLocalizationMode = false
 
     var body: some View {
-       // NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
                 RealityView { content in
@@ -136,7 +135,6 @@ struct SceneView: View {
                 .padding(.leading, 20)
             }
         }
-    //}
 }
 
 #Preview {
