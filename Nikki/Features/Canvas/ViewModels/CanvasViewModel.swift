@@ -201,4 +201,5 @@ class CanvasViewModel {
         let rect = centeredRect(for: size)
 
         editorData.insertText(attributed, rect: rect)
-    }}
+    }
+}
