@@ -91,10 +91,15 @@ class SceneViewModel {
         do {
             let texture = try await TextureResource(image: cgImage, options: .init(semantic: .color))
             var material = PhysicallyBasedMaterial()
+            
+            
+            let rotationRadians =   Float.pi // 180 degrees converted to radians.
+            material.textureCoordinateTransform = .init(rotation: rotationRadians)
             material.baseColor = .init(tint: .white, texture: .init(texture))
             material.metallic = 0.0      // Paper is not metallic
             material.roughness = 0.7     // Paper is somewhat matte (0.6-0.8)
             material.specular = 0.3      // Low specular reflection
+            
 
             // Apply the texture to tsuru
             guard let tsuru = tsuru else {

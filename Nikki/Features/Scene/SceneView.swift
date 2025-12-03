@@ -88,28 +88,32 @@ struct SceneView: View {
         
                 CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $showCanvas, page: nil, paperStyle: vm.PaperStyle)
                 .opacity(showCanvas ? 1 : 0)
+                .scaleEffect(showCanvas ? 1 : 0.5)
+                .animation(.smooth(duration: 1), value: showCanvas)
                 .allowsHitTesting(showCanvas)
                 .onChange(of: showCanvas) { oldValue, newValue in
                     if !newValue {
                         Task {
                             await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage)
+                            try await Task.sleep(nanoseconds: 1_000_000_000)
+                            vm.playTsuruAnimation()
                         }
                     }
                 }
-
+            
         }
         .toolbar {
-            Menu {
-                ForEach(PaperStyles.allCases, id: \.self) { style in
-                    Button(style.name) {
-                        vm.PaperStyle = style.name
-                        withAnimation {
+            if !showCanvas {
+                Menu {
+                    ForEach(PaperStyles.allCases, id: \.self) { style in
+                        Button(style.name) {
+                            vm.PaperStyle = style.name
                             showCanvas.toggle()
                         }
                     }
+                } label: {
+                    Label("Nova página", systemImage: "plus")
                 }
-            } label: {
-                Label("Nova página", systemImage: "plus")
             }
         }
     }
