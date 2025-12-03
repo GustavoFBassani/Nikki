@@ -109,15 +109,15 @@ struct SceneView: View {
                 Button {
                     print("apertou")
                 } label: {
-                    Image(systemName: "location").foregroundStyle(.black)
-                        .font(.title2).frame(width: 35, height: 35)
-                        .clipShape(Circle())
-                }.buttonStyle(.glass).padding(.leading, 20)
+                    Image(systemName: "location")
+                    .foregroundStyle(.primary)
+                    .font(.title2)
+                    .frame(width: 35, height: 35)
+                    .clipShape(Circle())
+                }
+                .buttonStyle(.glass)
+                .padding(.leading, 20)
             }
         }
     }
-}
-
-#Preview {
-    SceneView()
 }
