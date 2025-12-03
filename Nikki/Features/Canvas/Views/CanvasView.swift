@@ -153,7 +153,7 @@ struct CanvasView: View {
     /// Insere um texto padrão "Nikki" no canvas
     /// TODO: Implementar editor de texto customizável
     private func handleTextEditor() {
-        viewModel.editorData.insertText(.init("Nikki"), rect: .zero)
+        viewModel.insertDefaultText()
     }
     
     /// Ativa/desativa a ferramenta de desenho PencilKit

@@ -88,6 +88,19 @@ class EditorData {
         let template = UIImage(named: paperStyle ?? "recycledPaper")
         let templateView = UIImageView(image: template)
         controller.contentView = templateView
+        
+        if let markup = self.markup {
+            let pageBounds = markup.bounds
+            
+            let visibleRect = pageBounds.insetBy(
+                dx: pageBounds.width * 0.3,
+                dy: pageBounds.height * 0.3
+            )
+            
+            DispatchQueue.main.async {
+                controller.contentVisibleFrame = visibleRect
+            }
+        }
     }
     
     // MARK: - Insertion Methods
