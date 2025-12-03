@@ -5,19 +5,19 @@
 //  Created by Gustavo Ferreira bassani on 17/11/25.
 //
 
-import SwiftUI
 import RealityKit
+import SwiftUI
 
 struct SceneView: View {
-    
+
     @State var vm = SceneViewModel()
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
                 RealityView { content in
-                    
+
                 } update: { content in
                     if let scene = vm.scene, content.entities.isEmpty {
                         content.add(scene)
@@ -46,13 +46,17 @@ struct SceneView: View {
                                 vm.lastDragPosition = value.location
                                 return
                             }
-                            
+
                             // Calcula quanto o dedo se moveu desde o último frame
                             // dTheta: movimento horizontal (+ = direita, - = esquerda)
-                            let dTheta = Float(value.location.x - vm.lastDragPosition.x)
+                            let dTheta = Float(
+                                value.location.x - vm.lastDragPosition.x
+                            )
                             // dPhi: movimento vertical (+ = baixo, - = cima)
-                            let dPhi = Float(value.location.y - vm.lastDragPosition.y)
-                            
+                            let dPhi = Float(
+                                value.location.y - vm.lastDragPosition.y
+                            )
+
                             // Envia os deltas para o ViewModel atualizar theta e phi
                             vm.rotate(dTheta: dTheta, dPhi: dPhi)
                             // Atualiza a última posição para o próximo frame
@@ -63,10 +67,10 @@ struct SceneView: View {
                             // Prepara para o próximo gesto
                             vm.lastDragPosition = .zero
                         }
-                ) // movimentar para o lado
+                )  // movimentar para o lado
                 .gesture(
                     // MARK: - Gesto de Zoom (Pinch)
-                    
+
                     /// MagnificationGesture detecta movimento de pinça com dois dedos
                     /// Usado para controlar a distância da câmera (zoom)
                     ///
@@ -84,7 +88,7 @@ struct SceneView: View {
                         .onEnded { _ in
                             vm.lastScale = vm.currentScale
                         }
-                ) // zoom
+                )  // zoom
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -100,6 +104,15 @@ struct SceneView: View {
                         }
                     }
                 }
+            }
+            .overlay(alignment: .bottomLeading) {
+                Button {
+                    print("apertou")
+                } label: {
+                    Image(systemName: "location").foregroundStyle(.black)
+                        .font(.title2).frame(width: 35, height: 35)
+                        .clipShape(Circle())
+                }.buttonStyle(.glass).padding(.leading, 20)
             }
         }
     }
