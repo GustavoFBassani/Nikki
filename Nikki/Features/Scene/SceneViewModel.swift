@@ -182,7 +182,7 @@ class SceneViewModel {
         
         // Limita entre 2 (muito perto) e 20 (muito longe)
         // Evita que a câmera atravesse o objeto ou fique distante demais
-        rho = max(2, min(21, rho))
+        rho = max(0.5, min(21, rho))
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
@@ -191,33 +191,25 @@ class SceneViewModel {
     private func updateCamera() {
         
         // MARK: - Atualização da Câmera
-        
-        /// **Mapeamento de Eixos:**
-        /// - Math X  -> RealityKit X
-        /// - Math Y  -> RealityKit Z (Profundidade)
-        /// - Math Z  -> RealityKit Y (Altura)
-        
+ 
         // Garante que a câmera existe antes de tentar atualizar
         guard let camera else { return }
         
-        // 1. Cálculo Matemático (Convenção ISO: Z é altura)
-        // x = ρ * sin(φ) * cos(θ)
-        // y = ρ * sin(φ) * sin(θ)
-        // z = ρ * cos(φ)
-        
-        if let tree {
+
+        if let flappingBird = tsuru?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
+            let globalPosition = flappingBird.position(relativeTo: nil)
+            let x = rho * sin(phi) * cos(theta) + globalPosition.x
+            let y = rho * cos(phi) +  globalPosition.y
+            let z = rho * sin(phi) * sin(theta) + globalPosition.z
             
+            camera.position = [x, y, z]
             
-            let mathX = rho * sin(phi) * cos(theta) + tree.position.x - 5
-            let mathY = rho * sin(phi) * sin(theta) + tree.position.z
-            let mathZ = rho * cos(phi) + tree.position.y
-            
-            
-            // posição câmera  ( x  ,   z  ,   y)
-            camera.position = [mathX, mathZ, mathY]
+            print("flapping bird position: ", flappingBird.position)
+            print("camera position: ", camera.position)
             
             // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
-            camera.look(at: [tree.position.x - 5, tree.position.y, tree.position.z], from: camera.position, relativeTo: nil)
+            camera.look(at: globalPosition, from: camera.position, relativeTo: nil)
+            
         }
     }
 }
