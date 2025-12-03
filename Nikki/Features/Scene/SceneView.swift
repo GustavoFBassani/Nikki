@@ -11,9 +11,10 @@ import SwiftUI
 struct SceneView: View {
 
     @State var vm = SceneViewModel()
+    @State private var isLocalizationMode = false
 
     var body: some View {
-        NavigationStack {
+       // NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
                 RealityView { content in
@@ -89,33 +90,53 @@ struct SceneView: View {
                             vm.lastScale = vm.currentScale
                         }
                 )  // zoom
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink {
-                        PageListView()
-                    } label: {
-                        Label {
-                            Text("New Page")
-                        } icon: {
-                            Image("customPlus")
-                                .resizable()
-                                .scaledToFit()
-                        }
+
+                if isLocalizationMode {
+                    VStack {
+                        Spacer()
+                        DateBar()
+                            .padding(.bottom, 32)
                     }
+                    .transition(.move(edge: .bottom))
                 }
             }
+            .overlay(alignment: .topTrailing) {
+                NavigationLink {
+                        PageListView()
+                    } label: {
+                    Image("customPlus")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 999)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                        .padding(.trailing, 20)
+                        .padding(.leading, 333)
+                        .padding(.top, 26)
+                }
+            }
+
             .overlay(alignment: .bottomLeading) {
                 Button {
-                    print("apertou")
+                    withAnimation {
+                        isLocalizationMode.toggle()
+                    }
                 } label: {
-                    Image(systemName: "location").foregroundStyle(.black)
-                        .font(.title2).frame(width: 35, height: 35)
+                    Image(systemName: "location")
+                        .foregroundStyle(.blueNikki)
+                        .font(Fonts.Footnote)
+                        .frame(width: 44, height: 44)
                         .clipShape(Circle())
-                }.buttonStyle(.glass).padding(.leading, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 999)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                }
+                .padding(.leading, 20)
             }
         }
-    }
+    //}
 }
 
 #Preview {
