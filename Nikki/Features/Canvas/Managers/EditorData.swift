@@ -42,77 +42,26 @@ class EditorData {
     
     /// Inicializa o controller e o markup com o retângulo desejado
     /// - Parameter rect: Área que o markup ocupará
-//    func initializeController(_ rect: CGRect) {
-//        // Cria o controller do PaperKit com suporte a todos os recursos mais recentes
-//        let controller = PaperMarkupViewController(supportedFeatureSet: .latest)
-//        // Caso queira um personalizado:
-//        // var featureSet = FeatureSet.latest
-//        // featureSet.remove(.loupes)
-//        // let controller = PaperMarkupViewController(supportedFeatureSet: featureSet) caso queira escolher as ferramentas igual WWDC
-//        
-//        // Caso usemos delegate tem que descomentar aqui
-//        // controller.delegate = self
-//        controller.loadViewIfNeeded()
-//        
-//        let canvasBackground = UIColor(named: "canvasBackground")
-//        controller.view.backgroundColor = canvasBackground
-//
-//        
-//        // Cria o modelo de markup novo
-//        var markup = PaperMarkup(bounds: rect)
-//        
-//        // Se tiver dados, estou carregando um canvas, sobrescreve o markup
-//        if let data {
-//            do {
-//                markup = try PaperMarkup(dataRepresentation: data)
-//            } catch {
-//                print(error.localizedDescription)
-//            }
-//        }
-//        
-//        // Verifica se já existe um controller armazenado (reaproveita se existir)
-//        if let existingController = self.controller {
-//            // Atualiza o markup do controller existente
-//            existingController.markup = markup
-//            self.markup = markup
-//        } else {
-//            // Caso contrário, cria e configura o novo controller
-//            self.markup = markup
-//            self.controller = controller
-//            self.controller?.markup = markup
-//            // Define o limite de zoom permitido na interface
-//            self.controller?.zoomRange = 0.1...3.5
-//        }
-//        
-//        // Configura imagem de fundo (template)
-//        let template = UIImage(named: paperStyle ?? "recycledPaper")
-//        let templateView = UIImageView(image: template)
-//        controller.contentView = templateView
-//        
-//        if let markup = self.markup {
-//            let pageBounds = markup.bounds
-//            
-//            let visibleRect = pageBounds.insetBy(
-//                dx: pageBounds.width * 0.3,
-//                dy: pageBounds.height * 0.3
-//            )
-//            
-//            DispatchQueue.main.async {
-//                controller.contentVisibleFrame = visibleRect
-//            }
-//        }
-//    }
-    
     func initializeController(_ rect: CGRect) {
-        // Sempre cria um controller NOVO
+        // Cria o controller do PaperKit com suporte a todos os recursos mais recentes
         let controller = PaperMarkupViewController(supportedFeatureSet: .latest)
+        // Caso queira um personalizado:
+        // var featureSet = FeatureSet.latest
+        // featureSet.remove(.loupes)
+        // let controller = PaperMarkupViewController(supportedFeatureSet: featureSet) caso queira escolher as ferramentas igual WWDC
+        
+        // Caso usemos delegate tem que descomentar aqui
+        // controller.delegate = self
         controller.loadViewIfNeeded()
         
         let canvasBackground = UIColor(named: "canvasBackground")
         controller.view.backgroundColor = canvasBackground
 
+        
+        // Cria o modelo de markup novo
         var markup = PaperMarkup(bounds: rect)
         
+        // Se tiver dados, estou carregando um canvas, sobrescreve o markup
         if let data {
             do {
                 markup = try PaperMarkup(dataRepresentation: data)
@@ -121,24 +70,36 @@ class EditorData {
             }
         }
         
-        // Nada de reaproveitar controller antigo aqui
-        self.controller = controller
-        self.markup = markup
-        controller.markup = markup
-        controller.zoomRange = 0.1...3.5
+        // Verifica se já existe um controller armazenado (reaproveita se existir)
+        if let existingController = self.controller {
+            // Atualiza o markup do controller existente
+            existingController.markup = markup
+            self.markup = markup
+        } else {
+            // Caso contrário, cria e configura o novo controller
+            self.markup = markup
+            self.controller = controller
+            self.controller?.markup = markup
+            // Define o limite de zoom permitido na interface
+            self.controller?.zoomRange = 0.1...3.5
+        }
         
+        // Configura imagem de fundo (template)
         let template = UIImage(named: paperStyle ?? "recycledPaper")
         let templateView = UIImageView(image: template)
         controller.contentView = templateView
         
-        let pageBounds = markup.bounds
-        let visibleRect = pageBounds.insetBy(
-            dx: pageBounds.width * 0.3,
-            dy: pageBounds.height * 0.3
-        )
-        
-        DispatchQueue.main.async {
-            controller.contentVisibleFrame = visibleRect
+        if let markup = self.markup {
+            let pageBounds = markup.bounds
+            
+            let visibleRect = pageBounds.insetBy(
+                dx: pageBounds.width * 0.3,
+                dy: pageBounds.height * 0.3
+            )
+            
+            DispatchQueue.main.async {
+                controller.contentVisibleFrame = visibleRect
+            }
         }
     }
     
@@ -164,7 +125,7 @@ class EditorData {
         controller?.undoManager?.undo()
     }
 
-    
+
     /// Insere uma imagem no markup
     /// - Parameters:
     ///   - image: Imagem a ser inserida
@@ -179,11 +140,6 @@ class EditorData {
         
         // Depois insere a nova imagem
         markup?.insertNewImage(cgImage, frame: rect)
-        
-        // E atualiza o controller
-//        if let markup = self.markup {
-//            controller?.markup = markup
-//        }
         refreshController()
     }
     

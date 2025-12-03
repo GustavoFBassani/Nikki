@@ -72,13 +72,10 @@ class CanvasViewModel {
         self.paperStyle = paperStyle
         
         if let page, let data = page.markupData {
-            print("📝 Editando página existente, estilo: \(page.paperStyle ?? "nil")")
             self.editorData = EditorData(data: data, paperStyle: page.paperStyle)
         } else {
-            print("📄 Criando página NOVA, estilo: \(paperStyle ?? "nil")")
             self.editorData = EditorData(data: nil, paperStyle: paperStyle)
         }
-//        self.editorData = EditorData(data: page?.markupData, paperStyle: paperStyle)
     }
     
     func undoAction() {

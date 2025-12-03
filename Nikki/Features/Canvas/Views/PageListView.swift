@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// Struct created to link the paper style with canvas without keeping reference to an old canvas
 struct NewPageRoute: Identifiable, Hashable {
     let id = UUID()
     let style: PaperStyles
