@@ -86,8 +86,18 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
+            .simultaneousGesture(
+                TapGesture()
+                    .targetedToAnyEntity()
+                    .onEnded { value in
+                        vm.handleTap(on: value.entity)
+                    }
+            )
             
         }
+        .navigationDestination(item: $vm.currentPage) { page in
+                    CanvasView(page: page, paperStyle: page.paperStyle)
+                }
         .overlay(alignment: .bottomTrailing) {
             NavigationLink {
                 PageListView()

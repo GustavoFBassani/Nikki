@@ -82,15 +82,10 @@ class SceneViewModel {
         SIMD3<Float>(-3.04, 0.66, 4.1),
         SIMD3<Float>(-2.78, 0.41, 4.118),
         SIMD3<Float>(-2.54, 0.28, 4.08),
-        
-        
-        
-        
     ]
-
-//    var selectedEntityName: Entity? = nil
-//    var dic: [Entity:Page] = [:]
-//    var currentPage: Page? = nil
+    var dict: [Entity:Page] = [:]
+    var selectedEntityName: Entity? = nil
+    var currentPage: Page? = nil
     
     
     func loadScene() async {
@@ -106,8 +101,9 @@ class SceneViewModel {
             scene.addChild(camera)
             self.camera = camera
             
-//            try orderedPages = data.fetchAllPages()
-            await loadPages()
+            try orderedPages = data.fetchAllPages()
+            await loadPages2()
+//            await loadPages()
             
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
             updateCamera()
@@ -225,6 +221,34 @@ class SceneViewModel {
         }
     }
     
+    func loadPages2() async {
+        do {
+            guard let scene else {
+                print("Cena não carregada")
+                return
+            }
+            
+            
+            print(orderedPages.count)
+            for i in 0..<orderedPages.count {
+                if let page = orderedPages[i] {
+                    let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
+                    obj.generateCollisionShapes(recursive: true)
+                    obj.components[InputTargetComponent.self] = .init()
+                    obj.scale = [0.003,0.003, 0.003]
+                    obj.position = positions[i]
+                    scene.addChild(obj)
+                    dict.updateValue(page, forKey: obj)
+                }
+            }
+            
+            
+        }
+        catch {
+            print(error.localizedDescription)
+        }
+    }
+    
 //    func loadPages() async {
 //        do {
 //            guard let scene = self.scene else {
@@ -266,6 +290,24 @@ class SceneViewModel {
 //
 //        }
 //    }
+    
+    func handleTap(on entity: Entity) {
+            print("👉 Tocou na entidade: \(entity.name)")
+            
+            var current: Entity? = entity
+            
+            // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
+            while let ent = current {
+                if let page = dict[ent] {
+                    print("✅ Encontrou entidade associada: \(ent.name)")
+                    currentPage = page   // <- dispara navegação na View
+                    return
+                }
+                current = ent.parent
+            }
+            
+            print("❌ Nenhuma entidade registrada encontrada na hierarquia")
+        }
     
 //    func handleTap(on entity: Entity) {
 //        print("👉 Tocou na entidade: \(entity.name)")
