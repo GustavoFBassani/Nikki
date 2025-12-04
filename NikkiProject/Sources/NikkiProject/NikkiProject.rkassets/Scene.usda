@@ -13,7 +13,7 @@ def "Root" (
     customData = {
         float3 rotationEulerHint = (0, 0, 0)
     }
-    prepend references = @Scene.usdz@</Root>
+    references = @Scene.usdz@</Root>
 )
 {
     reorder nameChildren = ["Cherry_Tree_2", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material", "Cylinder"]
@@ -184,7 +184,7 @@ def "Root" (
         customData = {
             float3 rotationEulerHint = (0, 0, 0)
         }
-        prepend references = @Cherry_Tree-2.usdz@
+        references = @Cherry_Tree-2.usdz@
     )
     {
         quatf xformOp:orient = (1, 0, 0, 0)
@@ -206,7 +206,7 @@ def "Root" (
 
     def "Japanese_garden" (
         active = true
-        prepend references = @Japanese_garden.usdz@
+        references = @Japanese_garden.usdz@
     )
     {
         float3 xformOp:scale = (0.05, 0.05, 0.05)

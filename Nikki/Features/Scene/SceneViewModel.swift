@@ -9,6 +9,7 @@ import SwiftUI
 import RealityKit
 import NikkiProject
 
+@MainActor
 @Observable
 class SceneViewModel {
     
@@ -16,7 +17,7 @@ class SceneViewModel {
     var scene: Entity?
     var tree: Entity?
     var scrapImage: UIImage?
-    var PaperStyle: String?
+    var paperStyle: String?
     var tsuru: Entity?
     
     //MARK: - CAMERA PROPERTIES
@@ -56,6 +57,47 @@ class SceneViewModel {
     
     var tsurus: [Entity] = [] //provisorio
     var count: Float = 1.0 // provisorio
+    // Objects positions
+    var obj: Entity?
+        
+    var data = SwiftDataManager.shared
+    var orderedPages: [Page?] = []
+    var positions: [SIMD3<Float>] = [
+        SIMD3<Float>(-1.7,  0.4, 1.6),
+        SIMD3<Float>(-2.8, -0.7, 2.5),
+        SIMD3<Float>(-2.6, -0.9, 2.4),
+        SIMD3<Float>(-3.1, -0.5, 2.7),
+        SIMD3<Float>(-3.4, -0.3, 3.1),
+        SIMD3<Float>(-3.6, -0.3, 3.3),
+        SIMD3<Float>(-2.8, -0.4, 5.0),
+        SIMD3<Float>(-3.2, -0.5, 5.0),
+        SIMD3<Float>(-4.1, -0.4, 5.4),
+        SIMD3<Float>(-4.1,  0.0, 5.7),
+        SIMD3<Float>(-5.1,  1.8, 5.8),
+        SIMD3<Float>(-6.0,  1.7, 5.6),
+        SIMD3<Float>(-5.8,  1.4, 5.4),
+        SIMD3<Float>(-5.3,  0.9, 5.1),
+        SIMD3<Float>(-5.1,  0.5, 4.9),
+        SIMD3<Float>(-2.0,  0.3, 1.9),
+        SIMD3<Float>(-3.09, 0.67, 4.58),
+        SIMD3<Float>(-3.0, 0.86, 4.35),
+        SIMD3<Float>(-2.87, 1.01, 4.14),
+        SIMD3<Float>(-2.79, 1.2, 3.95),
+        SIMD3<Float>(-2.69, 1.56, 3.97),
+        SIMD3<Float>(-2.66, 1.59, 5.01),
+        SIMD3<Float>(-2.35, 1.6, 5.1),
+        SIMD3<Float>(-2.36, 1.8, 5.3),
+        SIMD3<Float>(-2.2, 1.9, 5.5),
+        SIMD3<Float>(-3.38, 0.69, 4.47),
+        SIMD3<Float>(-3.23, 0.67, 4.26),
+        SIMD3<Float>(-3.04, 0.66, 4.1),
+        SIMD3<Float>(-2.78, 0.41, 4.118),
+        SIMD3<Float>(-2.54, 0.28, 4.08),
+    ]
+    var dict: [Entity:Page] = [:]
+    var selectedEntityName: Entity? = nil
+    var currentPage: Page? = nil
+    
     
     func loadScene() async {
         do {
@@ -73,6 +115,9 @@ class SceneViewModel {
             let camera = PerspectiveCamera()
             scene.addChild(camera)
             self.camera = camera
+            
+            try orderedPages = data.fetchAllPages()
+            await loadPages()
             
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
             updateCamera()
@@ -102,13 +147,13 @@ class SceneViewModel {
             scene?.addChild(newTsuru)
         }
         repositioningCameraNewToTsuru()
-    }
+    } //ok
     
     func fixTsuruPos(_ e: Entity) {
         guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return } // acessa o flabird do tsuru
         newFlapBird.scale = [0.0005,0.0005,0.0005] // corrige a escala do flabird
         newFlapBird.position  = [0,0,0] // relativa ao modelo pai (tsuru)
-    } // colocar a posicao relativa do filho igual oa pai
+    } // ok
     
     func appliyngTextureToTsuru(scrapImage: UIImage?) async {
         
@@ -144,7 +189,7 @@ class SceneViewModel {
         } catch {
             print("[SceneViewModel] Failed to create TextureResource: \(error)")
         }
-    }
+    } //ok
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -184,7 +229,7 @@ class SceneViewModel {
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
-    }
+    } //ok
     
     func zoom(scale: Float) {
         
@@ -208,7 +253,7 @@ class SceneViewModel {
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
-    }
+    } // ok
     
     func repositioningCameraNewToTsuru() {
         
@@ -220,7 +265,7 @@ class SceneViewModel {
             isFocusedOnTsuru = true
         }
         
-    }
+    } // ok
     
     func repositioningCameraToTree() {
         cameraLook = tree?.position
@@ -229,11 +274,10 @@ class SceneViewModel {
         rho =  21.0
         updateCamera()
         isFocusedOnTsuru = false
-    }
+    } //ok
     
     func updateCamera() {
         
-        // MARK: - Atualização da Câmera
         
         // Garante que a câmera existe antes de tentar atualizar
         guard let camera else { return }
@@ -249,5 +293,52 @@ class SceneViewModel {
             camera.look(at: cameraLook, from: camera.position, relativeTo: nil)
             
         }
+    } //ok
+        
+    func loadPages() async {
+        do {
+            guard let scene else {
+                print("Cena não carregada")
+                return
+            }
+            
+            print("Scraps count", orderedPages.count)
+            for i in 0..<orderedPages.count {
+                if orderedPages.count < 30 {
+                    
+                    if let page = orderedPages[i] {
+                        let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
+                        obj.generateCollisionShapes(recursive: true)
+                        obj.components[InputTargetComponent.self] = .init()
+                        obj.scale = [0.003,0.003, 0.003]
+                        obj.position = positions[i]
+                        scene.addChild(obj)
+                        dict.updateValue(page, forKey: obj)
+                    }
+                }
+            }
+        }
+        catch {
+            print(error.localizedDescription)
+        }
     }
+    
+    func handleTap(on entity: Entity) {
+            print(" Tocou na entidade: \(entity.name)")
+            
+            var current: Entity? = entity
+            
+            // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
+            while let ent = current {
+                if let page = dict[ent] {
+                    print("Encontrou entidade associada: \(ent.name)")
+                    currentPage = page   // <- dispara navegação na View
+                    return
+                }
+                current = ent.parent
+            }
+            
+            print("Nenhuma entidade registrada encontrada na hierarquia")
+        }
+
 }
