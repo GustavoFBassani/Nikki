@@ -86,7 +86,7 @@ struct SceneView: View {
                     }
             ) // zoom
         
-                CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $showCanvas, page: nil, paperStyle: vm.PaperStyle)
+            CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $showCanvas, page: nil, paperStyle: vm.PaperStyle, addNewTsuru: vm.addNewTsuru)
                 .opacity(showCanvas ? 1 : 0)
                 .scaleEffect(showCanvas ? 1 : 0.5)
                 .animation(.smooth(duration: 1), value: showCanvas)

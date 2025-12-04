@@ -24,7 +24,7 @@ struct CanvasView: View {
     @State private var showCheckMark = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
-    
+    var addNewTsuru: ()-> Void
     // appear and dissapear
     
     // MARK: - Initialization
@@ -34,10 +34,11 @@ struct CanvasView: View {
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
     
-    init(scrapToExport: Binding<UIImage?>, dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil) {
+    init(scrapToExport: Binding<UIImage?>, dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () -> Void) {
         self._scrapToExport = scrapToExport
         self._dismissCanvasView = dismissCanvasView
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
+        self.addNewTsuru = addNewTsuru
     }
     
     // MARK: - Body
@@ -191,12 +192,12 @@ struct CanvasView: View {
     /// Salva a página atual no SwiftData e fecha a view
     /// Executa de forma assíncrona e trata possíveis erros
     private func handleSave() {
+        addNewTsuru()
+        
         Task {
             do {
                 try await viewModel.savePage()
-                
                 self.scrapToExport = await viewModel.editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
-                
                 dismissCanvasView.toggle()
                 
             } catch {

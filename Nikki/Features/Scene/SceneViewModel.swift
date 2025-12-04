@@ -15,9 +15,9 @@ class SceneViewModel {
     //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
-    var tsuru: Entity?
     var scrapImage: UIImage?
     var PaperStyle: String?
+    var tsuru: Entity?
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena
@@ -48,6 +48,8 @@ class SceneViewModel {
     /// Deve corresponder ao valor inicial de rho para evitar saltos no primeiro zoom
     private let baseRho: Float = 10.0
     
+    var tsurus: [Entity] = []
+    var count: Float = 1.0
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
@@ -79,8 +81,32 @@ class SceneViewModel {
         }
     }
     
-    func appliyngTextureToTsuru(scrapImage: UIImage?) async {
+    
+    func addNewTsuru() {
+        guard let  flapBird = tsuru?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }),
+              let scene = scene else { return }
+        
+        flapBird.scale = [0.0005,0.0005,0.0005]
+        
+        let newTsuru = flapBird.clone(recursive: true)
+        count += 1
+        newTsuru.position.z += count  // Simplesmente ajusta o Z
 
+
+        tsurus.append(newTsuru)
+        
+        tsurus.forEach { ent in
+            scene.addChild(ent)
+        }
+        
+        print("flapBird position: ", flapBird.position)
+        print("new tsuru position: ", newTsuru.position)
+        print("is enabled: ",newTsuru.isEnabled)
+        print("is active: ", newTsuru.isActive)
+    }
+    
+    func appliyngTextureToTsuru(scrapImage: UIImage?) async {
+        
         let sourceImage: UIImage? = scrapImage ?? UIImage(named: "teste")
         guard let cgImage = sourceImage?.cgImage else {
             print("[SceneViewModel] No image available to create texture.")
@@ -103,7 +129,6 @@ class SceneViewModel {
 
             // Apply the texture to tsuru
             guard let tsuru = tsuru else {
-                print("[SceneViewModel] Tsuru entity not found.")
                 return
             }
 
@@ -111,12 +136,9 @@ class SceneViewModel {
                 if var modelComponent = flappingBird.components[ModelComponent.self] {
                     modelComponent.materials = [material]
                     flappingBird.components[ModelComponent.self] = modelComponent
-                    print("[SceneViewModel] Texture applied successfully to flappingBird.")
                 } else {
-                    print("[SceneViewModel] ModelComponent not found on flappingBird.")
                 }
             } else {
-                print("[SceneViewModel] flappingBird___0PercentFolded child not found under tsuru.")
             }
         } catch {
             // Properly handle the thrown error from TextureResource initializer
