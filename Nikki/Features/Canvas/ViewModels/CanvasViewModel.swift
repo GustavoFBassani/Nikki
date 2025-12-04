@@ -70,12 +70,7 @@ class CanvasViewModel {
     init(page: Page? = nil, paperStyle: String?) {
         self.currentPage = page
         self.paperStyle = paperStyle
-        
-        if let page, let data = page.markupData {
-            self.editorData = EditorData(data: data, paperStyle: page.paperStyle)
-        } else {
-            self.editorData = EditorData(data: nil, paperStyle: paperStyle)
-        }
+        self.editorData = EditorData(data: page?.markupData, paperStyle: paperStyle)
     }
     
     func undoAction() {
