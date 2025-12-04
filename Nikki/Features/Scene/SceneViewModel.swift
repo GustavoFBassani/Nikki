@@ -102,8 +102,7 @@ class SceneViewModel {
             self.camera = camera
             
             try orderedPages = data.fetchAllPages()
-            await loadPages2()
-//            await loadPages()
+            await loadPages()
             
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
             updateCamera()
@@ -206,30 +205,7 @@ class SceneViewModel {
                 return
             }
             
-            // Only for placement test
-            for i in 0..<positions.count {
-                let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
-//                print(obj.debugDescription)
-                print(obj.scale)
-                obj.scale = [0.003,0.003, 0.003]
-                obj.position = positions[i]
-                scene.addChild(obj)
-            }
-        }
-        catch {
-            print("n peguei o obj")
-        }
-    }
-    
-    func loadPages2() async {
-        do {
-            guard let scene else {
-                print("Cena não carregada")
-                return
-            }
-            
-            
-            print(orderedPages.count)
+            print("Scraps count", orderedPages.count)
             for i in 0..<orderedPages.count {
                 if let page = orderedPages[i] {
                     let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
@@ -241,55 +217,11 @@ class SceneViewModel {
                     dict.updateValue(page, forKey: obj)
                 }
             }
-            
-            
         }
         catch {
             print(error.localizedDescription)
         }
     }
-    
-//    func loadPages() async {
-//        do {
-//            guard let scene = self.scene else {
-//                print("❌ Cena não carregada")
-//                return
-//            }
-//
-//
-//                while count != 2 {
-//                    // Tenta encontrar o marcador pelo nome
-//                    guard let marker = scene.findEntity(named: "Slot" + "\(count+1)") else {
-//                        print("❌ Marcador Slot1 não encontrado na cena")
-//                        return
-//                    }
-//                    do {
-//                        if let page = pages[count] {
-//                            // Carrega o objeto (ajuste o nome conforme seu asset)
-//                            let obj = try await Entity(named: "Earth", in: nikkiProjectBundle)
-//
-//                            obj.generateCollisionShapes(recursive: true)
-//                            obj.components[InputTargetComponent.self] = .init()
-//
-//                            // 🟢 Opção 1: Adiciona como filho do marcador (recomendado)
-//                            marker.addChild(obj)
-//
-//                            dic.updateValue(page, forKey: obj)
-//
-//                            // 🔴 Alternativa (caso prefira adicionar na cena diretamente com posição absoluta):
-//                            // obj.transform = marker.transformMatrix(relativeTo: nil)
-//                            // scene.addChild(obj)
-//                        }
-//                    } catch {
-//                        print("❌ Erro ao carregar objeto 3D: \(error)")
-//                    }
-//                    count += 1
-//                }
-//
-//
-//
-//        }
-//    }
     
     func handleTap(on entity: Entity) {
             print("👉 Tocou na entidade: \(entity.name)")
@@ -308,24 +240,5 @@ class SceneViewModel {
             
             print("❌ Nenhuma entidade registrada encontrada na hierarquia")
         }
-    
-//    func handleTap(on entity: Entity) {
-//        print("👉 Tocou na entidade: \(entity.name)")
-//
-//        var current: Entity? = entity
-//
-//        // Sobe pela hierarquia até encontrar uma entidade registrada
-//        while let ent = current {
-//            if let page = dic[ent] {
-//                print("✅ Encontrou entidade associada: \(ent.name)")
-//                currentPage = nil
-//                self.currentPage = page
-//                return
-//            }
-//            current = ent.parent
-//        }
-//
-//        print("❌ Nenhuma entidade registrada encontrada na hierarquia")
-//    }
 
 }

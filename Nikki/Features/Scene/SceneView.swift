@@ -96,8 +96,8 @@ struct SceneView: View {
             
         }
         .navigationDestination(item: $vm.currentPage) { page in
-                    CanvasView(page: page, paperStyle: page.paperStyle)
-                }
+            CanvasView(page: page, paperStyle: page.paperStyle)
+        }
         .overlay(alignment: .bottomTrailing) {
             NavigationLink {
                 PageListView()
@@ -110,7 +110,7 @@ struct SceneView: View {
                     .padding()
             }
         }
-
+        
     }
 }
 
