@@ -53,7 +53,6 @@
         "Meshes",
         "Sketchfab_model",
         "Collada_visual_scene_group",
-<<<<<<< HEAD
         "Material2"
       ],
       {
@@ -70,11 +69,7 @@
         "Material2_1"
       ],
       {
-=======
-        "Material2_1"
-      ],
-      {
->>>>>>> fix/dev
+
         "disallowsFraming" : false,
         "isExpanded" : false,
         "isLocked" : false
