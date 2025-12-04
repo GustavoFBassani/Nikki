@@ -14,7 +14,7 @@ struct SceneView: View {
     @State var showCanvas = false
     
     @Environment(\.modelContext) var context
-//    @Query var pages: [Page] provisorio
+//    @Query var pages: [Page]
 
     var body: some View {
         NavigationStack {
@@ -38,7 +38,7 @@ struct SceneView: View {
                     //                    }
                     //                    try? context.save()
                     
-                    vm.repositioningCameraToTree()
+                    vm.repositioningCameraToTree(animated: false)
                     vm.updateCamera()
                 }
                 
