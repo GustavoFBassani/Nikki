@@ -99,12 +99,33 @@ struct SceneView: View {
                                 .scaledToFit()
                         }
                     }
-                }
+            ) // zoom
+            .simultaneousGesture(
+                TapGesture()
+                    .targetedToAnyEntity()
+                    .onEnded { value in
+                        vm.handleTap(on: value.entity)
+                    }
+            )
+            
+        }
+        .navigationDestination(item: $vm.currentPage) { page in
+            CanvasView(page: page, paperStyle: page.paperStyle)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            NavigationLink {
+                PageListView()
+            } label: {
+                Text("Canvas")
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding()
             }
         }
+        
     }
 }
 
-#Preview {
-    SceneView()
-}
+

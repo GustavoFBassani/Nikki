@@ -1,4 +1,25 @@
 {
+  "4E1FC970-D2BD-45E6-ABC6-C08949DDF434" : {
+    "objectMetadataList" : [
+      [
+        "4E1FC970-D2BD-45E6-ABC6-C08949DDF434",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "4E1FC970-D2BD-45E6-ABC6-C08949DDF434",
+        "Root",
+        "Cube"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
   "C1009CE8-AFA6-45B7-BEDF-722E7CD78D78" : {
     "objectMetadataList" : [
       [
@@ -32,10 +53,10 @@
         "Meshes",
         "Sketchfab_model",
         "Collada_visual_scene_group",
-        "Material3_38"
+        "Material2_1"
       ],
       {
-        "disallowsFraming" : true,
+        "disallowsFraming" : false,
         "isExpanded" : false,
         "isLocked" : false
       },

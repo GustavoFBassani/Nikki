@@ -9,6 +9,7 @@ import SwiftUI
 import RealityKit
 import NikkiProject
 
+@MainActor
 @Observable
 class SceneViewModel {
     
@@ -44,11 +45,56 @@ class SceneViewModel {
     /// Deve corresponder ao valor inicial de rho para evitar saltos no primeiro zoom
     private let baseRho: Float = 10.0
     
+    // Objects positions
+    var obj: Entity?
+    
+    var tree: Entity?
+    
+    var data = SwiftDataManager.shared
+    var orderedPages: [Page?] = []
+    var positions: [SIMD3<Float>] = [
+        SIMD3<Float>(-1.7,  0.4, 1.6),
+        SIMD3<Float>(-2.8, -0.7, 2.5),
+        SIMD3<Float>(-2.6, -0.9, 2.4),
+        SIMD3<Float>(-3.1, -0.5, 2.7),
+        SIMD3<Float>(-3.4, -0.3, 3.1),
+        SIMD3<Float>(-3.6, -0.3, 3.3),
+        SIMD3<Float>(-2.8, -0.4, 5.0),
+        SIMD3<Float>(-3.2, -0.5, 5.0),
+        SIMD3<Float>(-4.1, -0.4, 5.4),
+        SIMD3<Float>(-4.1,  0.0, 5.7),
+        SIMD3<Float>(-5.1,  1.8, 5.8),
+        SIMD3<Float>(-6.0,  1.7, 5.6),
+        SIMD3<Float>(-5.8,  1.4, 5.4),
+        SIMD3<Float>(-5.3,  0.9, 5.1),
+        SIMD3<Float>(-5.1,  0.5, 4.9),
+        SIMD3<Float>(-2.0,  0.3, 1.9),
+        SIMD3<Float>(-3.09, 0.67, 4.58),
+        SIMD3<Float>(-3.0, 0.86, 4.35),
+        SIMD3<Float>(-2.87, 1.01, 4.14),
+        SIMD3<Float>(-2.79, 1.2, 3.95),
+        SIMD3<Float>(-2.69, 1.56, 3.97),
+        SIMD3<Float>(-2.66, 1.59, 5.01),
+        SIMD3<Float>(-2.35, 1.6, 5.1),
+        SIMD3<Float>(-2.36, 1.8, 5.3),
+        SIMD3<Float>(-2.2, 1.9, 5.5),
+        SIMD3<Float>(-3.38, 0.69, 4.47),
+        SIMD3<Float>(-3.23, 0.67, 4.26),
+        SIMD3<Float>(-3.04, 0.66, 4.1),
+        SIMD3<Float>(-2.78, 0.41, 4.118),
+        SIMD3<Float>(-2.54, 0.28, 4.08),
+    ]
+    var dict: [Entity:Page] = [:]
+    var selectedEntityName: Entity? = nil
+    var currentPage: Page? = nil
+    
+    
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
             let scene = try await Entity(named: "Scene", in: nikkiProjectBundle)
             self.scene = scene
+            tree = scene.findEntity(named: "Cherry_Tree_2")
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
             
@@ -58,6 +104,9 @@ class SceneViewModel {
             let camera = PerspectiveCamera()
             scene.addChild(camera)
             self.camera = camera
+            
+            try orderedPages = data.fetchAllPages()
+            await loadPages()
             
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
             updateCamera()
@@ -130,36 +179,80 @@ class SceneViewModel {
     }
     
     private func updateCamera() {
-        
-        // MARK: - Atualização da Câmera
-        
-        /// **Mapeamento de Eixos:**
-        /// - Math X  -> RealityKit X
-        /// - Math Y  -> RealityKit Z (Profundidade)
-        /// - Math Z  -> RealityKit Y (Altura)
-        
-        // Garante que a câmera existe antes de tentar atualizar
-        guard let camera else { return }
-        
-        // 1. Cálculo Matemático (Convenção ISO: Z é altura)
-        // x = ρ * sin(φ) * cos(θ)
-        // y = ρ * sin(φ) * sin(θ)
-        // z = ρ * cos(φ)
-        
-        if let tree {
             
+            // MARK: - Atualização da Câmera
             
-            let mathX = rho * sin(phi) * cos(theta) + tree.position.x - 5
-            let mathY = rho * sin(phi) * sin(theta) + tree.position.z
-            let mathZ = rho * cos(phi) + tree.position.y
+            /// **Mapeamento de Eixos:**
+            /// - Math X  -> RealityKit X
+            /// - Math Y  -> RealityKit Z (Profundidade)
+            /// - Math Z  -> RealityKit Y (Altura)
             
+            // Garante que a câmera existe antes de tentar atualizar
+            guard let camera else { return }
             
-            // posição câmera  ( x  ,   z  ,   y)
-            camera.position = [mathX, mathZ, mathY]
+            // 1. Cálculo Matemático (Convenção ISO: Z é altura)
+            // x = ρ * sin(φ) * cos(θ)
+            // y = ρ * sin(φ) * sin(θ)
+            // z = ρ * cos(φ)
             
-            // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
-            camera.look(at: [tree.position.x - 5, tree.position.y, tree.position.z], from: camera.position, relativeTo: nil)
+            if let tree {
+                
+                
+                let mathX = rho * sin(phi) * cos(theta) + tree.position.x - 5
+                let mathY = rho * sin(phi) * sin(theta) + tree.position.z
+                let mathZ = rho * cos(phi) + tree.position.y
+                
+                
+                // posição câmera  ( x  ,   z  ,   y)
+                camera.position = [mathX, mathZ, mathY]
+                
+                // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
+                camera.look(at: [tree.position.x - 5, tree.position.y, tree.position.z], from: camera.position, relativeTo: nil)
+            }
+        }
+    
+    func loadPages() async {
+        do {
+            guard let scene else {
+                print("Cena não carregada")
+                return
+            }
+            
+            print("Scraps count", orderedPages.count)
+            for i in 0..<orderedPages.count {
+                if let page = orderedPages[i] {
+                    let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
+                    obj.generateCollisionShapes(recursive: true)
+                    obj.components[InputTargetComponent.self] = .init()
+                    obj.scale = [0.003,0.003, 0.003]
+                    obj.position = positions[i]
+                    scene.addChild(obj)
+                    dict.updateValue(page, forKey: obj)
+                }
+            }
+        }
+        catch {
+            print(error.localizedDescription)
         }
     }
+    
+    func handleTap(on entity: Entity) {
+            print("👉 Tocou na entidade: \(entity.name)")
+            
+            var current: Entity? = entity
+            
+            // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
+            while let ent = current {
+                if let page = dict[ent] {
+                    print("✅ Encontrou entidade associada: \(ent.name)")
+                    currentPage = page   // <- dispara navegação na View
+                    return
+                }
+                current = ent.parent
+            }
+            
+            print("❌ Nenhuma entidade registrada encontrada na hierarquia")
+        }
+
 }
 
