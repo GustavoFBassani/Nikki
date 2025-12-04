@@ -54,6 +54,10 @@ class EditorData {
         // controller.delegate = self
         controller.loadViewIfNeeded()
         
+        let canvasBackground = UIColor(named: "canvasBackground")
+        controller.view.backgroundColor = canvasBackground
+
+        
         // Cria o modelo de markup novo
         var markup = PaperMarkup(bounds: rect)
         
@@ -84,6 +88,19 @@ class EditorData {
         let template = UIImage(named: paperStyle ?? "recycledPaper")
         let templateView = UIImageView(image: template)
         controller.contentView = templateView
+        
+        if let markup = self.markup {
+            let pageBounds = markup.bounds
+            
+            let visibleRect = pageBounds.insetBy(
+                dx: pageBounds.width * 0.3,
+                dy: pageBounds.height * 0.3
+            )
+            
+            DispatchQueue.main.async {
+                controller.contentVisibleFrame = visibleRect
+            }
+        }
     }
     
     // MARK: - Insertion Methods
@@ -103,7 +120,12 @@ class EditorData {
         // Atualiza o controller
         refreshController()
     }
-    
+    /// Desfaz última ação
+    func undo() {
+        controller?.undoManager?.undo()
+    }
+
+
     /// Insere uma imagem no markup
     /// - Parameters:
     ///   - image: Imagem a ser inserida
@@ -118,11 +140,6 @@ class EditorData {
         
         // Depois insere a nova imagem
         markup?.insertNewImage(cgImage, frame: rect)
-        
-        // E atualiza o controller
-//        if let markup = self.markup {
-//            controller?.markup = markup
-//        }
         refreshController()
     }
     

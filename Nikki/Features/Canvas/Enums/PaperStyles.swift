@@ -11,7 +11,7 @@ enum PaperStyles: String, CaseIterable {
     case recycled = "recycledPaper"
     case white = "whitePaper"
     case red = "redPaper"
-    case secret = "secret"
+    case dotted = "dotted"
     
     var name: String {
         return rawValue
@@ -22,7 +22,7 @@ enum PaperStyles: String, CaseIterable {
         case .recycled: return String(localized: "Papel reciclado")
         case .white:    return String(localized: "Papel branco")
         case .red:      return String(localized: "Papel vermelho")
-        case .secret:   return String(localized: "Papel secreto")
+        case .dotted:   return String(localized: "Papel pontilhado")
         }
     }
 }
