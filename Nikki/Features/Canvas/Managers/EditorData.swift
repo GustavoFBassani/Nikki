@@ -125,7 +125,7 @@ class EditorData {
         controller?.undoManager?.undo()
     }
 
-    
+
     /// Insere uma imagem no markup
     /// - Parameters:
     ///   - image: Imagem a ser inserida
@@ -140,11 +140,6 @@ class EditorData {
         
         // Depois insere a nova imagem
         markup?.insertNewImage(cgImage, frame: rect)
-        
-        // E atualiza o controller
-//        if let markup = self.markup {
-//            controller?.markup = markup
-//        }
         refreshController()
     }
     
