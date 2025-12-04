@@ -7,11 +7,12 @@
 
 import SwiftUI
 import RealityKit
-
+import SwiftData
 struct SceneView: View {
     
     @State var vm = SceneViewModel()
-    
+    @Environment(\.modelContext) var context
+//    @Query var pages: [Page] provisorio
     var body: some View {
         NavigationStack {
             ZStack {
@@ -28,6 +29,11 @@ struct SceneView: View {
                     if vm.scene == nil {
                         await vm.loadScene()
                     }
+                    
+//                    pages.forEach { page in  ///provisorio
+//                        context.delete(page)
+//                    }
+//                    try? context.save()
                 }
                 .gesture(
                     /// DragGesture permite detectar movimento de um dedo na tela
@@ -99,33 +105,32 @@ struct SceneView: View {
                                 .scaledToFit()
                         }
                     }
-            ) // zoom
-            .simultaneousGesture(
-                TapGesture()
-                    .targetedToAnyEntity()
-                    .onEnded { value in
-                        vm.handleTap(on: value.entity)
-                    }
-            )
+                    .simultaneousGesture(
+                        TapGesture()
+                            .targetedToAnyEntity()
+                            .onEnded { value in
+                                vm.handleTap(on: value.entity)
+                            }
+                    )
+                    
+                }
+            }
+            .navigationDestination(item: $vm.currentPage) { page in
+                CanvasView(page: page, paperStyle: page.paperStyle)
+            }
+            .overlay(alignment: .bottomTrailing) {
+                NavigationLink {
+                    PageListView()
+                } label: {
+                    Text("Canvas")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding()
+                }
+            }
             
         }
-        .navigationDestination(item: $vm.currentPage) { page in
-            CanvasView(page: page, paperStyle: page.paperStyle)
-        }
-        .overlay(alignment: .bottomTrailing) {
-            NavigationLink {
-                PageListView()
-            } label: {
-                Text("Canvas")
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding()
-            }
-        }
-        
     }
 }
-
-

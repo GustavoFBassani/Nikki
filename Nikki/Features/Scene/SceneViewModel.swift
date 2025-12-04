@@ -47,9 +47,7 @@ class SceneViewModel {
     
     // Objects positions
     var obj: Entity?
-    
-    var tree: Entity?
-    
+        
     var data = SwiftDataManager.shared
     var orderedPages: [Page?] = []
     var positions: [SIMD3<Float>] = [
@@ -179,6 +177,9 @@ class SceneViewModel {
     }
     
     private func updateCamera() {
+        
+        
+        
             
             // MARK: - Atualização da Câmera
             
@@ -220,14 +221,17 @@ class SceneViewModel {
             
             print("Scraps count", orderedPages.count)
             for i in 0..<orderedPages.count {
-                if let page = orderedPages[i] {
-                    let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
-                    obj.generateCollisionShapes(recursive: true)
-                    obj.components[InputTargetComponent.self] = .init()
-                    obj.scale = [0.003,0.003, 0.003]
-                    obj.position = positions[i]
-                    scene.addChild(obj)
-                    dict.updateValue(page, forKey: obj)
+                if orderedPages.count < 30 {
+                    
+                    if let page = orderedPages[i] {
+                        let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
+                        obj.generateCollisionShapes(recursive: true)
+                        obj.components[InputTargetComponent.self] = .init()
+                        obj.scale = [0.003,0.003, 0.003]
+                        obj.position = positions[i]
+                        scene.addChild(obj)
+                        dict.updateValue(page, forKey: obj)
+                    }
                 }
             }
         }
