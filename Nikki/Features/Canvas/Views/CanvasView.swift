@@ -25,6 +25,7 @@ struct CanvasView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     var addNewTsuru: ()-> Void
+    
     // appear and dissapear
     
     // MARK: - Initialization

@@ -28,6 +28,8 @@ struct SceneView: View {
                 if vm.scene == nil {
                     await vm.loadScene()
                 }
+                vm.repositioningCameraToTree()
+                vm.updateCamera()
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -104,15 +106,27 @@ struct SceneView: View {
         }
         .toolbar {
             if !showCanvas {
-                Menu {
-                    ForEach(PaperStyles.allCases, id: \.self) { style in
-                        Button(style.name) {
-                            vm.PaperStyle = style.name
-                            showCanvas.toggle()
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        ForEach(PaperStyles.allCases, id: \.self) { style in
+                            Button(style.name) {
+                                vm.PaperStyle = style.name
+                                showCanvas.toggle()
+                            }
+                        }
+                    } label: {
+                        Label("Nova página", systemImage: "plus")
+                    }
+                }
+                if vm.isFocusedOnTsuru {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                                vm.repositioningCameraToTree()
+                            
+                        } label: {
+                            Image(systemName: "chevron.left")
                         }
                     }
-                } label: {
-                    Label("Nova página", systemImage: "plus")
                 }
             }
         }

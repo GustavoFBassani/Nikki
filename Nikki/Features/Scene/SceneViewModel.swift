@@ -48,8 +48,15 @@ class SceneViewModel {
     /// Deve corresponder ao valor inicial de rho para evitar saltos no primeiro zoom
     private let baseRho: Float = 10.0
     
-    var tsurus: [Entity] = []
-    var count: Float = 1.0
+    /// Entidade que controla para onde a camera está olhando
+    /// Deve estar atualizando para mudar o foco da camera
+    private var cameraLook: SIMD3<Float>?
+    ///Bool pra controlar o foco da camera
+    var isFocusedOnTsuru = false
+    
+    var tsurus: [Entity] = [] //provisorio
+    var count: Float = 1.0 // provisorio
+    
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
@@ -59,7 +66,8 @@ class SceneViewModel {
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
             
-//            await appliyngTextureToTsuru(scrapImage: nil)
+
+            //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
             let camera = PerspectiveCamera()
@@ -73,37 +81,34 @@ class SceneViewModel {
         }
     }
     
-    //MARK: - ENTITIES ANIMATIONS
+    //MARK: - TSURU FUNCTIONS
     func playTsuruAnimation() {
-        if let tsuruAnimation = tsuru?.availableAnimations.first {
-            
-            tsuru?.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
+        guard let lastTsuru = tsurus.last else { return } // ve o ultimo tsuru adicionado
+        
+        if let tsuruAnimation = lastTsuru.availableAnimations.first {
+            lastTsuru.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
         }
+        
     }
-    
     
     func addNewTsuru() {
-        guard let  flapBird = tsuru?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }),
-              let scene = scene else { return }
-        
-        flapBird.scale = [0.0005,0.0005,0.0005]
-        
-        let newTsuru = flapBird.clone(recursive: true)
+        let newTsuru = tsuru?.clone(recursive: true)
         count += 1
-        newTsuru.position.z += count  // Simplesmente ajusta o Z
-
-
-        tsurus.append(newTsuru)
-        
-        tsurus.forEach { ent in
-            scene.addChild(ent)
+        if let newTsuru {
+            fixTsuruPos(newTsuru)
+            newTsuru.position = [0.5, 0.5 + count, 0.5] // mexe no tsuru
+            
+            tsurus.append(newTsuru)
+            scene?.addChild(newTsuru)
         }
-        
-        print("flapBird position: ", flapBird.position)
-        print("new tsuru position: ", newTsuru.position)
-        print("is enabled: ",newTsuru.isEnabled)
-        print("is active: ", newTsuru.isActive)
+        repositioningCameraNewToTsuru()
     }
+    
+    func fixTsuruPos(_ e: Entity) {
+        guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return } // acessa o flabird do tsuru
+        newFlapBird.scale = [0.0005,0.0005,0.0005] // corrige a escala do flabird
+        newFlapBird.position  = [0,0,0] // relativa ao modelo pai (tsuru)
+    } // colocar a posicao relativa do filho igual oa pai
     
     func appliyngTextureToTsuru(scrapImage: UIImage?) async {
         
@@ -112,7 +117,7 @@ class SceneViewModel {
             print("[SceneViewModel] No image available to create texture.")
             return
         }
-
+        
         // Create material with the texture
         do {
             let texture = try await TextureResource(image: cgImage, options: .init(semantic: .color))
@@ -127,21 +132,16 @@ class SceneViewModel {
             material.specular = 0.3      // Low specular reflection
             
 
-            // Apply the texture to tsuru
-            guard let tsuru = tsuru else {
+            guard let tsuru = tsurus.last?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else {
                 return
             }
-
-            if let flappingBird = tsuru.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
-                if var modelComponent = flappingBird.components[ModelComponent.self] {
-                    modelComponent.materials = [material]
-                    flappingBird.components[ModelComponent.self] = modelComponent
-                } else {
-                }
-            } else {
+            
+            if var modelComponent = tsuru.components[ModelComponent.self] {
+                modelComponent.materials = [material]
+                tsuru.components[ModelComponent.self] = modelComponent
+                
             }
         } catch {
-            // Properly handle the thrown error from TextureResource initializer
             print("[SceneViewModel] Failed to create TextureResource: \(error)")
         }
     }
@@ -210,29 +210,44 @@ class SceneViewModel {
         updateCamera()
     }
     
-    private func updateCamera() {
+    func repositioningCameraNewToTsuru() {
+        
+        if let tsuruToFocus = tsurus.last {
+            let tsuruposition = tsuruToFocus.position(relativeTo: nil)
+            cameraLook = tsuruposition
+            rho = 0.5
+            updateCamera()
+            isFocusedOnTsuru = true
+        }
+        
+    }
+    
+    func repositioningCameraToTree() {
+        cameraLook = tree?.position
+        cameraLook?.x -= 4
+        theta =  -4.776666
+        rho =  21.0
+        updateCamera()
+        isFocusedOnTsuru = false
+    }
+    
+    func updateCamera() {
         
         // MARK: - Atualização da Câmera
- 
+        
         // Garante que a câmera existe antes de tentar atualizar
         guard let camera else { return }
         
-
-        if let flappingBird = tsuru?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
-            let globalPosition = flappingBird.position(relativeTo: nil)
-            let x = rho * sin(phi) * cos(theta) + globalPosition.x
-            let y = rho * cos(phi) +  globalPosition.y
-            let z = rho * sin(phi) * sin(theta) + globalPosition.z
-            
+        if let cameraLook {
+            let x = rho * sin(phi) * cos(theta) + cameraLook.x
+            let y = rho * cos(phi) +  cameraLook.y
+            let z = rho * sin(phi) * sin(theta) + cameraLook.z
+            //            print("theta: ", theta)
+            //            print("rho: ", rho)
             camera.position = [x, y, z]
-            
-            print("flapping bird position: ", flappingBird.position)
-            print("camera position: ", camera.position)
-            
             // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
-            camera.look(at: globalPosition, from: camera.position, relativeTo: nil)
+            camera.look(at: cameraLook, from: camera.position, relativeTo: nil)
             
         }
     }
 }
-
