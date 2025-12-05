@@ -51,9 +51,9 @@ struct SceneView: View {
                     .onChange(of: showCanvas) { oldValue, newValue in
                         if !newValue {
                             Task {
-                                await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage)
+                                await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage, tsuru: vm.newTsuru)
                                 try await Task.sleep(nanoseconds: 1_000_000_000)
-                                vm.playTsuruAnimation() // comecou a ficar estranho conforme eu crio um tsuru novo... tem que criar antes de desaparecer a tela
+                                vm.playTsuruAnimation(tsuruToAnimate: vm.newTsuru) // comecou a ficar estranho conforme eu crio um tsuru novo... tem que criar antes de desaparecer a tela
                             }
                         }
                     }

@@ -19,6 +19,7 @@ class SceneViewModel {
     var scrapImage: UIImage?
     var paperStyle: String?
     var tsuru: Entity?
+    var newTsuru: Entity?
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena
@@ -30,7 +31,6 @@ class SceneViewModel {
     var currentScale: CGFloat = 1.0
     /// Última escala salva para cálculo relativo
     var lastScale: CGFloat = 1.0
-    
     // MARK: - Propriedades da Câmera Orbital
     /// Raio da órbita (ρ) - distância da câmera em relação ao centro da cena
     /// Em coordenadas esféricas, representa a distância radial do centro até o ponto
@@ -48,18 +48,16 @@ class SceneViewModel {
     /// Raio base para cálculo de zoom relativo
     /// Deve corresponder ao valor inicial de rho para evitar saltos no primeiro zoom
     private let baseRho: Float = 10.0
-    
     /// Entidade que controla para onde a camera está olhando
     /// Deve estar atualizando para mudar o foco da camera
     private var cameraLook: SIMD3<Float>?
     ///Bool pra controlar o foco da camera
     var isFocusedOnTsuru = false
     
-    var tsurus: [Entity] = [] //provisorio
     var count: Float = 1.0 // provisorio
     // Objects positions
     var obj: Entity?
-        
+    
     var data = SwiftDataManager.shared
     var orderedPages: [Page?] = []
     var positions: [SIMD3<Float>] = [
@@ -94,11 +92,11 @@ class SceneViewModel {
         SIMD3<Float>(-2.78, 0.41, 4.118),
         SIMD3<Float>(-2.54, 0.28, 4.08),
     ]
-    var dict: [Entity:Page] = [:]
+    var dict: [Entity:Page] = [:]  //id pra entidade ??
     var selectedEntityName: Entity? = nil
     var currentPage: Page? = nil
     var lastAdded: Int = 0
-    
+
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
@@ -117,7 +115,7 @@ class SceneViewModel {
             self.camera = camera
             
             try orderedPages = data.fetchAllPages()
-            await loadPages()
+            await lodaTsurusAtScene()
             
             lastAdded = orderedPages.count // pega a proxima pra adicionar
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
@@ -128,30 +126,27 @@ class SceneViewModel {
     }
     
     //MARK: - TSURU FUNCTIONS
-    func playTsuruAnimation() {
-        guard let lastTsuru = tsurus.last else { return } // ve o ultimo tsuru adicionado
+    func playTsuruAnimation(tsuruToAnimate: Entity?) {
         
-        if let tsuruAnimation = lastTsuru.availableAnimations.first {
-            lastTsuru.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
+        if let tsuruAnimation = tsuruToAnimate?.availableAnimations.first {
+            tsuruToAnimate?.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
         }
         
     }
     
     func addNewTsuru() {
         print("lastAdded: ", lastAdded)
-        let newTsuru = tsuru?.clone(recursive: true)
+        newTsuru = tsuru?.clone(recursive: true)
         if let newTsuru {
             fixTsuruPos(newTsuru)
-            newTsuru.position = positions[lastAdded] // mexe no tsuru
-            
-            tsurus.append(newTsuru)
+            newTsuru.position = positions[lastAdded] // coloca o tsuru na posicao certa...
             scene?.addChild(newTsuru)
         }
         lastAdded += 1
         repositioningCameraNewToTsuru()
     } //aqui vai ser necessário salvar a entidade relacionada com a página
     
-    func loadPages() async {
+    func lodaTsurusAtScene() async {
         do {
             guard let scene else {
                 print("Cena não carregada")
@@ -163,12 +158,17 @@ class SceneViewModel {
                 if orderedPages.count < 30 {
                     
                     if let page = orderedPages[i] {
-                        let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
+                        
+                        let obj = try await Entity(named: "tsuru", in: nikkiProjectBundle)
                         obj.generateCollisionShapes(recursive: true)
                         obj.components[InputTargetComponent.self] = .init()
                         obj.scale = [0.001,0.001, 0.001]
+                        obj.transform.rotation = simd_quatf(angle: .pi, axis: [0, 1, 0])
+
                         obj.position = positions[i]
+                        await appliyngTextureToTsuru(scrapImage: page.markupImage, tsuru: obj)  // markupImage já retorna UIImage?
                         scene.addChild(obj)
+                        playTsuruAnimation(tsuruToAnimate: obj)
                         dict.updateValue(page, forKey: obj)
                     }
                 }
@@ -185,14 +185,17 @@ class SceneViewModel {
         newFlapBird.position  = [0,0,0] // relativa ao modelo pai (tsuru)
     }
     
-    func appliyngTextureToTsuru(scrapImage: UIImage?) async {
+    func appliyngTextureToTsuru(scrapImage: UIImage?, tsuru: Entity?) async {
         
         let sourceImage: UIImage? = scrapImage ?? UIImage(named: "teste")
         guard let cgImage = sourceImage?.cgImage else {
             print("[SceneViewModel] No image available to create texture.")
             return
         }
-        
+        guard let tsuru else { return }
+        guard let newFlapBird = tsuru.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return }
+
+
         // Create material with the texture
         do {
             let texture = try await TextureResource(image: cgImage, options: .init(semantic: .color))
@@ -206,14 +209,10 @@ class SceneViewModel {
             material.roughness = 0.7     // Paper is somewhat matte (0.6-0.8)
             material.specular = 0.3      // Low specular reflection
             
-
-            guard let tsuru = tsurus.last?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else {
-                return
-            }
             
-            if var modelComponent = tsuru.components[ModelComponent.self] {
+            if var modelComponent = newFlapBird.components[ModelComponent.self] {
                 modelComponent.materials = [material]
-                tsuru.components[ModelComponent.self] = modelComponent
+                newFlapBird.components[ModelComponent.self] = modelComponent
                 
             }
         } catch {
@@ -287,7 +286,7 @@ class SceneViewModel {
     
     func repositioningCameraNewToTsuru() {
         
-        if let tsuruToFocus = tsurus.last {
+        if let tsuruToFocus = newTsuru {
             let tsuruposition = tsuruToFocus.position(relativeTo: nil)
             cameraLook = tsuruposition
             rho = 0.5

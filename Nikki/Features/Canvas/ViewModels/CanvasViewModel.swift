@@ -141,14 +141,19 @@ class CanvasViewModel {
     func savePage() async throws {
         // Exporta o Data do PaperKit
         let data = await editorData.exportMarkupData()
+        let image = await editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
+        
+        // Converte UIImage para Data (PNG)
+        let imageData = image?.pngData()
         
         if let page = currentPage {
             // Atualiza página existente
             page.markupData = data
+            page.markupImageData = imageData  // Salva como Data
             try dataManager.updatePage(page)
         } else {
             // Cria nova página
-            let newPage = Page(title: "Nova Página", markupData: data, paperStyle: paperStyle)
+            let newPage = Page(title: "Nova Página", markupData: data, paperStyle: paperStyle, markupImageData: imageData)
             try dataManager.savePage(newPage)
             currentPage = newPage
         }
