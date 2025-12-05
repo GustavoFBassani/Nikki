@@ -20,6 +20,7 @@ class SceneViewModel {
     var paperStyle: String?
     var tsuru: Entity?
     var newTsuru: Entity?
+    var showCanvas: Bool = false
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena
@@ -160,14 +161,12 @@ class SceneViewModel {
                     if let page = orderedPages[i] {
                         
                         guard let tsuru else { return }
+                        
                         let obj = tsuru.clone(recursive: true)
-//                        obj.generateCollisionShapes(recursive: true)
-//                        obj.components[InputTargetComponent.self] = .init()
-//                        obj.scale = [0.001,0.001, 0.001]
+                        obj.generateCollisionShapes(recursive: true)
+                        obj.components[InputTargetComponent.self] = .init()
                         fixTsuruPos(obj)
-
                         obj.transform.rotation = simd_quatf(angle: .pi, axis: [0, 1, 0])
-
                         obj.position = positions[i]
                         await appliyngTextureToTsuru(scrapImage: page.markupImage, tsuru: obj)
                         scene.addChild(obj)
@@ -183,11 +182,19 @@ class SceneViewModel {
     } //aqui vai ser necessário
     
     func fixTsuruPos(_ e: Entity) {
-        guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return } // acessa o flabird do tsuru
+
+        
+        guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else {
+            print("flappingBird não encontrado em: \(e.name)")
+            return 
+        }
+        
+        newFlapBird.scale = [0.0005,0.0005,0.0005]
+        newFlapBird.position  = [0,0,0]
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
-        newFlapBird.scale = [0.0005,0.0005,0.0005] // corrige a escala do flabird
-        newFlapBird.position  = [0,0,0] // relativa ao modelo pai (tsuru)
+        
+        print("Collision shapes e InputTarget configurados para: \(newFlapBird.name)")
     }
     
     func appliyngTextureToTsuru(scrapImage: UIImage?, tsuru: Entity?) async {
@@ -322,7 +329,6 @@ class SceneViewModel {
             //            print("theta: ", theta)
             //            print("rho: ", rho)
             camera.position = [x, y, z]
-            // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
             camera.look(at: cameraLook, from: camera.position, relativeTo: nil)
             
         }
@@ -330,21 +336,23 @@ class SceneViewModel {
         
 
     func handleTap(on entity: Entity) {
-            print(" Tocou na entidade: \(entity.name)")
-            
-            var current: Entity? = entity
-            
-            // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
-            while let ent = current {
-                if let page = dict[ent] {
-                    print("Encontrou entidade associada: \(ent.name)")
-                    currentPage = page   // <- dispara navegação na View
-                    return
-                }
-                current = ent.parent
+        print("Tocou na entidade: \(entity.name)")
+        print("Hierarquia: \(entity.parent?.name ?? "nil") -> \(entity.name)")
+        
+        var current: Entity? = entity
+        
+        while let ent = current {
+            print("Verificando: \(ent.name)")
+            if let page = dict[ent] {
+                print("Encontrou entidade associada: \(ent.name)")
+                currentPage = page
+                showCanvas.toggle()
+                return
             }
-            
-            print("Nenhuma entidade registrada encontrada na hierarquia")
+            current = ent.parent
         }
+        
+        print("Nenhuma entidade registrada encontrada na hierarquia")
+    }
 
 }

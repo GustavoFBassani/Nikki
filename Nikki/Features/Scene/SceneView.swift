@@ -11,7 +11,7 @@ import SwiftData
 struct SceneView: View {
     
     @State var vm = SceneViewModel()
-    @State var showCanvas = false
+
     
     @Environment(\.modelContext) var context
 //    @Query var pages: [Page] /*provisorio*/
@@ -42,13 +42,14 @@ struct SceneView: View {
                     vm.updateCamera()
                 }
                 
-                CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $showCanvas, page: vm.currentPage, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
-                    .id(showCanvas) //funciona isso?
-                    .opacity(showCanvas ? 1 : 0)
-                    .scaleEffect(showCanvas ? 1 : 0.5)
-                    .animation(.smooth(duration: 1), value: showCanvas)
-                    .allowsHitTesting(showCanvas)
-                    .onChange(of: showCanvas) { oldValue, newValue in
+                CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $vm.showCanvas, page: vm.currentPage, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
+                    .id(vm.showCanvas) //funciona isso?
+                    .opacity(vm.showCanvas ? 1 : 0)
+                    .scaleEffect(vm.showCanvas ? 1 : 0.5)
+                    .animation(.smooth(duration: 1), value: vm.showCanvas)
+                    .allowsHitTesting(vm.showCanvas)
+                    .zIndex(vm.showCanvas ? 1 : -1) // Move para trás quando invisível
+                    .onChange(of: vm.showCanvas) { oldValue, newValue in
                         if !newValue {
                             Task {
                                 await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage, tsuru: vm.newTsuru)
@@ -57,6 +58,7 @@ struct SceneView: View {
                             }
                         }
                     }
+                
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -117,19 +119,19 @@ struct SceneView: View {
                 TapGesture()
                     .targetedToAnyEntity()
                     .onEnded { value in
+                        print("Tap detectado na entidade: \(value.entity.name)")
                         vm.handleTap(on: value.entity)
-//                        CanvasView(scrapToExport: vm.currentPage?.markupData, dismissCanvasView: $showCanvas, addNewTsuru: vm.addNewTsuru)
                     }
             )
         }
         .toolbar {
-            if !showCanvas {
+            if !vm.showCanvas {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         ForEach(PaperStyles.allCases, id: \.self) { style in
                             Button(style.name) {
                                 vm.paperStyle = style.name
-                                showCanvas.toggle()
+                                vm.showCanvas.toggle()
                             }
                         }
                     } label: {
@@ -154,4 +156,3 @@ struct SceneView: View {
 #Preview {
     SceneView()
 }
-
