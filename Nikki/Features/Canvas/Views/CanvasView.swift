@@ -136,6 +136,7 @@ struct CanvasView: View {
                 // Botão para salvar a página e fechar o canvas
                 Button(action: handleSave) {
                     Image(.tsuruBird)
+                        .accessibilityIdentifier("canvas_save_button")
                 }
             }
             
