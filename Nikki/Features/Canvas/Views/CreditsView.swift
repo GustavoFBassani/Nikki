@@ -10,7 +10,7 @@ import SwiftUI
 struct CreditsView: View {
     var body: some View {
         
-        VStack{
+        VStack(spacing: 32){
             HStack{
 //                Button {
 //                    
@@ -20,7 +20,7 @@ struct CreditsView: View {
                     .font(.custom("CaveatBrush-Regular", size: 24))
             }
             
-            VStack(spacing: 24){
+            VStack(spacing: 20){
                 VStack(spacing: 8){
                     Text("Tree")
                         .font(.custom("CaveatBrush-Regular", size: 22))
