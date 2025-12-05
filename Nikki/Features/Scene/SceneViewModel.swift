@@ -54,6 +54,7 @@ class SceneViewModel {
     private var cameraLook: SIMD3<Float>?
     ///Bool pra controlar o foco da camera
     var isFocusedOnTsuru = false
+    var isFocusedOnBandstand = false
     
     var tsurus: [Entity] = [] //provisorio
     var count: Float = 1.0 // provisorio
@@ -98,7 +99,6 @@ class SceneViewModel {
     var selectedEntityName: Entity? = nil
     var currentPage: Page? = nil
     
-    
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
@@ -107,7 +107,10 @@ class SceneViewModel {
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
-            
+            if let bandstand = scene.findEntity(named: "Japan_HW") {
+                bandstand.generateCollisionShapes(recursive: true)
+                bandstand.components[InputTargetComponent.self] = .init()
+            }
 
             //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
@@ -342,10 +345,10 @@ class SceneViewModel {
     
     func focusOnBandstand() {
         // Posicao do coreto
-        let look = SIMD3<Float>(-7.3, 0, -8.2)
+        let look = SIMD3<Float>(-7.3, -0.3, -8.2)
         
         // Posicao da camera
-        let desiredPos = SIMD3<Float>(-0.58, 1, -8.2)
+        let desiredPos = SIMD3<Float>(-3.5, -0.3, -8.2)
         
         // Vetor do centro (look) até a câmera
         let distance = desiredPos - look
@@ -472,9 +475,16 @@ class SceneViewModel {
         
         // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
         while let ent = current {
+            print("Encontrou entidade associada: \(ent.name)")
             if let page = dict[ent] {
-                print("Encontrou entidade associada: \(ent.name)")
                 currentPage = page
+                return
+            }
+            
+            // Coreto. O && serve pra ele nao ficar animando posicao estatica caso o usuario fique clicando varias vezes no coreto, ai da uma travada (melhor previnir vai saber)
+            if ent.name == "Japan_HW" && !isFocusedOnBandstand {
+                focusOnBandstand()
+                isFocusedOnBandstand = true
                 return
             }
             current = ent.parent

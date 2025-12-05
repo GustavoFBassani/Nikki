@@ -70,6 +70,8 @@ struct SceneView: View {
                 /// 5. onEnded reseta a posição ao soltar o dedo
                 DragGesture()
                 .onChanged { value in
+                    guard !vm.isFocusedOnBandstand else { return }
+                    
                     // Na primeira chamada, apenas salva a posição inicial
                     if vm.lastDragPosition == .zero {
                         vm.lastDragPosition = value.location
@@ -143,6 +145,19 @@ struct SceneView: View {
                         } label: {
                             Image(systemName: "chevron.left")
                         }
+                    }
+                }
+            }
+            if vm.isFocusedOnBandstand {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        vm.repositioningCameraToTree()
+                        vm.isFocusedOnBandstand = false
+                    } label: {
+                        Image("customXmark")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)  
                     }
                 }
             }
