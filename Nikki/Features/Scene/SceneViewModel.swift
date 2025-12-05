@@ -9,11 +9,16 @@ import SwiftUI
 import RealityKit
 import NikkiProject
 
+@MainActor
 @Observable
 class SceneViewModel {
     
+    //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
+    var scrapImage: UIImage?
+    var paperStyle: String?
+    var tsuru: Entity?
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena
@@ -49,7 +54,55 @@ class SceneViewModel {
     private var currentMotivation: Motivation?
     var motivationText: String = ""
     var datadamotivacaodosguri: Date = Date()
+    /// Entidade que controla para onde a camera está olhando
+    /// Deve estar atualizando para mudar o foco da camera
+    private var cameraLook: SIMD3<Float>?
+    ///Bool pra controlar o foco da camera
+    var isFocusedOnTsuru = false
     
+    var tsurus: [Entity] = [] //provisorio
+    var count: Float = 1.0 // provisorio
+    // Objects positions
+    var obj: Entity?
+        
+    var data = SwiftDataManager.shared
+    var orderedPages: [Page?] = []
+    var positions: [SIMD3<Float>] = [
+        SIMD3<Float>(-1.7,  0.4, 1.6),
+        SIMD3<Float>(-2.8, -0.7, 2.5),
+        SIMD3<Float>(-2.6, -0.9, 2.4),
+        SIMD3<Float>(-3.1, -0.5, 2.7),
+        SIMD3<Float>(-3.4, -0.3, 3.1),
+        SIMD3<Float>(-3.6, -0.3, 3.3),
+        SIMD3<Float>(-2.8, -0.4, 5.0),
+        SIMD3<Float>(-3.2, -0.5, 5.0),
+        SIMD3<Float>(-4.1, -0.4, 5.4),
+        SIMD3<Float>(-4.1,  0.0, 5.7),
+        SIMD3<Float>(-5.1,  1.8, 5.8),
+        SIMD3<Float>(-6.0,  1.7, 5.6),
+        SIMD3<Float>(-5.8,  1.4, 5.4),
+        SIMD3<Float>(-5.3,  0.9, 5.1),
+        SIMD3<Float>(-5.1,  0.5, 4.9),
+        SIMD3<Float>(-2.0,  0.3, 1.9),
+        SIMD3<Float>(-3.09, 0.67, 4.58),
+        SIMD3<Float>(-3.0, 0.86, 4.35),
+        SIMD3<Float>(-2.87, 1.01, 4.14),
+        SIMD3<Float>(-2.79, 1.2, 3.95),
+        SIMD3<Float>(-2.69, 1.56, 3.97),
+        SIMD3<Float>(-2.66, 1.59, 5.01),
+        SIMD3<Float>(-2.35, 1.6, 5.1),
+        SIMD3<Float>(-2.36, 1.8, 5.3),
+        SIMD3<Float>(-2.2, 1.9, 5.5),
+        SIMD3<Float>(-3.38, 0.69, 4.47),
+        SIMD3<Float>(-3.23, 0.67, 4.26),
+        SIMD3<Float>(-3.04, 0.66, 4.1),
+        SIMD3<Float>(-2.78, 0.41, 4.118),
+        SIMD3<Float>(-2.54, 0.28, 4.08),
+    ]
+    var dict: [Entity:Page] = [:]
+    var selectedEntityName: Entity? = nil
+    var currentPage: Page? = nil
+        
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
@@ -57,13 +110,18 @@ class SceneViewModel {
             self.scene = scene
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
+            tsuru = scene.findEntity(named: "tsuru")
             
-            print(tree)
+
+            //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
             let camera = PerspectiveCamera()
             scene.addChild(camera)
             self.camera = camera
+            
+            try orderedPages = data.fetchAllPages()
+            await loadPages()
             
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
             updateCamera()
@@ -72,6 +130,72 @@ class SceneViewModel {
         }
     }
     
+    //MARK: - TSURU FUNCTIONS
+    func playTsuruAnimation() {
+        guard let lastTsuru = tsurus.last else { return } // ve o ultimo tsuru adicionado
+        
+        if let tsuruAnimation = lastTsuru.availableAnimations.first {
+            lastTsuru.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
+        }
+        
+    }
+    
+    func addNewTsuru() {
+        let newTsuru = tsuru?.clone(recursive: true)
+        count += 1
+        if let newTsuru {
+            fixTsuruPos(newTsuru)
+            newTsuru.position = [0.5, 0.5 + count, 0.5] // mexe no tsuru
+            
+            tsurus.append(newTsuru)
+            scene?.addChild(newTsuru)
+        }
+        repositioningCameraNewToTsuru()
+    } //ok
+    
+    func fixTsuruPos(_ e: Entity) {
+        guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return } // acessa o flabird do tsuru
+        newFlapBird.scale = [0.0005,0.0005,0.0005] // corrige a escala do flabird
+        newFlapBird.position  = [0,0,0] // relativa ao modelo pai (tsuru)
+    } // ok
+    
+    func appliyngTextureToTsuru(scrapImage: UIImage?) async {
+        
+        let sourceImage: UIImage? = scrapImage ?? UIImage(named: "teste")
+        guard let cgImage = sourceImage?.cgImage else {
+            print("[SceneViewModel] No image available to create texture.")
+            return
+        }
+        
+        // Create material with the texture
+        do {
+            let texture = try await TextureResource(image: cgImage, options: .init(semantic: .color))
+            var material = PhysicallyBasedMaterial()
+            
+            
+            let rotationRadians =   Float.pi // 180 degrees converted to radians.
+            material.textureCoordinateTransform = .init(rotation: rotationRadians)
+            material.baseColor = .init(tint: .white, texture: .init(texture))
+            material.metallic = 0.0      // Paper is not metallic
+            material.roughness = 0.7     // Paper is somewhat matte (0.6-0.8)
+            material.specular = 0.3      // Low specular reflection
+            
+
+            guard let tsuru = tsurus.last?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else {
+                return
+            }
+            
+            if var modelComponent = tsuru.components[ModelComponent.self] {
+                modelComponent.materials = [material]
+                tsuru.components[ModelComponent.self] = modelComponent
+                
+            }
+        } catch {
+            print("[SceneViewModel] Failed to create TextureResource: \(error)")
+        }
+    } //ok
+    
+    //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
         /// Rotaciona a câmera orbital em torno da cena com base no gesto de arrastar.
         ///
@@ -97,11 +221,11 @@ class SceneViewModel {
         ///   para aplicar imediatamente a nova posição/olhar da câmera.
         // Atualiza theta (rotação horizontal - Azimute)
         // Invertido (-=) para sensação de "pegar e arrastar" a cena
-        theta -= dTheta * 0.01
+        theta -= dTheta * 0.005
         
         // Atualiza phi (rotação vertical - Elevação)
         // Invertido (-=) para que arrastar para baixo leve a câmera para o topo (phi -> 0)
-        phi -= dPhi * 0.01
+        phi -= dPhi * 0.005
         
         // Limita phi entre pi/60 e 57pi/100
         // Phi = 0 é o Polo Norte (Topo)
@@ -109,7 +233,7 @@ class SceneViewModel {
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
-    }
+    } //ok
     
     func zoom(scale: Float) {
         
@@ -129,42 +253,96 @@ class SceneViewModel {
         
         // Limita entre 2 (muito perto) e 20 (muito longe)
         // Evita que a câmera atravesse o objeto ou fique distante demais
-        rho = max(2, min(21, rho))
+        rho = max(0.5, min(21, rho))
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
-    }
+    } // ok
     
-    private func updateCamera() {
+    func repositioningCameraNewToTsuru() {
         
-        // MARK: - Atualização da Câmera
+        if let tsuruToFocus = tsurus.last {
+            let tsuruposition = tsuruToFocus.position(relativeTo: nil)
+            cameraLook = tsuruposition
+            rho = 0.5
+            updateCamera()
+            isFocusedOnTsuru = true
+        }
         
-        /// **Mapeamento de Eixos:**
-        /// - Math X  -> RealityKit X
-        /// - Math Y  -> RealityKit Z (Profundidade)
-        /// - Math Z  -> RealityKit Y (Altura)
+    } // ok
+    
+    func repositioningCameraToTree() {
+        cameraLook = tree?.position
+        cameraLook?.x -= 4
+        theta =  -4.776666
+        rho =  21.0
+        updateCamera()
+        isFocusedOnTsuru = false
+    } //ok
+    
+    func updateCamera() {
+        
         
         // Garante que a câmera existe antes de tentar atualizar
         guard let camera else { return }
         
-        // 1. Cálculo Matemático (Convenção ISO: Z é altura)
-        // x = ρ * sin(φ) * cos(θ)
-        // y = ρ * sin(φ) * sin(θ)
-        // z = ρ * cos(φ)
-        
-        if let tree {
-            
-            
-            let mathX = rho * sin(phi) * cos(theta) + tree.position.x - 5
-            let mathY = rho * sin(phi) * sin(theta) + tree.position.z
-            let mathZ = rho * cos(phi) + tree.position.y
-            
-            
-            // posição câmera  ( x  ,   z  ,   y)
-            camera.position = [mathX, mathZ, mathY]
-            
+        if let cameraLook {
+            let x = rho * sin(phi) * cos(theta) + cameraLook.x
+            let y = rho * cos(phi) +  cameraLook.y
+            let z = rho * sin(phi) * sin(theta) + cameraLook.z
+            //            print("theta: ", theta)
+            //            print("rho: ", rho)
+            camera.position = [x, y, z]
             // Faz a câmera sempre olhar para o centro da cena (origem 0,0,0)
-            camera.look(at: [tree.position.x - 5, tree.position.y, tree.position.z], from: camera.position, relativeTo: nil)
+            camera.look(at: cameraLook, from: camera.position, relativeTo: nil)
+            
+        }
+    } //ok
+        
+    func loadPages() async {
+        do {
+            guard let scene else {
+                print("Cena não carregada")
+                return
+            }
+            
+            print("Scraps count", orderedPages.count)
+            for i in 0..<orderedPages.count {
+                if orderedPages.count < 30 {
+                    
+                    if let page = orderedPages[i] {
+                        let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
+                        obj.generateCollisionShapes(recursive: true)
+                        obj.components[InputTargetComponent.self] = .init()
+                        obj.scale = [0.003,0.003, 0.003]
+                        obj.position = positions[i]
+                        scene.addChild(obj)
+                        dict.updateValue(page, forKey: obj)
+                    }
+                }
+            }
+        }
+        catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func handleTap(on entity: Entity) {
+            print(" Tocou na entidade: \(entity.name)")
+            
+            var current: Entity? = entity
+            
+            // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
+            while let ent = current {
+                if let page = dict[ent] {
+                    print("Encontrou entidade associada: \(ent.name)")
+                    currentPage = page   // <- dispara navegação na View
+                    return
+                }
+                current = ent.parent
+            }
+            
+            print("Nenhuma entidade registrada encontrada na hierarquia")
         }
     }
     
