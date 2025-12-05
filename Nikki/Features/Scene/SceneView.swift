@@ -11,6 +11,7 @@ import RealityKit
 struct SceneView: View {
     
     @State var vm = SceneViewModel()
+    @State private var showMotivationPopup = false
     
     var body: some View {
         NavigationStack {
@@ -33,7 +34,7 @@ struct SceneView: View {
                     /// DragGesture permite detectar movimento de um dedo na tela
                     /// Usado para rotacionar a câmera orbital
                     ///
-                    /// **Fluxo:**
+                    /// Fluxo:
                     /// 1. Usuário toca e arrasta
                     /// 2. onChanged é chamado continuamente durante o movimento
                     /// 3. Calcula a diferença entre posição atual e última
@@ -70,7 +71,7 @@ struct SceneView: View {
                     /// MagnificationGesture detecta movimento de pinça com dois dedos
                     /// Usado para controlar a distância da câmera (zoom)
                     ///
-                    /// **Fluxo:**
+                    /// Fluxo:
                     /// 1. Usuário coloca dois dedos na tela
                     /// 2. onChanged é chamado enquanto afasta/aproxima os dedos
                     /// 3. Calcula a escala acumulada
@@ -85,8 +86,25 @@ struct SceneView: View {
                             vm.lastScale = vm.currentScale
                         }
                 ) // zoom
+                
+                // POPUP DE MOTIVAÇÃO
+                if showMotivationPopup {
+                    motivationPopup
+                        .transition(.scale.combined(with: .opacity))
+                        .zIndex(1)
+                }
             }
             .toolbar {
+                // Botão de motivação (abre popup)
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showMotivationPopup = true
+                    } label: {
+                        Label("Motivation", systemImage: "quote.bubble")
+                    }
+                }
+                
+                // Botão para ir para o Canvas / PageList
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink {
                         PageListView()
@@ -101,6 +119,64 @@ struct SceneView: View {
                     }
                 }
             }
+        }
+        .task {
+            // carrega a motivação salva assim que a SceneView aparecer
+            vm.loadMotivation()
+        }
+    }
+    
+    // MARK: - Popup de Motivação
+    
+    private var motivationPopup: some View {
+        ZStack {
+            // Fundo escurecido atrás do card
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                Text("Why are you writing? \(vm.datadamotivacaodosguri)")
+                    .font(.headline)
+                
+                Text("Describe your motivation. This text stays saved and you can edit it whenever you want.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                
+                // TextEditor ligado ao texto do ViewModel
+                TextEditor(
+                    text: Binding(
+                        get: { vm.motivationText },
+                        set: { vm.motivationText = $0 }
+                    )
+                )
+                .frame(minHeight: 120, maxHeight: 180)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.systemBackground))
+                )
+                .scrollContentBackground(.hidden)
+                
+                HStack {
+                    Button("Cancel") {
+                        showMotivationPopup = false
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    Button("Save") {
+                        vm.saveMotivation()
+                        showMotivationPopup = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.regularMaterial)
+            )
+            .padding(.horizontal, 24)
         }
     }
 }
