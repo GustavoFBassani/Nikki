@@ -97,7 +97,7 @@ class SceneViewModel {
     var dict: [Entity:Page] = [:]
     var selectedEntityName: Entity? = nil
     var currentPage: Page? = nil
-    
+    var lastAdded: Int = 0
     
     func loadScene() async {
         do {
@@ -119,6 +119,7 @@ class SceneViewModel {
             try orderedPages = data.fetchAllPages()
             await loadPages()
             
+            lastAdded = orderedPages.count // pega a proxima pra adicionar
             // Posiciona a câmera usando os valores iniciais de theta, phi e distance
             updateCamera()
         } catch {
@@ -137,23 +138,52 @@ class SceneViewModel {
     }
     
     func addNewTsuru() {
+        print("lastAdded: ", lastAdded)
         let newTsuru = tsuru?.clone(recursive: true)
-        count += 1
         if let newTsuru {
             fixTsuruPos(newTsuru)
-            newTsuru.position = [0.5, 0.5 + count, 0.5] // mexe no tsuru
+            newTsuru.position = positions[lastAdded] // mexe no tsuru
             
             tsurus.append(newTsuru)
             scene?.addChild(newTsuru)
         }
+        lastAdded += 1
         repositioningCameraNewToTsuru()
-    } //ok
+    } //aqui vai ser necessário salvar a entidade relacionada com a página
+    
+    func loadPages() async {
+        do {
+            guard let scene else {
+                print("Cena não carregada")
+                return
+            }
+            
+            print("Scraps count", orderedPages.count)
+            for i in 0..<orderedPages.count {
+                if orderedPages.count < 30 {
+                    
+                    if let page = orderedPages[i] {
+                        let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
+                        obj.generateCollisionShapes(recursive: true)
+                        obj.components[InputTargetComponent.self] = .init()
+                        obj.scale = [0.001,0.001, 0.001]
+                        obj.position = positions[i]
+                        scene.addChild(obj)
+                        dict.updateValue(page, forKey: obj)
+                    }
+                }
+            }
+        }
+        catch {
+            print(error.localizedDescription)
+        }
+    } //aqui vai ser necessário
     
     func fixTsuruPos(_ e: Entity) {
         guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return } // acessa o flabird do tsuru
         newFlapBird.scale = [0.0005,0.0005,0.0005] // corrige a escala do flabird
         newFlapBird.position  = [0,0,0] // relativa ao modelo pai (tsuru)
-    } // ok
+    }
     
     func appliyngTextureToTsuru(scrapImage: UIImage?) async {
         
@@ -189,7 +219,7 @@ class SceneViewModel {
         } catch {
             print("[SceneViewModel] Failed to create TextureResource: \(error)")
         }
-    } //ok
+    }
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -216,12 +246,12 @@ class SceneViewModel {
         /// - Note: Após ajustar `theta` e `phi`, a função chama `updateCamera()`
         ///   para aplicar imediatamente a nova posição/olhar da câmera.
         // Atualiza theta (rotação horizontal - Azimute)
-        // Invertido (-=) para sensação de "pegar e arrastar" a cena
-        theta -= dTheta * 0.005
+        // Invertido (+=) para sensação de "pegar e arrastar" a cena
+        theta += dTheta * 0.0005
         
         // Atualiza phi (rotação vertical - Elevação)
         // Invertido (-=) para que arrastar para baixo leve a câmera para o topo (phi -> 0)
-        phi -= dPhi * 0.005
+        phi -= dPhi * 0.0005
         
         // Limita phi entre pi/60 e 57pi/100
         // Phi = 0 é o Polo Norte (Topo)
@@ -229,7 +259,7 @@ class SceneViewModel {
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
-    } //ok
+    }
     
     func zoom(scale: Float) {
         
@@ -253,7 +283,7 @@ class SceneViewModel {
         
         // Recalcula e aplica a nova posição da câmera
         updateCamera()
-    } // ok
+    }
     
     func repositioningCameraNewToTsuru() {
         
@@ -265,7 +295,7 @@ class SceneViewModel {
             isFocusedOnTsuru = true
         }
         
-    } // ok
+    }
     
     func repositioningCameraToTree() {
         cameraLook = tree?.position
@@ -274,10 +304,9 @@ class SceneViewModel {
         rho =  21.0
         updateCamera()
         isFocusedOnTsuru = false
-    } //ok
+    }
     
     func updateCamera() {
-        
         
         // Garante que a câmera existe antes de tentar atualizar
         guard let camera else { return }
@@ -293,36 +322,9 @@ class SceneViewModel {
             camera.look(at: cameraLook, from: camera.position, relativeTo: nil)
             
         }
-    } //ok
-        
-    func loadPages() async {
-        do {
-            guard let scene else {
-                print("Cena não carregada")
-                return
-            }
-            
-            print("Scraps count", orderedPages.count)
-            for i in 0..<orderedPages.count {
-                if orderedPages.count < 30 {
-                    
-                    if let page = orderedPages[i] {
-                        let obj = try await Entity(named: "crane", in: nikkiProjectBundle)
-                        obj.generateCollisionShapes(recursive: true)
-                        obj.components[InputTargetComponent.self] = .init()
-                        obj.scale = [0.003,0.003, 0.003]
-                        obj.position = positions[i]
-                        scene.addChild(obj)
-                        dict.updateValue(page, forKey: obj)
-                    }
-                }
-            }
-        }
-        catch {
-            print(error.localizedDescription)
-        }
     }
-    
+        
+
     func handleTap(on entity: Entity) {
             print(" Tocou na entidade: \(entity.name)")
             

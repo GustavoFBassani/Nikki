@@ -14,8 +14,8 @@ struct SceneView: View {
     @State var showCanvas = false
     
     @Environment(\.modelContext) var context
-//    @Query var pages: [Page] provisorio
-
+//    @Query var pages: [Page] /*provisorio*/
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -33,10 +33,10 @@ struct SceneView: View {
                         await vm.loadScene()
                     }
                     
-                    //                    pages.forEach { page in  ///provisorio
-                    //                        context.delete(page)
-                    //                    }
-                    //                    try? context.save()
+//                    pages.forEach { page in  ///provisorio
+//                        context.delete(page)
+//                    }
+//                    try? context.save()
                     
                     vm.repositioningCameraToTree()
                     vm.updateCamera()
@@ -53,7 +53,7 @@ struct SceneView: View {
                             Task {
                                 await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage)
                                 try await Task.sleep(nanoseconds: 1_000_000_000)
-                                vm.playTsuruAnimation()
+                                vm.playTsuruAnimation() // comecou a ficar estranho conforme eu crio um tsuru novo... tem que criar antes de desaparecer a tela
                             }
                         }
                     }
@@ -69,29 +69,29 @@ struct SceneView: View {
                 /// 4. Passa os deltas (dx, dy) para o ViewModel rotacionar a câmera
                 /// 5. onEnded reseta a posição ao soltar o dedo
                 DragGesture()
-                .onChanged { value in
-                    // Na primeira chamada, apenas salva a posição inicial
-                    if vm.lastDragPosition == .zero {
-                        vm.lastDragPosition = value.location
-                        return
+                    .onChanged { value in
+                        // Na primeira chamada, apenas salva a posição inicial
+                        if vm.lastDragPosition == .zero {
+                            vm.lastDragPosition = value.location
+                            return
+                        }
+                        
+                        // Calcula quanto o dedo se moveu desde o último frame
+                        // dTheta: movimento horizontal (+ = direita, - = esquerda)
+                        let dTheta = Float(value.location.x - vm.lastDragPosition.x)
+                        // dPhi: movimento vertical (+ = baixo, - = cima)
+                        let dPhi = Float(value.location.y - vm.lastDragPosition.y)
+                        
+                        // Envia os deltas para o ViewModel atualizar theta e phi
+                        vm.rotate(dTheta: dTheta, dPhi: dPhi)
+                        // Atualiza a última posição para o próximo frame
                     }
-                    
-                    // Calcula quanto o dedo se moveu desde o último frame
-                    // dTheta: movimento horizontal (+ = direita, - = esquerda)
-                    let dTheta = Float(value.location.x - vm.lastDragPosition.x)
-                    // dPhi: movimento vertical (+ = baixo, - = cima)
-                    let dPhi = Float(value.location.y - vm.lastDragPosition.y)
-                    
-                    // Envia os deltas para o ViewModel atualizar theta e phi
-                    vm.rotate(dTheta: dTheta, dPhi: dPhi)
-                    // Atualiza a última posição para o próximo frame
-                }
-                .onEnded { _ in
-                    // Reseta a posição quando o usuário solta o dedo
-                    // Prepara para o próximo gesto
-                    vm.lastDragPosition = .zero
-                }
-        ) // movimentar para o lado
+                    .onEnded { _ in
+                        // Reseta a posição quando o usuário solta o dedo
+                        // Prepara para o próximo gesto
+                        vm.lastDragPosition = .zero
+                    }
+            ) // movimentar para o lado
             .gesture(
                 // MARK: - Gesto de Zoom (Pinch)
                 
@@ -138,7 +138,7 @@ struct SceneView: View {
                 if vm.isFocusedOnTsuru {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
-                                vm.repositioningCameraToTree()
+                            vm.repositioningCameraToTree()
                             
                         } label: {
                             Image(systemName: "chevron.left")
@@ -153,4 +153,4 @@ struct SceneView: View {
 #Preview {
     SceneView()
 }
-                    
+
