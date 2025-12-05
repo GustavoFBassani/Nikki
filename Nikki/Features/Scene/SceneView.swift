@@ -118,6 +118,7 @@ struct SceneView: View {
                     .targetedToAnyEntity()
                     .onEnded { value in
                         vm.handleTap(on: value.entity)
+//                        CanvasView(scrapToExport: vm.currentPage?.markupData, dismissCanvasView: $showCanvas, addNewTsuru: vm.addNewTsuru)
                     }
             )
         }

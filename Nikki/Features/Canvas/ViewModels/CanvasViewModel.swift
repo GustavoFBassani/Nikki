@@ -141,7 +141,7 @@ class CanvasViewModel {
     func savePage() async throws {
         // Exporta o Data do PaperKit
         let data = await editorData.exportMarkupData()
-        let image = await editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
+        let image = await editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610))) //exportar imagem
         
         // Converte UIImage para Data (PNG)
         let imageData = image?.pngData()

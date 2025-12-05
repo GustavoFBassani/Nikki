@@ -159,14 +159,17 @@ class SceneViewModel {
                     
                     if let page = orderedPages[i] {
                         
-                        let obj = try await Entity(named: "tsuru", in: nikkiProjectBundle)
-                        obj.generateCollisionShapes(recursive: true)
-                        obj.components[InputTargetComponent.self] = .init()
-                        obj.scale = [0.001,0.001, 0.001]
+                        guard let tsuru else { return }
+                        let obj = tsuru.clone(recursive: true)
+//                        obj.generateCollisionShapes(recursive: true)
+//                        obj.components[InputTargetComponent.self] = .init()
+//                        obj.scale = [0.001,0.001, 0.001]
+                        fixTsuruPos(obj)
+
                         obj.transform.rotation = simd_quatf(angle: .pi, axis: [0, 1, 0])
 
                         obj.position = positions[i]
-                        await appliyngTextureToTsuru(scrapImage: page.markupImage, tsuru: obj)  // markupImage já retorna UIImage?
+                        await appliyngTextureToTsuru(scrapImage: page.markupImage, tsuru: obj)
                         scene.addChild(obj)
                         playTsuruAnimation(tsuruToAnimate: obj)
                         dict.updateValue(page, forKey: obj)
@@ -181,6 +184,8 @@ class SceneViewModel {
     
     func fixTsuruPos(_ e: Entity) {
         guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return } // acessa o flabird do tsuru
+        newFlapBird.generateCollisionShapes(recursive: true)
+        newFlapBird.components[InputTargetComponent.self] = .init()
         newFlapBird.scale = [0.0005,0.0005,0.0005] // corrige a escala do flabird
         newFlapBird.position  = [0,0,0] // relativa ao modelo pai (tsuru)
     }
