@@ -49,8 +49,11 @@
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
-        "Cylinder",
-        "DefaultMaterial"
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2"
       ],
       {
         "isExpanded" : true,
@@ -63,10 +66,30 @@
         "Meshes",
         "Sketchfab_model",
         "Collada_visual_scene_group",
-        "Material2_1"
+        "Material2_2"
       ],
       {
         "disallowsFraming" : false,
+        "isExpanded" : false,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Cylinder",
+        "DefaultMaterial"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Japanese_Red_Bridge"
+      ],
+      {
+        "disallowsFraming" : true,
         "isExpanded" : false,
         "isLocked" : false
       },
@@ -87,24 +110,15 @@
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
-        "Japanese_Red_Bridge"
-      ],
-      {
-        "disallowsFraming" : true,
-        "isExpanded" : false,
-        "isLocked" : false
-      },
-      [
-        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
-        "Root",
         "Japanese_garden",
         "Meshes",
         "Sketchfab_model",
         "Collada_visual_scene_group",
-        "Material2"
+        "Material2_1"
       ],
       {
-        "isExpanded" : true,
+        "disallowsFraming" : false,
+        "isExpanded" : false,
         "isLocked" : false
       },
       [
@@ -126,20 +140,6 @@
       ],
       {
         "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
-        "Root",
-        "Japanese_garden",
-        "Meshes",
-        "Sketchfab_model",
-        "Collada_visual_scene_group",
-        "Material2_2"
-      ],
-      {
-        "disallowsFraming" : false,
-        "isExpanded" : false,
         "isLocked" : false
       }
     ]

@@ -798,7 +798,7 @@ def "Root" (
         prepend references = @tsuru.usdc@
     )
     {
-        float3 xformOp:scale = (0.0005, 0.0005, 0.0005)
+        float3 xformOp:scale = (1, 1, 1)
         float3 xformOp:translate = (4.0072613, 5, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
     }

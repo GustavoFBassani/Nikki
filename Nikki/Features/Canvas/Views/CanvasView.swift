@@ -192,13 +192,15 @@ struct CanvasView: View {
     /// Salva a página atual no SwiftData e fecha a view
     /// Executa de forma assíncrona e trata possíveis erros
     private func handleSave() {
-        addNewTsuru()
+        
+        
         
         Task {
             do {
                 try await viewModel.savePage()
                 self.scrapToExport = await viewModel.editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
                 dismissCanvasView.toggle()
+                addNewTsuru()
                 
             } catch {
                 print("Error saving page: \(error)")

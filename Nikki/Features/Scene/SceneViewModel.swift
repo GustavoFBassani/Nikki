@@ -136,12 +136,12 @@ class SceneViewModel {
     }
     
     func addNewTsuru() {
-        print("lastAdded: ", lastAdded)
         newTsuru = tsuru?.clone(recursive: true)
         if let newTsuru {
             fixTsuruPos(newTsuru)
             newTsuru.position = positions[lastAdded] // coloca o tsuru na posicao certa...
             scene?.addChild(newTsuru)
+            dict[newTsuru] = currentPage
         }
         lastAdded += 1
         repositioningCameraNewToTsuru()
@@ -163,36 +163,41 @@ class SceneViewModel {
                         guard let tsuru else { return }
                         
                         let obj = tsuru.clone(recursive: true)
-                        obj.generateCollisionShapes(recursive: true)
-                        obj.components[InputTargetComponent.self] = .init()
                         fixTsuruPos(obj)
                         obj.transform.rotation = simd_quatf(angle: .pi, axis: [0, 1, 0])
                         obj.position = positions[i]
+                        
+                        print("🔵 Criando tsuru \(i) na posição: \(positions[i])")
+
                         await appliyngTextureToTsuru(scrapImage: page.markupImage, tsuru: obj)
                         scene.addChild(obj)
                         playTsuruAnimation(tsuruToAnimate: obj)
-                        dict.updateValue(page, forKey: obj)
+                        if let newFlapBird = obj.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
+                            dict.updateValue(page, forKey: newFlapBird)
+                            print("✅ Tsuru \(i) adicionado ao dicionário - Page ID: \(page.id)")
+                        }
+//                        debugTsuruComponents(obj)
                     }
                 }
             }
         }
-        catch {
-            print(error.localizedDescription)
-        }
-    } //aqui vai ser necessário
+        print("📊 Total de tsuris no dicionário: \(dict.count)")
+
+    }
     
     func fixTsuruPos(_ e: Entity) {
 
-        
         guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else {
             print("flappingBird não encontrado em: \(e.name)")
             return 
         }
         
-        newFlapBird.scale = [0.0005,0.0005,0.0005]
+        newFlapBird.scale = [1,1,1]
         newFlapBird.position  = [0,0,0]
+        // Gera collision shapes apenas uma vez
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
+        
         
         print("Collision shapes e InputTarget configurados para: \(newFlapBird.name)")
     }
@@ -336,8 +341,12 @@ class SceneViewModel {
         
 
     func handleTap(on entity: Entity) {
+        print("========================================")
+        print("HANDLE TAP CHAMADO!")
         print("Tocou na entidade: \(entity.name)")
         print("Hierarquia: \(entity.parent?.name ?? "nil") -> \(entity.name)")
+        print("Total de entidades no dicionário: \(dict.count)")
+        print("========================================")
         
         var current: Entity? = entity
         
@@ -354,5 +363,29 @@ class SceneViewModel {
         
         print("Nenhuma entidade registrada encontrada na hierarquia")
     }
-
+    
+    func debugTsuruComponents(_ obj: Entity) {
+        print("=== DEBUG TSURU ===")
+        print("Objeto pai: \(obj.name)")
+        
+        if let bird = obj.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
+            print("✓ Bird encontrado: \(bird.name)")
+            print("  - Tem InputTarget? \(bird.components[InputTargetComponent.self] != nil)")
+            print("  - Tem Collision? \(bird.components[CollisionComponent.self] != nil)")
+            print("  - Posição: \(bird.position)")
+            print("  - Escala: \(bird.scale)")
+            print("  - Está no dicionário? \(dict[bird] != nil)")
+            
+            if let collision = bird.components[CollisionComponent.self] {
+                print("  - Collision shapes: \(collision.shapes.count) shapes")
+                // Mostra detalhes de cada shape
+                for (index, shape) in collision.shapes.enumerated() {
+                    print("    Shape \(index): \(shape)")
+                }
+            }
+        } else {
+            print("✗ Bird NÃO encontrado!")
+        }
+        print("==================")
+    }
 }
