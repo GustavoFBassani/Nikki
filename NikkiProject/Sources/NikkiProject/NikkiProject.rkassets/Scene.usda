@@ -16,7 +16,7 @@ def "Root" (
     references = @Scene.usdz@</Root>
 )
 {
-    reorder nameChildren = ["Cherry_Tree_2", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material", "Cylinder"]
+    reorder nameChildren = ["tsuru", "Cherry_Tree_2", "Japanese_garden", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material"]
     quatf xformOp:orient = (1, 0, 0, 0)
     float3 xformOp:scale = (1, 1, 1)
     float3 xformOp:translate = (-4.0072613, -5, 0)
@@ -799,7 +799,7 @@ def "Root" (
     )
     {
         float3 xformOp:scale = (1, 1, 1)
-        float3 xformOp:translate = (4.0072613, 5, 0)
+        float3 xformOp:translate = (0, 0, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
     }
 }

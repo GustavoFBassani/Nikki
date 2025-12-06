@@ -106,7 +106,7 @@ class CameraManager  {
         if let tsuruToFocus = newTsuru {
             let tsuruposition = tsuruToFocus.position(relativeTo: nil)
             cameraLook = tsuruposition
-            rho = 0.5
+            rho = 3
             updateCamera()
             isFocusedOnTsuru = true
         }

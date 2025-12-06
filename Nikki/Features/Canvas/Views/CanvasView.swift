@@ -17,7 +17,6 @@ import AVFoundation
 struct CanvasView: View {
     // MARK: - Properties
     @State private var viewModel: CanvasViewModel
-//    @Binding var scrapToExport: UIImage?
     @Binding var dismissCanvasView: Bool
     @State private var showDeleteAlert = false
     @State private var isTabBarHidden = true
@@ -34,8 +33,7 @@ struct CanvasView: View {
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
     
-    init(/*scrapToExport: Binding<UIImage?>,*/ dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void) {
-//        self._scrapToExport = scrapToExport
+    init(dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void) {
         self._dismissCanvasView = dismissCanvasView
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
         self.addNewTsuru = addNewTsuru
@@ -45,7 +43,7 @@ struct CanvasView: View {
     var body: some View {
         NavigationStack {
             editorContent
-                .toolbar {  toolbarContent }
+                .toolbar { toolbarContent }
                 .overlay(alignment: .bottom) { tabBarOverlay }
         }
         .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
@@ -192,13 +190,10 @@ struct CanvasView: View {
     /// Salva a página atual no SwiftData e fecha a view
     /// Executa de forma assíncrona e trata possíveis erros
     private func handleSave() {
-        
-        
-        
         Task {
             do {
+                
                 try await viewModel.savePage()
-//                self.scrapToExport = await viewModel.editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
                 dismissCanvasView.toggle()
                 await addNewTsuru()
                 

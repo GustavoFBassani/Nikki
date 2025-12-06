@@ -68,6 +68,7 @@ class SceneViewModel {
             scene.addChild(camera)
             self.cameraManager.camera = camera
             
+            tree?.removeFromParent()
             try orderedPages = scrapService.fetchAllPages()
             await lodaTsurusAtScene()
             
@@ -98,6 +99,7 @@ class SceneViewModel {
         }
         lastAdded += 1
         repositioningCameraNewToTsuru(newTsuru)
+        playTsuruAnimation(tsuruToAnimate: newTsuru)
     } //adicionar o tsuru a cena
     
     func lodaTsurusAtScene() async {
@@ -181,9 +183,8 @@ class SceneViewModel {
             let texture = try await TextureResource(image: cgImage, options: .init(semantic: .color))
             var material = PhysicallyBasedMaterial()
             
-            
-            let rotationRadians =   Float.pi // 180 degrees converted to radians.
-            material.textureCoordinateTransform = .init(rotation: rotationRadians)
+            let rotationRadians =  Float.pi / 180
+            material.textureCoordinateTransform = .init(scale: SIMD2<Float>(x:1, y: -1), rotation: rotationRadians)
             material.baseColor = .init(tint: .white, texture: .init(texture))
             material.metallic = 0.0      // Paper is not metallic
             material.roughness = 0.7     // Paper is somewhat matte (0.6-0.8)

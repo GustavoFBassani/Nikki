@@ -32,7 +32,7 @@ struct SceneView: View {
                     if vm.scene == nil {
                         await vm.loadScene()
                     }
-                    
+//                    
 //                    pages.forEach { page in  ///provisorio
 //                        context.delete(page)
 //                    }
@@ -42,22 +42,12 @@ struct SceneView: View {
                     vm.updateCamera()
                 }
                 
-                CanvasView(/*scrapToExport: $vm.scrapImage,*/ dismissCanvasView: $vm.showCanvas, page: vm.currentPage, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
-                    .id(vm.showCanvas) //funciona isso?
+                CanvasView(dismissCanvasView: $vm.showCanvas, page: nil, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
                     .opacity(vm.showCanvas ? 1 : 0)
                     .scaleEffect(vm.showCanvas ? 1 : 0.5)
                     .animation(.smooth(duration: 1), value: vm.showCanvas)
                     .allowsHitTesting(vm.showCanvas)
-                    .zIndex(vm.showCanvas ? 1 : -1) // Move para trás quando invisível
-                    .onChange(of: vm.showCanvas) { oldValue, newValue in
-                        if !newValue {
-                            Task {
-                                try await Task.sleep(nanoseconds: 1_000_000_000)
-                                vm.playTsuruAnimation(tsuruToAnimate: vm.newTsuru) // comecou a ficar estranho conforme eu crio um tsuru novo... tem que criar antes de desaparecer a tela
-                            }
-                        }
-                    }
-                
+                    .zIndex(vm.showCanvas ? 1 : -1) // Move para trás quando invisível                
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
