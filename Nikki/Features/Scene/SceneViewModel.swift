@@ -13,6 +13,18 @@ import NikkiProject
 @Observable
 class SceneViewModel {
     
+    //MARK: SERVICES
+    var scrapService = ScrapService.shared
+    
+    
+    var orderedPages: [Page?] = [] // pega todas as Pages carregadas ...
+    var dict: [Entity:Page] = [:]  //atribui tudo a uma dicionario pra relacionar com entidade.
+    var currentPage: Page? = nil
+    var lastAdded: Int = 0
+    let tsuruPositions: [SIMD3<Float>] = TsuruPosition.allCases.map { tsuru in
+        return tsuru.position
+    }
+    
     //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
@@ -54,49 +66,8 @@ class SceneViewModel {
     private var cameraLook: SIMD3<Float>?
     ///Bool pra controlar o foco da camera
     var isFocusedOnTsuru = false
-    
-    var count: Float = 1.0 // provisorio
-    // Objects positions
-    var obj: Entity?
-    
-    var data = SwiftDataManager.shared
-    var orderedPages: [Page?] = []
-    var positions: [SIMD3<Float>] = [
-        SIMD3<Float>(-1.7,  0.4, 1.6),
-        SIMD3<Float>(-2.8, -0.7, 2.5),
-        SIMD3<Float>(-2.6, -0.9, 2.4),
-        SIMD3<Float>(-3.1, -0.5, 2.7),
-        SIMD3<Float>(-3.4, -0.3, 3.1),
-        SIMD3<Float>(-3.6, -0.3, 3.3),
-        SIMD3<Float>(-2.8, -0.4, 5.0),
-        SIMD3<Float>(-3.2, -0.5, 5.0),
-        SIMD3<Float>(-4.1, -0.4, 5.4),
-        SIMD3<Float>(-4.1,  0.0, 5.7),
-        SIMD3<Float>(-5.1,  1.8, 5.8),
-        SIMD3<Float>(-6.0,  1.7, 5.6),
-        SIMD3<Float>(-5.8,  1.4, 5.4),
-        SIMD3<Float>(-5.3,  0.9, 5.1),
-        SIMD3<Float>(-5.1,  0.5, 4.9),
-        SIMD3<Float>(-2.0,  0.3, 1.9),
-        SIMD3<Float>(-3.09, 0.67, 4.58),
-        SIMD3<Float>(-3.0, 0.86, 4.35),
-        SIMD3<Float>(-2.87, 1.01, 4.14),
-        SIMD3<Float>(-2.79, 1.2, 3.95),
-        SIMD3<Float>(-2.69, 1.56, 3.97),
-        SIMD3<Float>(-2.66, 1.59, 5.01),
-        SIMD3<Float>(-2.35, 1.6, 5.1),
-        SIMD3<Float>(-2.36, 1.8, 5.3),
-        SIMD3<Float>(-2.2, 1.9, 5.5),
-        SIMD3<Float>(-3.38, 0.69, 4.47),
-        SIMD3<Float>(-3.23, 0.67, 4.26),
-        SIMD3<Float>(-3.04, 0.66, 4.1),
-        SIMD3<Float>(-2.78, 0.41, 4.118),
-        SIMD3<Float>(-2.54, 0.28, 4.08),
-    ]
-    var dict: [Entity:Page] = [:]  //id pra entidade ??
-    var selectedEntityName: Entity? = nil
-    var currentPage: Page? = nil
-    var lastAdded: Int = 0
+        
+
 
     func loadScene() async {
         do {
@@ -115,7 +86,7 @@ class SceneViewModel {
             scene.addChild(camera)
             self.camera = camera
             
-            try orderedPages = data.fetchAllPages()
+            try orderedPages = scrapService.fetchAllPages()
             await lodaTsurusAtScene()
             
             lastAdded = orderedPages.count // pega a proxima pra adicionar
@@ -139,7 +110,7 @@ class SceneViewModel {
         newTsuru = tsuru?.clone(recursive: true)
         if let newTsuru {
             fixTsuruPos(newTsuru)
-            newTsuru.position = positions[lastAdded] // coloca o tsuru na posicao certa...
+            newTsuru.position = tsuruPositions[lastAdded] // coloca o tsuru na posicao certa...
             scene?.addChild(newTsuru)
             dict[newTsuru] = currentPage
         }
@@ -165,9 +136,9 @@ class SceneViewModel {
                         let obj = tsuru.clone(recursive: true)
                         fixTsuruPos(obj)
                         obj.transform.rotation = simd_quatf(angle: .pi, axis: [0, 1, 0])
-                        obj.position = positions[i]
+                        obj.position = tsuruPositions[i]
                         
-                        print("🔵 Criando tsuru \(i) na posição: \(positions[i])")
+                        print("Criando tsuru \(i) na posição: \(tsuruPositions[i])")
 
                         await appliyngTextureToTsuru(scrapImage: page.markupImage, tsuru: obj)
                         scene.addChild(obj)
@@ -236,6 +207,31 @@ class SceneViewModel {
             print("[SceneViewModel] Failed to create TextureResource: \(error)")
         }
     }
+    
+    func handleTap(on entity: Entity) {
+        print("========================================")
+        print("HANDLE TAP CHAMADO!")
+        print("Tocou na entidade: \(entity.name)")
+        print("Hierarquia: \(entity.parent?.name ?? "nil") -> \(entity.name)")
+        print("Total de entidades no dicionário: \(dict.count)")
+        print("========================================")
+        
+        var current: Entity? = entity
+        
+        while let ent = current {
+            print("Verificando: \(ent.name)")
+            if let page = dict[ent] {
+                print("Encontrou entidade associada: \(ent.name)")
+                currentPage = page
+                showCanvas.toggle()
+                return
+            }
+            current = ent.parent
+        }
+        
+        print("Nenhuma entidade registrada encontrada na hierarquia")
+    }
+    
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -340,30 +336,6 @@ class SceneViewModel {
     }
         
 
-    func handleTap(on entity: Entity) {
-        print("========================================")
-        print("HANDLE TAP CHAMADO!")
-        print("Tocou na entidade: \(entity.name)")
-        print("Hierarquia: \(entity.parent?.name ?? "nil") -> \(entity.name)")
-        print("Total de entidades no dicionário: \(dict.count)")
-        print("========================================")
-        
-        var current: Entity? = entity
-        
-        while let ent = current {
-            print("Verificando: \(ent.name)")
-            if let page = dict[ent] {
-                print("Encontrou entidade associada: \(ent.name)")
-                currentPage = page
-                showCanvas.toggle()
-                return
-            }
-            current = ent.parent
-        }
-        
-        print("Nenhuma entidade registrada encontrada na hierarquia")
-    }
-    
     func debugTsuruComponents(_ obj: Entity) {
         print("=== DEBUG TSURU ===")
         print("Objeto pai: \(obj.name)")

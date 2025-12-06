@@ -17,7 +17,7 @@ import AVFoundation
 class CanvasViewModel {
     // MARK: - Services
     private let iTunesService = ITunesService()
-    private let dataManager = SwiftDataManager.shared
+    private let dataManager = ScrapService.shared
     let audioRecorder = AudioRecorder()
     private let audioPlayer = AudioPlayer.shared
     private let canvasSize = CGSize(width: 3610, height: 3610)

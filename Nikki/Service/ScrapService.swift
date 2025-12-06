@@ -10,9 +10,9 @@ import SwiftData
 
 /// Gerenciador singleton para operações com SwiftData
 @Observable
-class SwiftDataManager {
+class ScrapService {
     // MARK: - Singleton
-    static let shared = SwiftDataManager()
+    static let shared = ScrapService()
     
     // MARK: - Properties
     let container: ModelContainer

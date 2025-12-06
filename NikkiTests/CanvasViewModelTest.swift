@@ -67,7 +67,7 @@ struct CanvasViewModelTest {
         // Then
         #expect(viewModel.currentPage != nil)
         if let savedPage = viewModel.currentPage {
-            let manager = SwiftDataManager.shared
+            let manager = ScrapService.shared
             let fetchedPage = try? manager.fetchPage(by: savedPage.id)
             #expect(fetchedPage != nil)
             #expect(fetchedPage?.id == savedPage.id)
@@ -79,7 +79,7 @@ struct CanvasViewModelTest {
         // Given
         resetDatabase()
         let page = Page(title: "Original Title", markupData: nil, paperStyle: "grid")
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         try? manager.savePage(page)
         let viewModel = CanvasViewModel(page: page, paperStyle: nil)
         
@@ -97,7 +97,7 @@ struct CanvasViewModelTest {
         // Given
         resetDatabase()
         let page = Page(title: "Page to Delete", markupData: nil, paperStyle: "recycledPaper")
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         try? manager.savePage(page)
         
         let viewModel = CanvasViewModel(page: page, paperStyle: nil)
@@ -154,7 +154,7 @@ struct CanvasViewModelTest {
     
     // Aux funcs
     func resetDatabase() {
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         let pages = try? manager.fetchAllPages()
         if let pages {
             for page in pages {
