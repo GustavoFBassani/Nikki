@@ -17,14 +17,14 @@ import AVFoundation
 struct CanvasView: View {
     // MARK: - Properties
     @State private var viewModel: CanvasViewModel
-    @Binding var scrapToExport: UIImage?
+//    @Binding var scrapToExport: UIImage?
     @Binding var dismissCanvasView: Bool
     @State private var showDeleteAlert = false
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
-    var addNewTsuru: ()-> Void
+    var addNewTsuru: () async -> Void
     
     // appear and dissapear
     // MARK: - Initialization
@@ -34,8 +34,8 @@ struct CanvasView: View {
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
     
-    init(scrapToExport: Binding<UIImage?>, dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () -> Void) {
-        self._scrapToExport = scrapToExport
+    init(/*scrapToExport: Binding<UIImage?>,*/ dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void) {
+//        self._scrapToExport = scrapToExport
         self._dismissCanvasView = dismissCanvasView
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
         self.addNewTsuru = addNewTsuru
@@ -198,9 +198,9 @@ struct CanvasView: View {
         Task {
             do {
                 try await viewModel.savePage()
-                self.scrapToExport = await viewModel.editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
+//                self.scrapToExport = await viewModel.editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
                 dismissCanvasView.toggle()
-                addNewTsuru()
+                await addNewTsuru()
                 
             } catch {
                 print("Error saving page: \(error)")

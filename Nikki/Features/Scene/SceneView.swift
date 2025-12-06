@@ -42,7 +42,7 @@ struct SceneView: View {
                     vm.updateCamera()
                 }
                 
-                CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $vm.showCanvas, page: vm.currentPage, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
+                CanvasView(/*scrapToExport: $vm.scrapImage,*/ dismissCanvasView: $vm.showCanvas, page: vm.currentPage, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
                     .id(vm.showCanvas) //funciona isso?
                     .opacity(vm.showCanvas ? 1 : 0)
                     .scaleEffect(vm.showCanvas ? 1 : 0.5)
@@ -52,7 +52,6 @@ struct SceneView: View {
                     .onChange(of: vm.showCanvas) { oldValue, newValue in
                         if !newValue {
                             Task {
-                                await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage, tsuru: vm.newTsuru)
                                 try await Task.sleep(nanoseconds: 1_000_000_000)
                                 vm.playTsuruAnimation(tsuruToAnimate: vm.newTsuru) // comecou a ficar estranho conforme eu crio um tsuru novo... tem que criar antes de desaparecer a tela
                             }

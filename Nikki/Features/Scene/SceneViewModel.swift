@@ -19,7 +19,6 @@ class SceneViewModel {
     //MARK: - CAMERA PROPERTIES
     /*
      OBS: Estas propriedades devem permanecer na ViewModel, não no CameraManager.
-     
      Razão: Representam estado temporário dos gestos de UI (touch/drag tracking),
      não estado da câmera orbital 3D. Manter aqui preserva a separação de
      responsabilidades:
@@ -51,7 +50,7 @@ class SceneViewModel {
     //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
-    var scrapImage: UIImage?
+//    var scrapImage: UIImage? // ? preciso disso?
     var paperStyle: String?
     var tsuru: Entity?
     var newTsuru: Entity?
@@ -60,18 +59,12 @@ class SceneViewModel {
     //MARK: - LOAD SCENE
     func loadScene() async {
         do {
-            // Carrega a cena do arquivo Reality Composer Pro ou bundle
-            let scene = try await Entity(named: "Scene", in: nikkiProjectBundle)
+            let scene = try await Entity(named: "Scene", in: nikkiProjectBundle) // Carrega a cena do arquivo Reality Composer Pro ou bundle
             self.scene = scene
+            let camera = PerspectiveCamera()
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
-            
-
-            // await appliyngTextureToTsuru(scrapImage: nil)
-            // Cria uma nova câmera perspectiva
-            // PerspectiveCamera simula visão humana com perspectiva realista
-            let camera = PerspectiveCamera()
             scene.addChild(camera)
             self.cameraManager.camera = camera
             
@@ -86,26 +79,26 @@ class SceneViewModel {
         }
     }
     
-    //MARK: - TSURU FUNCTIONS
-    func playTsuruAnimation(tsuruToAnimate: Entity?) {
-        
-        if let tsuruAnimation = tsuruToAnimate?.availableAnimations.first {
-            tsuruToAnimate?.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
-        }
-        
-    }
+    //MARK: PERSISTENCE FUNCTIONS
     
-    func addNewTsuru() {
-        newTsuru = tsuru?.clone(recursive: true)
+    func addNewTsuru() async {
+        newTsuru = tsuru?.clone(recursive: true) // clona o tsuru
         if let newTsuru {
-            fixTsuruPos(newTsuru)
+            fixTsuruPos(newTsuru) //arruma a posicao do tsuru
             newTsuru.position = tsuruPositions[lastAdded] // coloca o tsuru na posicao certa...
-            scene?.addChild(newTsuru)
-            dict[newTsuru] = currentPage
+            do {
+                let newPage = try scrapService.fetchLastPage() //recupera a ultima page salva
+                dict[newTsuru] = newPage //coloca no dicionario
+                await appliyngTextureToTsuru(scrapImage: newPage?.markupImage, tsuru: newTsuru)
+                scene?.addChild(newTsuru)
+            } catch {
+                print("erro ao adicionar novo tsuru: ", error.localizedDescription)
+            }
+
         }
         lastAdded += 1
         repositioningCameraNewToTsuru(newTsuru)
-    }
+    } //adicionar o tsuru a cena
     
     func lodaTsurusAtScene() async {
         do {
@@ -143,6 +136,16 @@ class SceneViewModel {
         }
         print("📊 Total de tsuris no dicionário: \(dict.count)")
 
+    }
+
+    
+    //MARK: - TSURU FUNCTIONS
+    func playTsuruAnimation(tsuruToAnimate: Entity?) {
+        
+        if let tsuruAnimation = tsuruToAnimate?.availableAnimations.first {
+            tsuruToAnimate?.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
+        }
+        
     }
     
     func fixTsuruPos(_ e: Entity) {
@@ -220,8 +223,6 @@ class SceneViewModel {
         
         print("Nenhuma entidade registrada encontrada na hierarquia")
     }
-    
-    //MARK: - CAMERA FUNCTIONS
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {

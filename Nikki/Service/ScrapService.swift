@@ -75,6 +75,15 @@ class ScrapService {
         }
     }
     
+    func fetchLastPage() throws -> Page? {
+        var descriptor = FetchDescriptor<Page>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1  // Pega apenas o último
+        
+        return try context.fetch(descriptor).first
+    }
+    
     /// Desfaz mudanças não salvas
     func rollbackContext() {
         context.rollback()
