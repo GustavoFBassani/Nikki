@@ -123,6 +123,7 @@ struct SceneView: View {
                     }
             )
         }
+
         .toolbar {
             if !showCanvas {
                 ToolbarItem(placement: .topBarTrailing) {
