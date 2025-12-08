@@ -211,18 +211,21 @@ struct SceneView: View {
                     .padding(.leading, 20)
                 }
             }
-            if vm.isFocusedOnBandstand {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        vm.repositioningCameraToTree()
-                        vm.isFocusedOnBandstand = false
-                    } label: {
-                        Image("customXmark")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)  
+            .toolbar{
+                if vm.isFocusedOnBandstand {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            vm.repositioningCameraToTree()
+                            vm.isFocusedOnBandstand = false
+                        } label: {
+                            Image("customXmark")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                        }
                     }
                 }
+            }
             .task {
                 // carrega a motivação salva assim que a SceneView aparecer
                 vm.loadMotivation()
