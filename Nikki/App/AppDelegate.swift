@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let scenetView = NavigationStack {
             SceneView()
         }
-        .modelContainer(SwiftDataManager.shared.container)
+        .modelContainer(dataManager.container)
         // Use a UIHostingController as window root view controller.
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
         return false

@@ -12,6 +12,7 @@ import SwiftUI
 struct SceneView: View {
 
     @State var vm = SceneViewModel()
+
     @State var showCanvas = false
     @State private var isLocalizationMode = false
 
@@ -44,26 +45,20 @@ struct SceneView: View {
                     vm.updateCamera()
                 }
 
-                CanvasView(
-                    scrapToExport: $vm.scrapImage,
-                    dismissCanvasView: $showCanvas,
-                    page: vm.currentPage,
-                    paperStyle: vm.paperStyle,
-                    addNewTsuru: vm.addNewTsuru
-                )
-                .id(showCanvas)  //funciona isso?
-                .opacity(showCanvas ? 1 : 0)
-                .scaleEffect(showCanvas ? 1 : 0.5)
-                .animation(.smooth(duration: 1), value: showCanvas)
-                .allowsHitTesting(showCanvas)
-                .onChange(of: showCanvas) { oldValue, newValue in
-                    if !newValue {
-                        Task {
-                            await vm.appliyngTextureToTsuru(
-                                scrapImage: vm.scrapImage
-                            )
-                            try await Task.sleep(nanoseconds: 1_000_000_000)
-                            vm.playTsuruAnimation()
+                
+                CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $showCanvas, page: vm.currentPage, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
+                    .id(showCanvas) //funciona isso?
+                    .opacity(showCanvas ? 1 : 0)
+                    .scaleEffect(showCanvas ? 1 : 0.5)
+                    .animation(.smooth(duration: 1), value: showCanvas)
+                    .allowsHitTesting(showCanvas)
+                    .onChange(of: showCanvas) { oldValue, newValue in
+                        if !newValue {
+                            Task {
+                                await vm.appliyngTextureToTsuru(scrapImage: vm.scrapImage)
+                                try await Task.sleep(nanoseconds: 1_000_000_000)
+                                vm.playTsuruAnimation()
+                            }
                         }
                     }
                 }
@@ -216,6 +211,10 @@ struct SceneView: View {
                 }
             }
 
+        }
+        .task {
+            // carrega a motivação salva assim que a SceneView aparecer
+            vm.loadMotivation()
         }
     }
 }

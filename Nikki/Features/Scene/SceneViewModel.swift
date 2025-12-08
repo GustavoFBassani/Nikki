@@ -49,6 +49,11 @@ class SceneViewModel {
     /// Deve corresponder ao valor inicial de rho para evitar saltos no primeiro zoom
     private let baseRho: Float = 10.0
     
+    // MARK: - Motivation
+    private let dataManager = SwiftDataManager.shared
+    private var currentMotivation: Motivation?
+    var motivationText: String = ""
+    var datadamotivacaodosguri: Date = Date()
     /// Entidade que controla para onde a camera está olhando
     /// Deve estar atualizando para mudar o foco da camera
     private var cameraLook: SIMD3<Float>?
@@ -97,8 +102,7 @@ class SceneViewModel {
     var dict: [Entity:Page] = [:]
     var selectedEntityName: Entity? = nil
     var currentPage: Page? = nil
-    
-    
+        
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
@@ -340,5 +344,39 @@ class SceneViewModel {
             
             print("Nenhuma entidade registrada encontrada na hierarquia")
         }
-
+    }
+    
+    // MARK: - Motivation Methods
+    
+    func loadMotivation() {
+        do {
+            if let motivation = try dataManager.fetchMotivation() {
+                currentMotivation = motivation
+                motivationText = motivation.text ?? ""
+                datadamotivacaodosguri = motivation.updatedAt ?? Date()
+            } else {
+                currentMotivation = nil
+                motivationText = ""
+                datadamotivacaodosguri = .now
+            }
+        } catch {
+            print("Erro ao carregar motivação: \(error)")
+        }
+    }
+    
+    func saveMotivation() {
+        do {
+            if let motivation = currentMotivation {
+                motivation.text = motivationText
+                motivation.updatedAt = Date()
+                try dataManager.updateMotivation(motivation)
+            } else {
+                let newMotivation = Motivation(text: motivationText)
+                try dataManager.saveMotivation(newMotivation)
+                currentMotivation = newMotivation
+            }
+        } catch {
+            print("Erro ao salvar motivação: \(error)")
+        }
+    }
 }
