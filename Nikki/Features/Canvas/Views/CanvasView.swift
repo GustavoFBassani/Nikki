@@ -17,7 +17,6 @@ import AVFoundation
 struct CanvasView: View {
     // MARK: - Properties
     @State private var viewModel: CanvasViewModel
-    @Binding var dismissCanvasView: Bool
     @State private var showDeleteAlert = false
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
@@ -33,8 +32,7 @@ struct CanvasView: View {
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
     
-    init(dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void) {
-        self._dismissCanvasView = dismissCanvasView
+    init(page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void) {
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
         self.addNewTsuru = addNewTsuru
     }
@@ -119,7 +117,6 @@ struct CanvasView: View {
     /// Toolbar superior com ações principais: deletar, desfazer e salvar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        if dismissCanvasView {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 // Botão para deletar a página atual
                 Button(role: .destructive, action: { showDeleteAlert = true }) {
@@ -151,7 +148,6 @@ struct CanvasView: View {
                     .clipShape(Circle())
                 }
             }
-        }
     }
     
     // MARK: - Actions
@@ -194,9 +190,9 @@ struct CanvasView: View {
             do {
                 
                 try await viewModel.savePage()
-                dismissCanvasView.toggle()
                 await addNewTsuru()
-                
+                dismiss()
+            
             } catch {
                 print("Error saving page: \(error)")
             }

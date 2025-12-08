@@ -10,11 +10,12 @@ import RealityKit
 import SwiftData
 struct SceneView: View {
     
+    // FIX
     @State var vm = SceneViewModel()
-
+    
     
     @Environment(\.modelContext) var context
-//    @Query var pages: [Page] /*provisorio*/
+    //    @Query var pages: [Page] /*provisorio*/
     
     var body: some View {
         NavigationStack {
@@ -31,23 +32,16 @@ struct SceneView: View {
                 .task {
                     if vm.scene == nil {
                         await vm.loadScene()
+                        vm.repositioningCameraToTree()
                     }
-//                    
-//                    pages.forEach { page in  ///provisorio
-//                        context.delete(page)
-//                    }
-//                    try? context.save()
+                    //
+                    //                    pages.forEach { page in  ///provisorio
+                    //                        context.delete(page)
+                    //                    }
+                    //                    try? context.save()
                     
-                    vm.repositioningCameraToTree()
                     vm.updateCamera()
                 }
-                
-                CanvasView(dismissCanvasView: $vm.showCanvas, page: nil, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
-                    .opacity(vm.showCanvas ? 1 : 0)
-                    .scaleEffect(vm.showCanvas ? 1 : 0.5)
-                    .animation(.smooth(duration: 1), value: vm.showCanvas)
-                    .allowsHitTesting(vm.showCanvas)
-                    .zIndex(vm.showCanvas ? 1 : -1) // Move para trás quando invisível                
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -108,36 +102,37 @@ struct SceneView: View {
                 TapGesture()
                     .targetedToAnyEntity()
                     .onEnded { value in
-                        print("Tap detectado na entidade: \(value.entity.name)")
                         vm.handleTap(on: value.entity)
                     }
-            )
+            ) // tocar no tsuru
         }
+        .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
+            CanvasView(page: vm.currentPage, paperStyle: style.name, addNewTsuru: vm.addNewTsuru)
+        })
         .toolbar {
-            if !vm.showCanvas {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        ForEach(PaperStyles.allCases, id: \.self) { style in
-                            Button(style.name) {
-                                vm.paperStyle = style.name
-                                vm.showCanvas.toggle()
-                            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    ForEach(PaperStyles.allCases, id: \.self) { style in
+                        Button(style.name) {
+                            vm.openCanvasWithStyle = style
                         }
-                    } label: {
-                        Label("Nova página", systemImage: "plus")
                     }
+                } label: {
+                    Label("Nova página", systemImage: "plus")
                 }
-                if vm.isFocusedOnTsuru {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            vm.repositioningCameraToTree()
-                            
-                        } label: {
-                            Image(systemName: "chevron.left")
-                        }
+            }
+            if vm.isFocusedOnTsuru {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        vm.repositioningCameraToTree()
+                        
+                    } label: {
+                        Image(systemName: "chevron.left")
                     }
                 }
             }
+            
         }
     }
 }

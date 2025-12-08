@@ -34,9 +34,7 @@ class CameraManager  {
     /// Entidade que controla para onde a camera está olhando
     /// Deve estar atualizando para mudar o foco da camera
     private var cameraLook: SIMD3<Float>?
-    ///Bool pra controlar o foco da camera
-    var isFocusedOnTsuru = false
-    
+
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
         /// Rotaciona a câmera orbital em torno da cena com base no gesto de arrastar.
@@ -63,11 +61,11 @@ class CameraManager  {
         ///   para aplicar imediatamente a nova posição/olhar da câmera.
         // Atualiza theta (rotação horizontal - Azimute)
         // Invertido (+=) para sensação de "pegar e arrastar" a cena
-        theta += dTheta * 0.0005
+        theta += dTheta * 0.0002
         
         // Atualiza phi (rotação vertical - Elevação)
         // Invertido (-=) para que arrastar para baixo leve a câmera para o topo (phi -> 0)
-        phi -= dPhi * 0.0005
+        phi -= dPhi * 0.0002
         
         // Limita phi entre pi/60 e 57pi/100
         // Phi = 0 é o Polo Norte (Topo)
@@ -106,9 +104,8 @@ class CameraManager  {
         if let tsuruToFocus = newTsuru {
             let tsuruposition = tsuruToFocus.position(relativeTo: nil)
             cameraLook = tsuruposition
-            rho = 3
+            rho = 2
             updateCamera()
-            isFocusedOnTsuru = true
         }
         
     }
@@ -119,7 +116,6 @@ class CameraManager  {
         theta =  -4.776666
         rho =  21.0
         updateCamera()
-        isFocusedOnTsuru = false
     }
     
     func updateCamera() {

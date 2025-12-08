@@ -16,6 +16,9 @@ class SceneViewModel {
     //MARK: - MANAGER
     var cameraManager = CameraManager()
     
+    //MARK: - SERVICES
+    var scrapService = ScrapService.shared
+    
     //MARK: - CAMERA PROPERTIES
     /*
      OBS: Estas propriedades devem permanecer na ViewModel, não no CameraManager.
@@ -31,30 +34,27 @@ class SceneViewModel {
     /// Última escala salva para cálculo relativo
     var lastScale: CGFloat = 1.0
     /// controla o foco no tsuru
-    var isFocusedOnTsuru: Bool {
-        cameraManager.isFocusedOnTsuru
-    }
+    var isFocusedOnTsuru: Bool = false
     
-    //MARK: - SERVICES
-    var scrapService = ScrapService.shared
+    
     
     //MARK: - DATA
     var orderedPages: [Page?] = [] // pega todas as Pages carregadas ...
+    var openCanvasWithStyle: PaperStyles? // paperstyle para abrir a pagina
     var dict: [Entity:Page] = [:]  //atribui tudo a uma dicionario pra relacionar com entidade.
-    var currentPage: Page? = nil
     var lastAdded: Int = 0
     let tsuruPositions: [SIMD3<Float>] = TsuruPosition.allCases.map { tsuru in
         return tsuru.position
     }
+    var currentPage: Page? = nil
+    var selectedPage: Page?
     
     //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
-//    var scrapImage: UIImage? // ? preciso disso?
-    var paperStyle: String?
     var tsuru: Entity?
     var newTsuru: Entity?
-    var showCanvas: Bool = false
+    
     
     //MARK: - LOAD SCENE
     func loadScene() async {
@@ -64,11 +64,14 @@ class SceneViewModel {
             let camera = PerspectiveCamera()
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
+            tree?.generateCollisionShapes(recursive: true)
+            tree?.components[InputTargetComponent.self] = .init()
+            
             tsuru = scene.findEntity(named: "tsuru")
+            
             scene.addChild(camera)
             self.cameraManager.camera = camera
             
-            tree?.removeFromParent()
             try orderedPages = scrapService.fetchAllPages()
             await lodaTsurusAtScene()
             
@@ -95,10 +98,10 @@ class SceneViewModel {
             } catch {
                 print("erro ao adicionar novo tsuru: ", error.localizedDescription)
             }
-
+            
         }
         lastAdded += 1
-        repositioningCameraNewToTsuru(newTsuru)
+        repositioningCameraToTsuru(newTsuru)
         playTsuruAnimation(tsuruToAnimate: newTsuru)
     } //adicionar o tsuru a cena
     
@@ -109,7 +112,7 @@ class SceneViewModel {
                 return
             }
             
-            print("Scraps count", orderedPages.count)
+            //            print("Scraps count", orderedPages.count)
             for i in 0..<orderedPages.count {
                 if orderedPages.count < 30 {
                     
@@ -122,24 +125,20 @@ class SceneViewModel {
                         obj.transform.rotation = simd_quatf(angle: .pi, axis: [0, 1, 0])
                         obj.position = tsuruPositions[i]
                         
-                        print("Criando tsuru \(i) na posição: \(tsuruPositions[i])")
-
+                        
                         await appliyngTextureToTsuru(scrapImage: page.markupImage, tsuru: obj)
                         scene.addChild(obj)
                         playTsuruAnimation(tsuruToAnimate: obj)
                         if let newFlapBird = obj.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
                             dict.updateValue(page, forKey: newFlapBird)
-                            print("✅ Tsuru \(i) adicionado ao dicionário - Page ID: \(page.id)")
                         }
-//                        debugTsuruComponents(obj)
+                        //                        debugTsuruComponents(obj)
                     }
                 }
             }
         }
-        print("📊 Total de tsuris no dicionário: \(dict.count)")
-
+        //        print(" Total de tsuris no dicionário: \(dict.count)")
     }
-
     
     //MARK: - TSURU FUNCTIONS
     func playTsuruAnimation(tsuruToAnimate: Entity?) {
@@ -151,10 +150,10 @@ class SceneViewModel {
     }
     
     func fixTsuruPos(_ e: Entity) {
-
+        
         guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else {
             print("flappingBird não encontrado em: \(e.name)")
-            return 
+            return
         }
         
         newFlapBird.scale = [1,1,1]
@@ -163,21 +162,16 @@ class SceneViewModel {
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
         
-        
-        print("Collision shapes e InputTarget configurados para: \(newFlapBird.name)")
     }
     
     func appliyngTextureToTsuru(scrapImage: UIImage?, tsuru: Entity?) async {
         
         let sourceImage: UIImage? = scrapImage ?? UIImage(named: "teste")
-        guard let cgImage = sourceImage?.cgImage else {
-            print("[SceneViewModel] No image available to create texture.")
-            return
-        }
+        guard let cgImage = sourceImage?.cgImage else { return }
         guard let tsuru else { return }
         guard let newFlapBird = tsuru.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return }
-
-
+        
+        
         // Create material with the texture
         do {
             let texture = try await TextureResource(image: cgImage, options: .init(semantic: .color))
@@ -190,40 +184,52 @@ class SceneViewModel {
             material.roughness = 0.7     // Paper is somewhat matte (0.6-0.8)
             material.specular = 0.3      // Low specular reflection
             
-            
             if var modelComponent = newFlapBird.components[ModelComponent.self] {
                 modelComponent.materials = [material]
                 newFlapBird.components[ModelComponent.self] = modelComponent
                 
             }
         } catch {
-            print("[SceneViewModel] Failed to create TextureResource: \(error)")
         }
     }
     
-    func handleTap(on entity: Entity) {
-        print("========================================")
-        print("HANDLE TAP CHAMADO!")
-        print("Tocou na entidade: \(entity.name)")
-        print("Hierarquia: \(entity.parent?.name ?? "nil") -> \(entity.name)")
-        print("Total de entidades no dicionário: \(dict.count)")
-        print("========================================")
+    func handleTap(on entity: Entity) { // toca só na arvore, pelo menos pra MVP
+//        if entity.name == "flappingBird___0PercentFolded" {
+//            print("entrou no flapbird")
+//            repositioningCameraToTsuru(entity)
+//            currentPage = dict[entity]
+//        } else {
+//            print("entrou no toque da arvore")
+//            let allEntities = Array(dict.keys)
+//            let lastEntity = allEntities.last
+//            repositioningCameraToTsuru(lastEntity)
+//        }
         
-        var current: Entity? = entity
-        
-        while let ent = current {
-            print("Verificando: \(ent.name)")
-            if let page = dict[ent] {
-                print("Encontrou entidade associada: \(ent.name)")
-                currentPage = page
-                showCanvas.toggle()
-                return
-            }
-            current = ent.parent
+        if !(entity.name == "flappingBird___0PercentFolded") && !isFocusedOnTsuru  {
+            selectedPage = dict[entity]
+            let allEntities = Array(dict.keys)
+            let lastEntity = allEntities.last
+            repositioningCameraToTsuru(lastEntity)
+            
         }
-        
-        print("Nenhuma entidade registrada encontrada na hierarquia")
     }
+    
+    func openTsuru() {
+        
+        currentPage = selectedPage
+        
+        
+        
+        //        while let ent = current {
+        //            if let page = dict[ent] {
+        //                currentPage = page
+        //                return
+        //            }
+        //            current = ent.parent
+        //        }
+        
+        
+    } // aqui vamo fazer um botão... pra abrir com a currentpage e depois colocar como nil
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -234,12 +240,15 @@ class SceneViewModel {
         cameraManager.zoom(scale: scale)
     }
     
-    func repositioningCameraNewToTsuru(_ newTsuru: Entity?) {
+    func repositioningCameraToTsuru(_ newTsuru: Entity?) {
         cameraManager.repositioningCameraNewToTsuru(newTsuru)
+        isFocusedOnTsuru = true
     }
     
     func repositioningCameraToTree() {
         cameraManager.repositioningCameraToTree(tree)
+        isFocusedOnTsuru = false
+        currentPage = nil
     }
     
     func updateCamera() {
