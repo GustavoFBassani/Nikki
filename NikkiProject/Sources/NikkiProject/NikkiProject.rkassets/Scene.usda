@@ -16,7 +16,7 @@ def "Root" (
     prepend references = @Scene.usdz@</Root>
 )
 {
-    reorder nameChildren = ["Cherry_Tree_2", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material", "Cylinder"]
+    reorder nameChildren = ["Cherry_Tree_2", "Japanese_garden", "japanese_Lamp", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material", "Oriental_Lantern"]
     quatf xformOp:orient = (1, 0, 0, 0)
     float3 xformOp:scale = (1, 1, 1)
     float3 xformOp:translate = (-4.0072613, -5, 0)
@@ -44,7 +44,198 @@ def "Root" (
     {
         quatf xformOp:orient = (0.99999994, 0, 0, 0)
         float3 xformOp:scale = (0.025, 0.025, 0.025)
-        float3 xformOp:translate = (-5.9731855, 1.8062246, -8.229736)
+        float3 xformOp:translate = (-5.398797, 1.8062246, -8.229736)
+
+        over "Materials"
+        {
+            over "Material_011"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_015"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_020"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.054611545, 0.0811113, 0.04875088) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                }
+            }
+
+            over "Material_023"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_022"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_003"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_001"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_016"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_013"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_005"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.8624462, 0.8624462, 0.8624462) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                    color3f inputs:emissiveColor = (0.48512512, 0.48512512, 0.48512512) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                }
+            }
+
+            over "Material_007"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.684358, 0.684358, 0.684358) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                }
+            }
+
+            over "Material_014"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+
+            over "Material_019"
+            {
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.49853152, 0.5141106, 0.48295242) (
+                        colorSpace = "srgb_displayp3"
+                    )
+                }
+            }
+
+            over "Material_008"
+            {
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.0468477, 0.0468477, 0.0468477)
+                }
+            }
+
+            over "Material_012"
+            {
+                over "pbr_shader"
+                {
+                    color3f inputs:diffuseColor = (0.0251163, 0.0251163, 0.0251163)
+                }
+            }
+        }
+
+        over "Meshes"
+        {
+            over "Sketchfab_model"
+            {
+                over "be32723df74b4a1c8a26acb671f58dea_fbx"
+                {
+                    over "RootNode"
+                    {
+                        over "Cylinder_033" (
+                            active = false
+                        )
+                        {
+                        }
+
+                        over "Cylinder_032" (
+                            active = false
+                        )
+                        {
+                        }
+
+                        over "Cylinder_031" (
+                            active = false
+                        )
+                        {
+                        }
+
+                        over "Cylinder_028" (
+                            active = false
+                        )
+                        {
+                        }
+
+                        over "Mesh_002" (
+                            active = false
+                        )
+                        {
+                        }
+
+                        over "Mesh_003" (
+                            active = false
+                        )
+                        {
+                        }
+
+                        over "Circle_001" (
+                            active = false
+                        )
+                        {
+                        }
+
+                        over "Cylinder_034" (
+                            active = false
+                        )
+                        {
+                        }
+                    }
+                }
+            }
+        }
     }
 
     over "SkyDome"
@@ -201,7 +392,7 @@ def "Root" (
     {
         quatf xformOp:orient = (0.70536107, 0, -0.70884824, 0)
         float3 xformOp:scale = (0.016, 0.016, 0.016)
-        float3 xformOp:translate = (0.5641532, 1.9748118, -10.124463)
+        float3 xformOp:translate = (0.5731559, 1.9748003, -11.949892)
     }
 
     def "Japanese_garden" (
@@ -791,6 +982,50 @@ def "Root" (
     )
     {
         float3 xformOp:translate = (0.6021519, 0.08214331, -27.95842)
+    }
+
+    def "japanese_Lamp" (
+        active = true
+        prepend references = @japanese_Lamp.usdz@
+    )
+    {
+        quatf xformOp:orient = (1, 0, 0, 0)
+        float3 xformOp:scale = (0.015, 0.015, 0.015)
+        float3 xformOp:translate = (-6.6442537, 2.4834936, -8.320379)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "Materials"
+        {
+            over "RootNode"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+            }
+        }
+    }
+
+    def "Chinese_Lamp___4096px_" (
+        active = true
+        prepend references = @Chinese_Lamp_-_4096px².usdz@
+    )
+    {
+        float3 xformOp:scale = (0.018, 0.018, 0.018)
+        float3 xformOp:translate = (-6.15691, 5.5102515, -8.32084)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "Materials"
+        {
+            over "ChineseLamp_MTL"
+            {
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                over "pbr_shader"
+                {
+                    delete float inputs:roughness.connect = </Root/Chinese_Lamp___4096px_/Materials/ChineseLamp_MTL/tex_roughness.outputs:r>
+                }
+            }
+        }
     }
 }
 

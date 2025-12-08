@@ -88,18 +88,18 @@ struct SceneView: View {
             ) // zoom
             
         }
-        .overlay(alignment: .bottomTrailing) {
-            NavigationLink {
-                PageListView()
-            } label: {
-                Text("Canvas")
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding()
-            }
-        }
+//        .overlay(alignment: .bottomTrailing) {
+//            NavigationLink {
+//                PageListView()
+//            } label: {
+//                Text("Canvas")
+//                    .padding()
+//                    .background(Color.blue)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(10)
+//                    .padding()
+//            }
+//        }
 
     }
 }
