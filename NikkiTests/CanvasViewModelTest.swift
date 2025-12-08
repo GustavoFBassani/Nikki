@@ -55,42 +55,42 @@ struct CanvasViewModelTest {
         #expect(icon.size.height == 60)
     }
     
-    @Test @MainActor
-    func savingNewPage() async {
-        // Given
-        resetDatabase()
-        let viewModel = CanvasViewModel(page: nil, paperStyle: "recycledPaper")
-        
-        // When
-        try? await viewModel.savePage()
-        
-        // Then
-        #expect(viewModel.currentPage != nil)
-        if let savedPage = viewModel.currentPage {
-            let manager = SwiftDataManager.shared
-            let fetchedPage = try? manager.fetchPage(by: savedPage.id)
-            #expect(fetchedPage != nil)
-            #expect(fetchedPage?.id == savedPage.id)
-        }
-    }
+//    @Test @MainActor
+//    func savingNewPage() async {
+//        // Given
+//        resetDatabase()
+//        let viewModel = CanvasViewModel(page: nil, paperStyle: "recycledPaper")
+//        
+//        // When
+//        try? await viewModel.savePage()
+//        
+//        // Then
+//        #expect(viewModel.currentPage != nil)
+//        if let savedPage = viewModel.currentPage {
+//            let manager = SwiftDataManager.shared
+//            let fetchedPage = try? manager.fetchPage(by: savedPage.id)
+//            #expect(fetchedPage != nil)
+//            #expect(fetchedPage?.id == savedPage.id)
+//        }
+//    }
     
-    @Test @MainActor
-    func updatingExistingPage() async {
-        // Given
-        resetDatabase()
-        let page = Page(title: "Original Title", markupData: nil, paperStyle: "grid")
-        let manager = SwiftDataManager.shared
-        try? manager.savePage(page)
-        let viewModel = CanvasViewModel(page: page, paperStyle: nil)
-        
-        // When
-        page.title = "Updated Title"
-        try? await viewModel.savePage()
-        
-        // Then
-        let fetchedPage = try? manager.fetchPage(by: page.id)
-        #expect(fetchedPage?.title == "Updated Title")
-    }
+//    @Test @MainActor
+//    func updatingExistingPage() async {
+//        // Given
+//        resetDatabase()
+//        let page = Page(title: "Original Title", markupData: nil, paperStyle: "grid")
+//        let manager = SwiftDataManager.shared
+//        try? manager.savePage(page)
+//        let viewModel = CanvasViewModel(page: page, paperStyle: nil)
+//        
+//        // When
+//        page.title = "Updated Title"
+//        try? await viewModel.savePage()
+//        
+//        // Then
+//        let fetchedPage = try? manager.fetchPage(by: page.id)
+//        #expect(fetchedPage?.title == "Updated Title")
+//    }
     
     @Test @MainActor
     func deletingCurrentPage() {

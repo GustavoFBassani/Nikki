@@ -13,7 +13,7 @@ def "Root" (
     customData = {
         float3 rotationEulerHint = (0, 0, 0)
     }
-    prepend references = @Scene.usdz@</Root>
+    references = @Scene.usdz@</Root>
 )
 {
     reorder nameChildren = ["Cherry_Tree_2", "Japanese_garden", "japanese_Lamp", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material", "Oriental_Lantern"]
@@ -375,7 +375,7 @@ def "Root" (
         customData = {
             float3 rotationEulerHint = (0, 0, 0)
         }
-        prepend references = @Cherry_Tree-2.usdz@
+        references = @Cherry_Tree-2.usdz@
     )
     {
         quatf xformOp:orient = (1, 0, 0, 0)
@@ -397,7 +397,7 @@ def "Root" (
 
     def "Japanese_garden" (
         active = true
-        prepend references = @Japanese_garden.usdz@
+        references = @Japanese_garden.usdz@
     )
     {
         float3 xformOp:scale = (0.05, 0.05, 0.05)
@@ -984,6 +984,7 @@ def "Root" (
         float3 xformOp:translate = (0.6021519, 0.08214331, -27.95842)
     }
 
+<<<<<<< HEAD
     def "japanese_Lamp" (
         active = true
         prepend references = @japanese_Lamp.usdz@
@@ -1026,6 +1027,20 @@ def "Root" (
                 }
             }
         }
+=======
+    def "tsuru" (
+        active = true
+        customData = {
+            float3 rotationEulerHint = (0, -0.78539807, 0)
+        }
+        prepend references = @tsuru.usdc@
+    )
+    {
+        quatf xformOp:orient = (0.92387956, 0, -0.38268337, 0)
+        float3 xformOp:scale = (0.0005, 0.0005, 0.0005)
+        float3 xformOp:translate = (5.0072613, 5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+>>>>>>> dev
     }
 }
 

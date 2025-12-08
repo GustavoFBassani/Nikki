@@ -41,6 +41,17 @@
                ReferencedContainer = "container:Nikki.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "21BEF2B42EE351D800B328D8"
+               BuildableName = "NikkiUITests.xctest"
+               BlueprintName = "NikkiUITests"
+               ReferencedContainer = "container:Nikki.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

@@ -54,6 +54,10 @@ class EditorData {
         // controller.delegate = self
         controller.loadViewIfNeeded()
         
+        let canvasBackground = UIColor(named: "canvasBackground")
+        controller.view.backgroundColor = canvasBackground
+
+        
         // Cria o modelo de markup novo
         var markup = PaperMarkup(bounds: rect)
         
@@ -80,10 +84,24 @@ class EditorData {
             self.controller?.zoomRange = 0.1...3.5
         }
         
+        //TODO: ENTENDER COMO ESSE CONTENT PODE IR COMO IMAGEM DE FUNDO.
         // Configura imagem de fundo (template)
         let template = UIImage(named: paperStyle ?? "recycledPaper")
         let templateView = UIImageView(image: template)
         controller.contentView = templateView
+        
+        if let markup = self.markup {
+            let pageBounds = markup.bounds
+            
+            let visibleRect = pageBounds.insetBy(
+                dx: pageBounds.width * 0.3,
+                dy: pageBounds.height * 0.3
+            )
+            
+            DispatchQueue.main.async {
+                controller.contentVisibleFrame = visibleRect
+            }
+        }
     }
     
     // MARK: - Insertion Methods
@@ -108,7 +126,7 @@ class EditorData {
         controller?.undoManager?.undo()
     }
 
-    
+
     /// Insere uma imagem no markup
     /// - Parameters:
     ///   - image: Imagem a ser inserida
@@ -123,11 +141,6 @@ class EditorData {
         
         // Depois insere a nova imagem
         markup?.insertNewImage(cgImage, frame: rect)
-        
-        // E atualiza o controller
-//        if let markup = self.markup {
-//            controller?.markup = markup
-//        }
         refreshController()
     }
     
@@ -180,7 +193,16 @@ class EditorData {
             return nil
         }
 
+        // Desenha o contentView (fundo) primeiro
+        if let contentView = controller?.contentView {
+            UIGraphicsPushContext(context)
+            contentView.layer.render(in: context)
+            UIGraphicsPopContext()
+        }
+
+        // Depois desenha o markup por cima
         await markup.draw(in: context, frame: rect)
+        
         guard let cgImage = context.makeImage() else {
             return nil
         }
