@@ -24,7 +24,7 @@ struct SceneView: View {
             ZStack {
                 // RealityView para o conteúdo 3D
                 RealityView { content in
-
+                    
                 } update: { content in
                     if let scene = vm.scene, content.entities.isEmpty {
                         content.add(scene)
@@ -35,16 +35,16 @@ struct SceneView: View {
                     if vm.scene == nil {
                         await vm.loadScene()
                     }
-
+                    
                     //                    pages.forEach { page in  ///provisorio
                     //                        context.delete(page)
                     //                    }
                     //                    try? context.save()
-
+                    
                     vm.repositioningCameraToTree()
                     vm.updateCamera()
                 }
-
+                
                 
                 CanvasView(scrapToExport: $vm.scrapImage, dismissCanvasView: $showCanvas, page: vm.currentPage, paperStyle: vm.paperStyle, addNewTsuru: vm.addNewTsuru)
                     .id(showCanvas) //funciona isso?
@@ -61,8 +61,7 @@ struct SceneView: View {
                             }
                         }
                     }
-                }
-
+                
                 // DateBar quando está em modo de localização
                 if isLocalizationMode {
                     VStack {
@@ -73,6 +72,7 @@ struct SceneView: View {
                     .transition(.move(edge: .bottom))
                 }
             }
+        }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
                 /// Usado para rotacionar a câmera orbital
@@ -210,14 +210,14 @@ struct SceneView: View {
                     .padding(.leading, 20)
                 }
             }
+            .task {
+                // carrega a motivação salva assim que a SceneView aparecer
+                vm.loadMotivation()
+            }
+        }
 
-        }
-        .task {
-            // carrega a motivação salva assim que a SceneView aparecer
-            vm.loadMotivation()
-        }
     }
-}
+
 
 #Preview {
     SceneView()

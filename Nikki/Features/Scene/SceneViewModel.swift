@@ -64,7 +64,7 @@ class SceneViewModel {
     var count: Float = 1.0 // provisorio
     // Objects positions
     var obj: Entity?
-        
+    
     var data = SwiftDataManager.shared
     var orderedPages: [Page?] = []
     var positions: [SIMD3<Float>] = [
@@ -102,7 +102,7 @@ class SceneViewModel {
     var dict: [Entity:Page] = [:]
     var selectedEntityName: Entity? = nil
     var currentPage: Page? = nil
-        
+    
     func loadScene() async {
         do {
             // Carrega a cena do arquivo Reality Composer Pro ou bundle
@@ -112,7 +112,7 @@ class SceneViewModel {
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
             
-
+            
             //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
@@ -180,7 +180,7 @@ class SceneViewModel {
             material.roughness = 0.7     // Paper is somewhat matte (0.6-0.8)
             material.specular = 0.3      // Low specular reflection
             
-
+            
             guard let tsuru = tsurus.last?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else {
                 return
             }
@@ -298,7 +298,7 @@ class SceneViewModel {
             
         }
     } //ok
-        
+    
     func loadPages() async {
         do {
             guard let scene else {
@@ -328,23 +328,23 @@ class SceneViewModel {
     }
     
     func handleTap(on entity: Entity) {
-            print(" Tocou na entidade: \(entity.name)")
-            
-            var current: Entity? = entity
-            
-            // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
-            while let ent = current {
-                if let page = dict[ent] {
-                    print("Encontrou entidade associada: \(ent.name)")
-                    currentPage = page   // <- dispara navegação na View
-                    return
-                }
-                current = ent.parent
+        print(" Tocou na entidade: \(entity.name)")
+        
+        var current: Entity? = entity
+        
+        // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
+        while let ent = current {
+            if let page = dict[ent] {
+                print("Encontrou entidade associada: \(ent.name)")
+                currentPage = page   // <- dispara navegação na View
+                return
             }
-            
-            print("Nenhuma entidade registrada encontrada na hierarquia")
+            current = ent.parent
         }
+        
+        print("Nenhuma entidade registrada encontrada na hierarquia")
     }
+    
     
     // MARK: - Motivation Methods
     
@@ -380,3 +380,5 @@ class SceneViewModel {
         }
     }
 }
+
+
