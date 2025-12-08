@@ -11,4 +11,5 @@ struct Fonts {
     static let Body: Font = .custom("CaveatBrush-Regular", size: 28)
     static let Subheadline: Font = .custom("CaveatBrush-Regular", size: 24)
     static let Footnote: Font = .custom("CaveatBrush-Regular", size: 22)
+    static let Parchment: Font = .custom("CaveatBrush-Regular", size: 16)
 }
