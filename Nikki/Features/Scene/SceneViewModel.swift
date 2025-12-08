@@ -49,6 +49,11 @@ class SceneViewModel {
     /// Deve corresponder ao valor inicial de rho para evitar saltos no primeiro zoom
     private let baseRho: Float = 10.0
     
+    // MARK: - Motivation
+    private let dataManager = SwiftDataManager.shared
+    private var currentMotivation: Motivation?
+    var motivationText: String = ""
+    var datadamotivacaodosguri: Date = Date()
     /// Entidade que controla para onde a camera está olhando
     /// Deve estar atualizando para mudar o foco da camera
     private var cameraLook: SIMD3<Float>?
@@ -64,36 +69,36 @@ class SceneViewModel {
     var data = SwiftDataManager.shared
     var orderedPages: [Page?] = []
     var positions: [SIMD3<Float>] = [
-        SIMD3<Float>(-1.7,  0.4, 1.6),
-        SIMD3<Float>(-2.8, -0.7, 2.5),
-        SIMD3<Float>(-2.6, -0.9, 2.4),
-        SIMD3<Float>(-3.1, -0.5, 2.7),
-        SIMD3<Float>(-3.4, -0.3, 3.1),
-        SIMD3<Float>(-3.6, -0.3, 3.3),
-        SIMD3<Float>(-2.8, -0.4, 5.0),
-        SIMD3<Float>(-3.2, -0.5, 5.0),
-        SIMD3<Float>(-4.1, -0.4, 5.4),
-        SIMD3<Float>(-4.1,  0.0, 5.7),
-        SIMD3<Float>(-5.1,  1.8, 5.8),
-        SIMD3<Float>(-6.0,  1.7, 5.6),
-        SIMD3<Float>(-5.8,  1.4, 5.4),
-        SIMD3<Float>(-5.3,  0.9, 5.1),
-        SIMD3<Float>(-5.1,  0.5, 4.9),
-        SIMD3<Float>(-2.0,  0.3, 1.9),
-        SIMD3<Float>(-3.09, 0.67, 4.58),
-        SIMD3<Float>(-3.0, 0.86, 4.35),
-        SIMD3<Float>(-2.87, 1.01, 4.14),
-        SIMD3<Float>(-2.79, 1.2, 3.95),
-        SIMD3<Float>(-2.69, 1.56, 3.97),
-        SIMD3<Float>(-2.66, 1.59, 5.01),
-        SIMD3<Float>(-2.35, 1.6, 5.1),
-        SIMD3<Float>(-2.36, 1.8, 5.3),
-        SIMD3<Float>(-2.2, 1.9, 5.5),
-        SIMD3<Float>(-3.38, 0.69, 4.47),
-        SIMD3<Float>(-3.23, 0.67, 4.26),
-        SIMD3<Float>(-3.04, 0.66, 4.1),
-        SIMD3<Float>(-2.78, 0.41, 4.118),
-        SIMD3<Float>(-2.54, 0.28, 4.08),
+        SIMD3<Float>(-3.77,  0.19, 1.87),
+        SIMD3<Float>(-3.54, 0.05, 2.026),
+        SIMD3<Float>(-3.06, 0.13, 1.85),
+        SIMD3<Float>(-3.12, 0.17, 1.39),
+        SIMD3<Float>(-2.53, -0.396, 2.2),
+        SIMD3<Float>(-2.26, -0.54, 1.999),
+        SIMD3<Float>(-1.93, -0.786, 1.88),
+        SIMD3<Float>(-3.03, 0.199, 1.052),
+        SIMD3<Float>(-0.976, 0.44, 1.153),
+        SIMD3<Float>(-0.879,  0.53, 0.856),
+        SIMD3<Float>(-2.53,  -0.52, 4.97),
+        SIMD3<Float>(-2.2,  -0.37, 4.998),
+        SIMD3<Float>(-1.878,  -0.25, 5.12),
+        SIMD3<Float>(-1.17,  0.27, 5.398),
+        SIMD3<Float>(-1.45,  -0.26, 5.24),
+        SIMD3<Float>(-0.85,  0.55, 5.398),
+        SIMD3<Float>(-4.198, 0.27, 3.91),
+        SIMD3<Float>(-4.34, 0.56, 4.14),
+        SIMD3<Float>(-4.53, 1.03, 4.48),
+        SIMD3<Float>(-4.75, 1.199, 4.767),
+        SIMD3<Float>(-5.05, 1.577, 4.767),
+        SIMD3<Float>(-2.44, -0.516, 3.694),
+        SIMD3<Float>(-2.308, -0.327, 3.325),
+        SIMD3<Float>(-3.44, -0.12, 4.908),
+        SIMD3<Float>(-3.34, 0.29, 5.22),
+        SIMD3<Float>(-2.32, 0.14, 1.856),
+        SIMD3<Float>(0.465, 0.17, 3.51),
+        SIMD3<Float>(-3.73, 0.72, 5.769),
+        SIMD3<Float>(-3.84, 0.84, 6.21),
+        SIMD3<Float>(-3.565, 1.017, 5.55)
     ]
     var dict: [Entity:Page] = [:]
     var selectedEntityName: Entity? = nil
@@ -107,6 +112,7 @@ class SceneViewModel {
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
+          
             if let bandstand = scene.findEntity(named: "Japan_HW") {
                 bandstand.generateCollisionShapes(recursive: true)
                 bandstand.components[InputTargetComponent.self] = .init()
@@ -494,4 +500,40 @@ class SceneViewModel {
     }
     
     
+
+    // MARK: - Motivation Methods
+    
+    func loadMotivation() {
+        do {
+            if let motivation = try dataManager.fetchMotivation() {
+                currentMotivation = motivation
+                motivationText = motivation.text ?? ""
+                datadamotivacaodosguri = motivation.updatedAt ?? Date()
+            } else {
+                currentMotivation = nil
+                motivationText = ""
+                datadamotivacaodosguri = .now
+            }
+        } catch {
+            print("Erro ao carregar motivação: \(error)")
+        }
+    }
+    
+    func saveMotivation() {
+        do {
+            if let motivation = currentMotivation {
+                motivation.text = motivationText
+                motivation.updatedAt = Date()
+                try dataManager.updateMotivation(motivation)
+            } else {
+                let newMotivation = Motivation(text: motivationText)
+                try dataManager.saveMotivation(newMotivation)
+                currentMotivation = newMotivation
+            }
+        } catch {
+            print("Erro ao salvar motivação: \(error)")
+        }
+    }
 }
+
+
