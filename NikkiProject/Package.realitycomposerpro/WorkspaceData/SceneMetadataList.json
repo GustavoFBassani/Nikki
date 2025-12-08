@@ -49,11 +49,8 @@
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
-        "Japanese_garden",
-        "Meshes",
-        "Sketchfab_model",
-        "Collada_visual_scene_group",
-        "Material2"
+        "Cylinder",
+        "DefaultMaterial"
       ],
       {
         "isExpanded" : true,
@@ -109,7 +106,8 @@
         "Material2"
       ],
       {
-        "isExpanded" : true,
+        "disallowsFraming" : false,
+        "isExpanded" : false,
         "isLocked" : false
       },
       [
@@ -129,10 +127,14 @@
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
-        "Japanese_Red_Bridge"
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2_2"
       ],
       {
-        "disallowsFraming" : true,
+        "disallowsFraming" : false,
         "isExpanded" : false,
         "isLocked" : false
       },

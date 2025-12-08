@@ -59,6 +59,7 @@ class SceneViewModel {
     private var cameraLook: SIMD3<Float>?
     ///Bool pra controlar o foco da camera
     var isFocusedOnTsuru = false
+    var isFocusedOnBandstand = false
     
     var tsurus: [Entity] = [] //provisorio
     var count: Float = 1.0 // provisorio
@@ -111,8 +112,12 @@ class SceneViewModel {
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
-            
-            
+          
+            if let bandstand = scene.findEntity(named: "Japan_HW") {
+                bandstand.generateCollisionShapes(recursive: true)
+                bandstand.components[InputTargetComponent.self] = .init()
+            }
+
             //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
@@ -193,7 +198,7 @@ class SceneViewModel {
         } catch {
             print("[SceneViewModel] Failed to create TextureResource: \(error)")
         }
-    } //ok
+    } 
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -221,11 +226,11 @@ class SceneViewModel {
         ///   para aplicar imediatamente a nova posição/olhar da câmera.
         // Atualiza theta (rotação horizontal - Azimute)
         // Invertido (-=) para sensação de "pegar e arrastar" a cena
-        theta -= dTheta * 0.005
+        theta += dTheta * 0.0005
         
         // Atualiza phi (rotação vertical - Elevação)
         // Invertido (-=) para que arrastar para baixo leve a câmera para o topo (phi -> 0)
-        phi -= dPhi * 0.005
+        phi -= dPhi * 0.0005
         
         // Limita phi entre pi/60 e 57pi/100
         // Phi = 0 é o Polo Norte (Topo)
@@ -259,26 +264,71 @@ class SceneViewModel {
         updateCamera()
     } // ok
     
-    func repositioningCameraNewToTsuru() {
+    func repositioningCameraNewToTsuru(animated: Bool = true) {
+        guard let tsuruToFocus = tsurus.last else { return }
         
-        if let tsuruToFocus = tsurus.last {
-            let tsuruposition = tsuruToFocus.position(relativeTo: nil)
-            cameraLook = tsuruposition
-            rho = 0.5
+        // Foca lookAt no tsuru que vai olhar
+        let look = tsuruToFocus.position(relativeTo: nil)
+        
+        let targetRho:   Float = 0.5
+        let targetTheta: Float = self.theta
+        let targetPhi:   Float = self.phi
+        
+        if animated {
+            animateCamera(
+                toRho: targetRho,
+                toTheta: targetTheta,
+                toPhi: targetPhi,
+                toLookAt: look,
+                duration: 1.2
+            )
+        } else {
+            cameraLook = look
+            rho = targetRho
+            theta = targetTheta
+            phi = targetPhi
             updateCamera()
-            isFocusedOnTsuru = true
         }
         
-    } // ok
+        isFocusedOnTsuru = true
+    }
     
-    func repositioningCameraToTree() {
-        cameraLook = tree?.position
-        cameraLook?.x -= 4
-        theta =  -4.776666
-        rho =  21.0
-        updateCamera()
+    func repositioningCameraToTree(animated: Bool = true) {
+        guard let tree else { return }
+        
+        //Posicao da arvore e para onde olhar, que nem antes
+        let treePos = tree.position
+        let look = SIMD3<Float>(
+            treePos.x - 4,
+            treePos.y,
+            treePos.z
+        )
+        
+        // Define angulos especificos
+        let targetTheta: Float = -4.776666
+        let targetPhi:   Float = self.phi
+        let targetRho:   Float = 21.0
+        
+        if animated {
+            animateCamera(
+                toRho: targetRho,
+                toTheta: targetTheta,
+                toPhi: targetPhi,
+                toLookAt: look,
+                duration: 1.5
+            )
+        } else {
+            self.cameraLook = look
+            self.rho = targetRho
+            self.theta = targetTheta
+            self.phi = targetPhi
+            updateCamera()
+        }
+        
         isFocusedOnTsuru = false
-    } //ok
+    }
+    
+    
     
     func updateCamera() {
         
@@ -298,6 +348,103 @@ class SceneViewModel {
             
         }
     } //ok
+    
+    func focusOnBandstand() {
+        // Posicao do coreto
+        let look = SIMD3<Float>(-7.3, -0.3, -8.2)
+        
+        // Posicao da camera
+        let desiredPos = SIMD3<Float>(-3.5, -0.3, -8.2)
+        
+        // Vetor do centro (look) até a câmera
+        let distance = desiredPos - look
+        let x = distance.x
+        let y = distance.y
+        let z = distance.z
+        
+        // Converte pra coordenadas esfericas
+        let rho   = simd_length(distance)
+        let phi   = acosf(y / rho)
+        let theta = atan2f(z, x)
+        
+        animateCamera(
+            toRho: rho,
+            toTheta: theta,
+            toPhi: phi,
+            toLookAt: look,
+            duration: 1.5
+        )
+    }
+    
+    func animateCamera(
+        toRho: Float? = nil,
+        toTheta: Float? = nil,
+        toPhi: Float? = nil,
+        toLookAt: SIMD3<Float>? = nil,
+        duration: TimeInterval = 1.5
+    ) {
+        guard let camera else { return }
+        
+        // Estado atual
+        let currentRho   = self.rho
+        let currentTheta = self.theta
+        let currentPhi   = self.phi
+        let currentLook  = self.cameraLook ?? toLookAt ?? .zero
+        
+        // Valor passado ou mantem atual em caso de nil
+        let targetRho   = toRho   ?? currentRho
+        let targetTheta = toTheta ?? currentTheta
+        let targetPhi   = toPhi   ?? currentPhi
+        let targetLook  = toLookAt ?? currentLook
+        
+        // Calcula a posição final da câmera em volta do lookAt(target look)
+        let targetPos = cameraPosition(
+            rho: targetRho,
+            theta: targetTheta,
+            phi: targetPhi,
+            center: targetLook
+        )
+        
+        // Mexe com transform (matriz de transformacao)
+        // onde a câmera está agora
+        let startTransform = camera.transform
+        
+        // Aqui atribui na camera a posicao final, onde ela deve parar ao final da animacao.
+        // Isso e feito pq assim o reality kit calcula a matriz de transformacao final, sem precisar fazer esse calculo na mao
+        camera.position = targetPos
+        camera.look(at: targetLook, from: targetPos, relativeTo: nil)
+        let targetTransform = camera.transform
+        
+        // Aqui volta a camera pra posicao inicial, uma vez que ja calculamos a matriz final e queremos animar ela ate la
+        camera.transform = startTransform
+        
+        // Atualiza as variaveis de controle pros gestures nao ficarem desatualizados
+        self.rho        = targetRho
+        self.theta      = targetTheta
+        self.phi        = targetPhi
+        self.cameraLook = targetLook
+        
+        // Realiza a animacao com interpolacao nativa do framework
+        camera.move(
+            to: targetTransform,
+            relativeTo: nil,
+            duration: duration,
+            timingFunction: .easeInOut
+        )
+    }
+    
+    private func cameraPosition(
+        rho: Float,
+        theta: Float,
+        phi: Float,
+        center: SIMD3<Float> //Center é o lookAt, o objeto que queremos focar
+    ) -> SIMD3<Float> {
+        let x = rho * sin(phi) * cos(theta) + center.x
+        let y = rho * cos(phi)               + center.y
+        let z = rho * sin(phi) * sin(theta) + center.z
+        return [x, y, z]
+    }
+    
     
     func loadPages() async {
         do {
@@ -334,9 +481,16 @@ class SceneViewModel {
         
         // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
         while let ent = current {
+            print("Encontrou entidade associada: \(ent.name)")
             if let page = dict[ent] {
-                print("Encontrou entidade associada: \(ent.name)")
-                currentPage = page   // <- dispara navegação na View
+                currentPage = page
+                return
+            }
+            
+            // Coreto. O && serve pra ele nao ficar animando posicao estatica caso o usuario fique clicando varias vezes no coreto, ai da uma travada (melhor previnir vai saber)
+            if ent.name == "Japan_HW" && !isFocusedOnBandstand {
+                focusOnBandstand()
+                isFocusedOnBandstand = true
                 return
             }
             current = ent.parent
