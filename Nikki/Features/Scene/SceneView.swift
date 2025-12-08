@@ -134,6 +134,7 @@ struct SceneView: View {
                     } label: {
                         Label("Nova página", systemImage: "plus")
                     }
+                    .accessibilityIdentifier("scene_new_page_menu")
                 }
                 if vm.isFocusedOnTsuru {
                     ToolbarItem(placement: .topBarLeading) {
@@ -142,6 +143,7 @@ struct SceneView: View {
                             
                         } label: {
                             Image(systemName: "chevron.left")
+                                .accessibilityIdentifier("scene_new_page_menu")
                         }
                     }
                 }
