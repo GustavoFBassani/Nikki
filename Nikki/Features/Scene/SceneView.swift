@@ -107,7 +107,7 @@ struct SceneView: View {
             ) // tocar no tsuru
         }
         .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
-            CanvasView(page: vm.currentPage, paperStyle: style.name, addNewTsuru: vm.addNewTsuru)
+            CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
         })
         .toolbar {
             
@@ -115,7 +115,7 @@ struct SceneView: View {
                 Menu {
                     ForEach(PaperStyles.allCases, id: \.self) { style in
                         Button(style.name) {
-                            vm.openCanvasWithStyle = style
+                            vm.openCanvasWithStyle = style.rawValue
                         }
                     }
                 } label: {

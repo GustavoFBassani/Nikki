@@ -40,7 +40,7 @@ class SceneViewModel {
     
     //MARK: - DATA
     var orderedPages: [Page?] = [] // pega todas as Pages carregadas ...
-    var openCanvasWithStyle: PaperStyles? // paperstyle para abrir a pagina
+    var openCanvasWithStyle: PaperStyles.RawValue? // paperstyle para abrir a pagina
     var dict: [Entity:Page] = [:]  //atribui tudo a uma dicionario pra relacionar com entidade.
     var lastAdded: Int = 0
     let tsuruPositions: [SIMD3<Float>] = TsuruPosition.allCases.map { tsuru in
@@ -217,19 +217,9 @@ class SceneViewModel {
     func openTsuru() {
         
         currentPage = selectedPage
+        openCanvasWithStyle = currentPage?.paperStyle
         
-        
-        
-        //        while let ent = current {
-        //            if let page = dict[ent] {
-        //                currentPage = page
-        //                return
-        //            }
-        //            current = ent.parent
-        //        }
-        
-        
-    } // aqui vamo fazer um botão... pra abrir com a currentpage e depois colocar como nil
+    }
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
