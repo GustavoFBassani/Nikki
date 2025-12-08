@@ -36,8 +36,8 @@ struct SceneView: View {
             .task {
                 if vm.scene == nil {
                     await vm.loadScene()
-                    vm.repositioningCameraToTree()
                     vm.updateCamera()
+                    vm.repositioningCameraToTree()
                     vm.loadMotivation()
                 }
                 //
@@ -140,10 +140,8 @@ struct SceneView: View {
                 if vm.isFocusedOnTsuru {
                     Button {
                         vm.isFocusedOnTsuru = false
-                        //reposiciona a camera depois
-                        
-                        
-                        
+                        vm.repositioningCameraToTree()
+
                     } label: {
                         Image("xCustom")
                             .resizable()

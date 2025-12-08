@@ -171,26 +171,16 @@ class CameraManager  {
         updateCamera()
     }
     
-    func repositioningCameraNewToTsuru(_ newTsuru: Entity?) {
-        
-        if let tsuruToFocus = newTsuru {
-            let tsuruposition = tsuruToFocus.position(relativeTo: nil)
-            cameraLook = tsuruposition
-            rho = 2
-            updateCamera()
-        }
-        
-    }
-    
     func repositioningCameraNewToTsuru(animated: Bool = true, tsuruToFocus: Entity?) {
         guard let tsuruToFocus = tsuruToFocus else { return }
 
         // Foca lookAt no tsuru que vai olhar
         let look = tsuruToFocus.position(relativeTo: nil)
 
-        let targetRho:   Float = 0.5
+        let targetRho:   Float = 4
         let targetTheta: Float = self.theta
         let targetPhi:   Float = self.phi
+        
 
         if animated {
             animateCamera(
@@ -242,7 +232,6 @@ class CameraManager  {
             }
         } //novo
 
-    
     func updateCamera() {
         
         // Garante que a câmera existe antes de tentar atualizar

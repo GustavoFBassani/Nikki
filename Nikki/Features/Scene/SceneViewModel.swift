@@ -80,6 +80,7 @@ class SceneViewModel {
             
             tsuru = scene.findEntity(named: "tsuru")
             
+            print("tsuru: ", tsuru)
             
             if let bandstand = scene.findEntity(named: "Japan_HW") {
                 bandstand.generateCollisionShapes(recursive: true)
@@ -110,6 +111,7 @@ class SceneViewModel {
         print("entrou aqui")
         newTsuru = tsuru?.clone(recursive: true) // clona o tsuru
         if let newTsuru {
+            print("new tsuru:", newTsuru)
             fixTsuruPos(newTsuru) //arruma a posicao do tsuru
             newTsuru.position = tsuruPositions[lastAdded] // coloca o tsuru na posicao certa...
             do {
@@ -121,7 +123,8 @@ class SceneViewModel {
                 print("erro ao adicionar novo tsuru: ", error.localizedDescription)
             }
         }
-        cameraManager.repositioningCameraNewToTsuru(newTsuru)
+        cameraManager.repositioningCameraNewToTsuru(animated: false, tsuruToFocus: newTsuru)
+        playTsuruAnimation(tsuruToAnimate: newTsuru)
     }//ok
     
     
@@ -248,7 +251,7 @@ class SceneViewModel {
     }
     
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
-        cameraManager.repositioningCameraNewToTsuru(newTsuru)
+        cameraManager.repositioningCameraNewToTsuru(animated: true, tsuruToFocus: newTsuru)
         isFocusedOnTsuru = true
     }
     

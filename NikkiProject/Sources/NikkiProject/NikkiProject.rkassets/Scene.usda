@@ -986,7 +986,6 @@ def "Root" (
 
     def "japanese_Lamp" (
         active = true
-
         prepend references = @japanese_Lamp.usdz@
     )
     {
@@ -1027,7 +1026,16 @@ def "Root" (
                 }
             }
         }
+    }
 
+    def "tsuru" (
+        active = true
+        prepend references = @tsuru.usdc@
+    )
+    {
+        float3 xformOp:scale = (1, 1, 1)
+        float3 xformOp:translate = (4.0072613, -5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
     }
 }
 

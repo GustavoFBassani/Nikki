@@ -18,9 +18,7 @@ struct DateBar: View {
     var body: some View {
         HStack(spacing: 76) {
             Button {
-                if let newDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) {
-                    selectedDate = newDate
-                }
+                //
             } label: {
                 Image("leftChevron")
                     .resizable()
@@ -50,9 +48,7 @@ struct DateBar: View {
             }
             
             Button {
-                if let newDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) {
-                    selectedDate = newDate
-                }
+                //
             } label: {
                 Image("rightChevron")
                     .resizable()

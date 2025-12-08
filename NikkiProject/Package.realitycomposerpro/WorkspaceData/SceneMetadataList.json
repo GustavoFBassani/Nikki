@@ -3,7 +3,8 @@
     "objectMetadataList" : [
       [
         "4E1FC970-D2BD-45E6-ABC6-C08949DDF434",
-        "Root"
+        "Root",
+        "Cube"
       ],
       {
         "isExpanded" : true,
@@ -11,8 +12,7 @@
       },
       [
         "4E1FC970-D2BD-45E6-ABC6-C08949DDF434",
-        "Root",
-        "Cube"
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -53,23 +53,10 @@
         "Meshes",
         "Sketchfab_model",
         "Collada_visual_scene_group",
-        "Material2"
+        "Material3_38"
       ],
       {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
-        "Root",
-        "Japanese_garden",
-        "Meshes",
-        "Sketchfab_model",
-        "Collada_visual_scene_group",
-        "Material2_2"
-      ],
-      {
-        "disallowsFraming" : false,
+        "disallowsFraming" : true,
         "isExpanded" : false,
         "isLocked" : false
       },
@@ -95,16 +82,10 @@
       },
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
-        "Root",
-        "Japanese_garden",
-        "Meshes",
-        "Sketchfab_model",
-        "Collada_visual_scene_group",
-        "Material3_38"
+        "Root"
       ],
       {
-        "disallowsFraming" : true,
-        "isExpanded" : false,
+        "isExpanded" : true,
         "isLocked" : false
       },
       [
@@ -123,7 +104,26 @@
       },
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
-        "Root"
+        "Root",
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2_2"
+      ],
+      {
+        "disallowsFraming" : false,
+        "isExpanded" : false,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
+        "Japanese_garden",
+        "Meshes",
+        "Sketchfab_model",
+        "Collada_visual_scene_group",
+        "Material2"
       ],
       {
         "isExpanded" : true,
