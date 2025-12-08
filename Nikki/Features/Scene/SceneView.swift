@@ -145,7 +145,10 @@ struct SceneView: View {
                     }
             )
             .overlay(alignment: .topTrailing) {
-                if !isLocalizationMode {
+                // Só mostra o + quando:
+                // - não está em modo de localização
+                // - e o canvas não está aberto
+                if !isLocalizationMode && !showCanvas {
                     Menu {
                         ForEach(PaperStyles.allCases, id: \.self) { style in
                             Button(style.name) {
@@ -190,7 +193,10 @@ struct SceneView: View {
                 }
             }
             .overlay(alignment: .bottomLeading) {
-                if !isLocalizationMode {
+                // Botão de localização só aparece:
+                // - quando NÃO está em modo de localização
+                // - e quando o canvas NÃO está aberto
+                if !isLocalizationMode && !showCanvas {
                     Button {
                         withAnimation {
                             isLocalizationMode = true
@@ -209,6 +215,7 @@ struct SceneView: View {
                     .padding(.leading, 20)
                 }
             }
+
         }
     }
 }
