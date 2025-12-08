@@ -17,7 +17,7 @@ struct SceneView: View {
     @State private var isLocalizationMode = false
     
     @Environment(\.modelContext) var context
-    //    @Query var pages: [Page]
+    //        @Query var pages: [Page]
     
     var body: some View {
         NavigationStack {
@@ -32,30 +32,21 @@ struct SceneView: View {
                 }
                 .edgesIgnoringSafeArea(.all)
                 
-                // DateBar quando está em modo de localização
-                if isLocalizationMode {
-                    VStack {
-                        Spacer()
-                        DateBar()
-                            .padding(.bottom, 32)
-                    }
-                    .transition(.move(edge: .bottom))
-                }
-                
             }
             .task {
                 if vm.scene == nil {
                     await vm.loadScene()
                     vm.repositioningCameraToTree()
+                    vm.updateCamera()
+                    vm.loadMotivation()
                 }
                 //
-                //                    pages.forEach { page in  ///provisorio
-                //                        context.delete(page)
-                //                    }
-                //                    try? context.save()
+                //                                    pages.forEach { page in  ///provisorio
+                //                                        context.delete(page)
+                //                                    }
+                //                                    try? context.save()
                 
-                vm.updateCamera()
-                vm.loadMotivation()
+                
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -123,39 +114,36 @@ struct SceneView: View {
                 CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
             })
             .overlay(alignment: .topTrailing) {
-                // Só mostra o + quando:
-                // - não está em modo de localização
-                // - e o canvas não está aberto
-                if !isLocalizationMode && !showCanvas {
-                    Menu {
-                        ForEach(PaperStyles.allCases, id: \.self) { style in
-                            Button(style.name) {
-                                vm.openCanvasWithStyle = style.name
-                                showCanvas.toggle()
-                            }
+                Menu {
+                    ForEach(PaperStyles.allCases, id: \.self) { style in
+                        Button(style.name) {
+                            vm.openCanvasWithStyle = style.name
                         }
-                        
-                    } label: {
-                        Image("customPlus")
-                            .scaledToFit()
-                            .frame(width: 44, height: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 999)
-                                    .fill(Color.white.opacity(0.85))
-                            )
-                            .padding(.trailing, 20)
-                            .padding(.leading, 333)
-                            .padding(.top, 26)
                     }
+                    
+                } label: {
+                    Image("customPlus")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 999)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                        .padding(.trailing, 20)
+                        .padding(.leading, 333)
+                        .padding(.top, 26)
                 }
                 
-            }
+                
+            } // custom plus toolbar
             .overlay(alignment: .topLeading) {
-                if isLocalizationMode {
+                if vm.isFocusedOnTsuru {
                     Button {
-                        withAnimation {
-                            isLocalizationMode = false
-                        }
+                        vm.isFocusedOnTsuru = false
+                        //reposiciona a camera depois
+                        
+                        
+                        
                     } label: {
                         Image("xCustom")
                             .resizable()
@@ -170,54 +158,15 @@ struct SceneView: View {
                     .padding(.leading, 20)
                     .padding(.top, 26)
                 }
-            }
-            .overlay(alignment: .bottomLeading) {
-                // Botão de localização só aparece:
-                // - quando NÃO está em modo de localização
-                // - e quando o canvas NÃO está aberto
-                if !isLocalizationMode && !showCanvas {
-                    Button {
-                        withAnimation {
-                            isLocalizationMode = true
-                        }
-                    } label: {
-                        Image(systemName: "location")
-                            .foregroundStyle(.blueNikki)
-                            .font(Fonts.Footnote)
-                            .frame(width: 44, height: 44)
-                            .clipShape(Circle())
-                            .background(
-                                RoundedRectangle(cornerRadius: 999)
-                                    .fill(Color.white.opacity(0.85))
-                            )
-                    }
-                    .padding(.leading, 20)
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        ForEach(PaperStyles.allCases, id: \.self) { style in
-                            Button(style.name) {
-                                vm.openCanvasWithStyle = style.rawValue
-                            }
-                        }
-                    } label: {
-                        Label("Nova página", systemImage: "plus")
-                    }
-                }
+            } //  custom xmark toolbar
+            .overlay(alignment: .bottom) {
                 if vm.isFocusedOnTsuru {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            vm.repositioningCameraToTree()
-                            vm.updateCamera()
-                        } label: {
-                            Image(systemName: "chevron.left")
-
-                        }
-                    }
+                    DateBar()
+                        .padding(.bottom, 32)
+                        .transition(.move(edge: .bottom))
                 }
-            }
+                
+            } // custom data and chevrons tabbar
         }
     }
 }

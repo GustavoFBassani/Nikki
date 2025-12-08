@@ -107,6 +107,7 @@ class SceneViewModel {
     //MARK: PERSISTENCE FUNCTIONS
     
     func addNewTsuru() async {
+        print("entrou aqui")
         newTsuru = tsuru?.clone(recursive: true) // clona o tsuru
         if let newTsuru {
             fixTsuruPos(newTsuru) //arruma a posicao do tsuru
@@ -156,6 +157,7 @@ class SceneViewModel {
                     }
                 }
             }
+            print("scraps adicionados: ", orderedPages.count)
         }
     }
     
