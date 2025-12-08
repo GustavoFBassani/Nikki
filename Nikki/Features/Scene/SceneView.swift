@@ -17,7 +17,7 @@ struct SceneView: View {
     @State private var isLocalizationMode = false
 
     @Environment(\.modelContext) var context
-    //    @Query var pages: [Page] provisorio
+//    @Query var pages: [Page]
 
     var body: some View {
         NavigationStack {
@@ -41,7 +41,7 @@ struct SceneView: View {
                     //                    }
                     //                    try? context.save()
                     
-                    vm.repositioningCameraToTree()
+                    vm.repositioningCameraToTree(animated: false)
                     vm.updateCamera()
                 }
                 
@@ -84,13 +84,14 @@ struct SceneView: View {
                 /// 4. Passa os deltas (dx, dy) para o ViewModel rotacionar a câmera
                 /// 5. onEnded reseta a posição ao soltar o dedo
                 DragGesture()
-                    .onChanged { value in
-                        // Na primeira chamada, apenas salva a posição inicial
-                        if vm.lastDragPosition == .zero {
-                            vm.lastDragPosition = value.location
-                            return
-                        }
-
+                .onChanged { value in
+                    guard !vm.isFocusedOnBandstand else { return }
+                    
+                    // Na primeira chamada, apenas salva a posição inicial
+                    if vm.lastDragPosition == .zero {
+                        vm.lastDragPosition = value.location
+                        return
+                    }
                         // Calcula quanto o dedo se moveu desde o último frame
                         // dTheta: movimento horizontal (+ = direita, - = esquerda)
                         let dTheta = Float(
@@ -104,7 +105,7 @@ struct SceneView: View {
                         // Envia os deltas para o ViewModel atualizar theta e phi
                         vm.rotate(dTheta: dTheta, dPhi: dPhi)
                         // Atualiza a última posição para o próximo frame
-                    }
+                }
                     .onEnded { _ in
                         // Reseta a posição quando o usuário solta o dedo
                         // Prepara para o próximo gesto
@@ -210,6 +211,18 @@ struct SceneView: View {
                     .padding(.leading, 20)
                 }
             }
+            if vm.isFocusedOnBandstand {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        vm.repositioningCameraToTree()
+                        vm.isFocusedOnBandstand = false
+                    } label: {
+                        Image("customXmark")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)  
+                    }
+                }
             .task {
                 // carrega a motivação salva assim que a SceneView aparecer
                 vm.loadMotivation()
