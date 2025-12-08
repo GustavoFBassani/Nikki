@@ -147,6 +147,9 @@ struct SceneView: View {
                 }
             }
         }
+        .navigationDestination(isPresented: $vm.showCredits) {
+            CreditsView()
+        }
     }
 }
 

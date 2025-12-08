@@ -16,9 +16,11 @@ class SceneViewModel {
     //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
+    var credits: Entity?
     var scrapImage: UIImage?
     var paperStyle: String?
     var tsuru: Entity?
+    var showCredits: Bool = false
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena
@@ -107,6 +109,13 @@ class SceneViewModel {
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
+            credits = scene.findEntity(named: "CreditsButton")
+            
+            if let credits {
+                print("Achei a esfera! 😏")
+                credits.generateCollisionShapes(recursive: true)
+                credits.components[InputTargetComponent.self] = .init()
+            }
             
 
             //            await appliyngTextureToTsuru(scrapImage: nil)
@@ -217,11 +226,11 @@ class SceneViewModel {
         ///   para aplicar imediatamente a nova posição/olhar da câmera.
         // Atualiza theta (rotação horizontal - Azimute)
         // Invertido (-=) para sensação de "pegar e arrastar" a cena
-        theta -= dTheta * 0.005
+        theta -= dTheta * 0.0005
         
         // Atualiza phi (rotação vertical - Elevação)
         // Invertido (-=) para que arrastar para baixo leve a câmera para o topo (phi -> 0)
-        phi -= dPhi * 0.005
+        phi -= dPhi * 0.0005
         
         // Limita phi entre pi/60 e 57pi/100
         // Phi = 0 é o Polo Norte (Topo)
@@ -335,6 +344,11 @@ class SceneViewModel {
                     currentPage = page   // <- dispara navegação na View
                     return
                 }
+                
+                if ent.name == "CreditsButton" {
+                    showCredits = true
+                }
+                
                 current = ent.parent
             }
             

@@ -16,7 +16,7 @@ def "Root" (
     references = @Scene.usdz@</Root>
 )
 {
-    reorder nameChildren = ["Cherry_Tree_2", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material", "Cylinder"]
+    reorder nameChildren = ["Cherry_Tree_2", "Japanese_garden", "tsuru", "CreditsButton", "InvisibleMaterial", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material"]
     quatf xformOp:orient = (1, 0, 0, 0)
     float3 xformOp:scale = (1, 1, 1)
     float3 xformOp:translate = (-4.0072613, -5, 0)
@@ -215,6 +215,7 @@ def "Root" (
 
         over "Materials"
         {
+            reorder nameChildren = ["ARGO_garden01", "ARGO_lawn01", "ARGO_submerged01", "ARGO_water_rim01", "ARGO_falling_water", "ARGO_water01", "ARGO_zen_garden01", "ARGO_leaves02", "material", "ARG_leaves01", "ARGO_leaves03", "ARG_leaves01_0", "ARGO_bamboo01", "ARGO_stonelamp", "_6_96_96", "Beige_1", "Color_B24", "LightGray", "_135_DarkGray", "Charcoal", "jean_blue", "ARGO_wall_03", "ARGO_wall02", "ARGO_entrance01", "ARGO_wall01", "ARGO_bridge01", "ARGO_wood_01", "ARGO_clay_wall01", "ARGO_foundation", "ARGO_floor01", "ARGO_clay01", "ARGO_clay02", "ARGO_wood_01_2", "ARGO_paperglass_01", "ARGO_tatami_mat_02", "ARGO_tatami_mat_02_3", "ARGO_Tatami_mat01", "ARGO_poster01", "ARGO_bark02", "ARGO_linen01", "ARGO__Kakemono", "ARGO_metal01", "ARGO_roof02", "ARGO_roof01", "ARGO_chain01", "ARGO_chain01_4", "ARGO_bark02_5", "ARGO_boulder01", "ARGO_pottery01", "ARGO_iron01", "ARGO_iron01_6", "ARGO_metal01_7", "ARGO_stonelamp_8", "ARGO_hedge01", "ARGO_bark01", "ARGO_cherry_blossom01", "ARGO_boulder01_9", "ARGO_zen_garden02", "InvisibleMaterial"]
             over "ARGO_garden01"
             {
                 token outputs:mtlx:surface
@@ -303,6 +304,28 @@ def "Root" (
             {
                 token outputs:mtlx:surface
                 token outputs:realitykit:vertex
+            }
+
+            def Material "InvisibleMaterial"
+            {
+                token outputs:mtlx:surface.connect = </Root/Japanese_garden/Materials/InvisibleMaterial/PreviewSurface.outputs:out>
+                token outputs:realitykit:vertex
+                float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (335.5, 100.5)
+
+                def Shader "PreviewSurface"
+                {
+                    uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+                    float inputs:clearcoatRoughness = 0
+                    float inputs:ior = 0
+                    float3 inputs:normal = (0, 0, 0)
+                    float inputs:occlusion = 0
+                    float inputs:opacity = 0
+                    float inputs:roughness = 0
+                    token outputs:out
+                    float2 ui:nodegraph:node:pos = (24.647406, 112.60262)
+                    int ui:nodegraph:node:stackingOrder = 20
+                    string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["outputs:out", "Advanced"]
+                }
             }
         }
 
@@ -798,13 +821,44 @@ def "Root" (
         customData = {
             float3 rotationEulerHint = (0, -0.78539807, 0)
         }
-        prepend references = @tsuru.usdc@
+        references = @tsuru.usdc@
     )
     {
+        reorder nameChildren = ["flappingBird___0PercentFolded", "_materials", "env_light"]
         quatf xformOp:orient = (0.92387956, 0, -0.38268337, 0)
         float3 xformOp:scale = (0.0005, 0.0005, 0.0005)
         float3 xformOp:translate = (5.0072613, 5, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Sphere "CreditsButton" (
+        active = true
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        rel material:binding = </Root/Japanese_garden/Materials/InvisibleMaterial> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double radius = 0.1
+        float3 xformOp:scale = (9, 9, 9)
+        float3 xformOp:translate = (4.3961143, 2.0076704, -5.486739)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def Material "DefaultMaterial"
+        {
+            token outputs:mtlx:surface
+            token outputs:realitykit:vertex
+            token outputs:surface.connect = </Root/CreditsButton/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+            float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (0, 110.5)
+
+            def Shader "DefaultSurfaceShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (1, 1, 1)
+                float inputs:roughness = 0.75
+                token outputs:surface
+            }
+        }
     }
 }
 
