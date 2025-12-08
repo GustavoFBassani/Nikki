@@ -38,14 +38,15 @@ class SceneViewModel {
     
     
     
-    //MARK: - DATA
-    var orderedPages: [Page?] = [] // pega todas as Pages carregadas ...
-    var openCanvasWithStyle: PaperStyles.RawValue? // paperstyle para abrir a pagina
-    var dict: [Entity:Page] = [:]  //atribui tudo a uma dicionario pra relacionar com entidade.
+    //MARK: - SCENE DATA
+    var orderedPages: [Page?] = []
+    var dict: [Entity:Page] = [:]
     var lastAdded: Int = 0
     let tsuruPositions: [SIMD3<Float>] = TsuruPosition.allCases.map { tsuru in
         return tsuru.position
     }
+    var openCanvasWithStyle: PaperStyles.RawValue?
+    var selectedEntityName: Entity? = nil
     var currentPage: Page? = nil
     var selectedPage: Page?
     
@@ -54,6 +55,16 @@ class SceneViewModel {
     var tree: Entity?
     var tsuru: Entity?
     var newTsuru: Entity?
+    
+    // MARK: - Motivation
+    private var currentMotivation: Motivation?
+    var motivationText: String = ""
+    var datadamotivacaodosguri: Date = Date()
+    /// Entidade que controla para onde a camera está olhando
+    /// Deve estar atualizando para mudar o foco da camera
+    private var cameraLook: SIMD3<Float>?
+    ///Bool pra controlar o foco da camera
+    var isFocusedOnBandstand = false
     
     
     //MARK: - LOAD SCENE
@@ -69,14 +80,24 @@ class SceneViewModel {
             
             tsuru = scene.findEntity(named: "tsuru")
             
+            
+            if let bandstand = scene.findEntity(named: "Japan_HW") {
+                bandstand.generateCollisionShapes(recursive: true)
+                bandstand.components[InputTargetComponent.self] = .init()
+            }
+            
+            //            await appliyngTextureToTsuru(scrapImage: nil)
+            // Cria uma nova câmera perspectiva
+            // PerspectiveCamera simula visão humana com perspectiva realista
+            
             scene.addChild(camera)
             self.cameraManager.camera = camera
             
             try orderedPages = scrapService.fetchAllPages()
-            await lodaTsurusAtScene()
+            await loadTsurusAtScene()
             
-            lastAdded = orderedPages.count // pega a proxima pra adicionar
-            // Posiciona a câmera usando os valores iniciais de theta, phi e distance
+            lastAdded = orderedPages.count
+            
             updateCamera()
         } catch {
             print("Erro ao carregar cena: \(error)")
@@ -98,21 +119,21 @@ class SceneViewModel {
             } catch {
                 print("erro ao adicionar novo tsuru: ", error.localizedDescription)
             }
-            
         }
-        lastAdded += 1
-        repositioningCameraToTsuru(newTsuru)
-        playTsuruAnimation(tsuruToAnimate: newTsuru)
-    } //adicionar o tsuru a cena
+        cameraManager.repositioningCameraNewToTsuru(newTsuru)
+    }//ok
     
-    func lodaTsurusAtScene() async {
+    
+    //MARK: - CAMERA FUNCTIONS
+    
+    
+    func loadTsurusAtScene() async {
         do {
             guard let scene else {
                 print("Cena não carregada")
                 return
             }
             
-            //            print("Scraps count", orderedPages.count)
             for i in 0..<orderedPages.count {
                 if orderedPages.count < 30 {
                     
@@ -132,12 +153,10 @@ class SceneViewModel {
                         if let newFlapBird = obj.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
                             dict.updateValue(page, forKey: newFlapBird)
                         }
-                        //                        debugTsuruComponents(obj)
                     }
                 }
             }
         }
-        //        print(" Total de tsuris no dicionário: \(dict.count)")
     }
     
     //MARK: - TSURU FUNCTIONS
@@ -194,16 +213,12 @@ class SceneViewModel {
     }
     
     func handleTap(on entity: Entity) { // toca só na arvore, pelo menos pra MVP
-//        if entity.name == "flappingBird___0PercentFolded" {
-//            print("entrou no flapbird")
-//            repositioningCameraToTsuru(entity)
-//            currentPage = dict[entity]
-//        } else {
-//            print("entrou no toque da arvore")
-//            let allEntities = Array(dict.keys)
-//            let lastEntity = allEntities.last
-//            repositioningCameraToTsuru(lastEntity)
-//        }
+        
+        if entity.name == "Japan_HW" && !isFocusedOnBandstand {
+            cameraManager.focusOnBandstand()
+            isFocusedOnBandstand = true
+            return
+        }
         
         if !(entity.name == "flappingBird___0PercentFolded") && !isFocusedOnTsuru  {
             selectedPage = dict[entity]
@@ -236,7 +251,7 @@ class SceneViewModel {
     }
     
     func repositioningCameraToTree() {
-        cameraManager.repositioningCameraToTree(tree)
+        cameraManager.repositioningCameraToTree(tree: tree)
         isFocusedOnTsuru = false
         currentPage = nil
     }
@@ -270,5 +285,68 @@ class SceneViewModel {
             print("✗ Bird NÃO encontrado!")
         }
         print("==================")
+        
+    }
+    
+    
+    // MARK: - Motivation Methods
+    
+    func loadMotivation() {
+        do {
+            if let motivation = try scrapService.fetchMotivation() {
+                currentMotivation = motivation
+                motivationText = motivation.text ?? ""
+                datadamotivacaodosguri = motivation.updatedAt ?? Date()
+            } else {
+                currentMotivation = nil
+                motivationText = ""
+                datadamotivacaodosguri = .now
+            }
+        } catch {
+            print("Erro ao carregar motivação: \(error)")
+        }
+    }
+    
+    func saveMotivation() {
+        do {
+            if let motivation = currentMotivation {
+                motivation.text = motivationText
+                motivation.updatedAt = Date()
+                try scrapService.updateMotivation(motivation)
+            } else {
+                let newMotivation = Motivation(text: motivationText)
+                try scrapService.saveMotivation(newMotivation)
+                currentMotivation = newMotivation
+            }
+        } catch {
+            print("Erro ao salvar motivação: \(error)")
+        }
     }
 }
+
+
+//    func handleTap(on entity: Entity) {
+//        print(" Tocou na entidade: \(entity.name)")
+//
+//        var current: Entity? = entity
+//
+//        // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
+//        while let ent = current {
+//            print("Encontrou entidade associada: \(ent.name)")
+//            if let page = dict[ent] {
+//                currentPage = page
+//                return
+//            }
+//
+//            // Coreto. O && serve pra ele nao ficar animando posicao estatica caso o usuario fique clicando varias vezes no coreto, ai da uma travada (melhor previnir vai saber)
+//            if ent.name == "Japan_HW" && !isFocusedOnBandstand {
+//                focusOnBandstand()
+//                isFocusedOnBandstand = true
+//                return
+//            }
+//            current = ent.parent
+//        }
+//
+//        print("Nenhuma entidade registrada encontrada na hierarquia")
+//    }
+

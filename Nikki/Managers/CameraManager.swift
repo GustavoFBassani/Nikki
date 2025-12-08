@@ -13,6 +13,20 @@ class CameraManager  {
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena
     var camera: PerspectiveCamera?
+    
+    
+    private func cameraPosition(
+        rho: Float,
+        theta: Float,
+        phi: Float,
+        center: SIMD3<Float> //Center é o lookAt, o objeto que queremos focar
+    ) -> SIMD3<Float> {
+        let x = rho * sin(phi) * cos(theta) + center.x
+        let y = rho * cos(phi)               + center.y
+        let z = rho * sin(phi) * sin(theta) + center.z
+        return [x, y, z]
+    }
+    
 
     // MARK: - Propriedades da Câmera Orbital
     /// Raio da órbita (ρ) - distância da câmera em relação ao centro da cena
@@ -36,6 +50,64 @@ class CameraManager  {
     private var cameraLook: SIMD3<Float>?
 
     //MARK: - CAMERA FUNCTIONS
+    
+    func animateCamera(
+        toRho: Float? = nil,
+        toTheta: Float? = nil,
+        toPhi: Float? = nil,
+        toLookAt: SIMD3<Float>? = nil,
+        duration: TimeInterval = 1.5
+    ) {
+        guard let camera else { return }
+
+        // Estado atual
+        let currentRho   = self.rho
+        let currentTheta = self.theta
+        let currentPhi   = self.phi
+        let currentLook  = self.cameraLook ?? toLookAt ?? .zero
+
+        // Valor passado ou mantem atual em caso de nil
+        let targetRho   = toRho   ?? currentRho
+        let targetTheta = toTheta ?? currentTheta
+        let targetPhi   = toPhi   ?? currentPhi
+        let targetLook  = toLookAt ?? currentLook
+
+        // Calcula a posição final da câmera em volta do lookAt(target look)
+        let targetPos = cameraPosition(
+            rho: targetRho,
+            theta: targetTheta,
+            phi: targetPhi,
+            center: targetLook
+        )
+
+        // Mexe com transform (matriz de transformacao)
+        // onde a câmera está agora
+        let startTransform = camera.transform
+
+        // Aqui atribui na camera a posicao final, onde ela deve parar ao final da animacao.
+        // Isso e feito pq assim o reality kit calcula a matriz de transformacao final, sem precisar fazer esse calculo na mao
+        camera.position = targetPos
+        camera.look(at: targetLook, from: targetPos, relativeTo: nil)
+        let targetTransform = camera.transform
+
+        // Aqui volta a camera pra posicao inicial, uma vez que ja calculamos a matriz final e queremos animar ela ate la
+        camera.transform = startTransform
+
+        // Atualiza as variaveis de controle pros gestures nao ficarem desatualizados
+        self.rho        = targetRho
+        self.theta      = targetTheta
+        self.phi        = targetPhi
+        self.cameraLook = targetLook
+
+        // Realiza a animacao com interpolacao nativa do framework
+        camera.move(
+            to: targetTransform,
+            relativeTo: nil,
+            duration: duration,
+            timingFunction: .easeInOut
+        )
+    }
+
     func rotate(dTheta: Float, dPhi: Float) {
         /// Rotaciona a câmera orbital em torno da cena com base no gesto de arrastar.
         ///
@@ -110,13 +182,66 @@ class CameraManager  {
         
     }
     
-    func repositioningCameraToTree(_ tree: Entity?) {
-        cameraLook = tree?.position
-        cameraLook?.x -= 4
-        theta =  -4.776666
-        rho =  21.0
-        updateCamera()
-    }
+    func repositioningCameraNewToTsuru(animated: Bool = true, tsuruToFocus: Entity?) {
+        guard let tsuruToFocus = tsuruToFocus else { return }
+
+        // Foca lookAt no tsuru que vai olhar
+        let look = tsuruToFocus.position(relativeTo: nil)
+
+        let targetRho:   Float = 0.5
+        let targetTheta: Float = self.theta
+        let targetPhi:   Float = self.phi
+
+        if animated {
+            animateCamera(
+                toRho: targetRho,
+                toTheta: targetTheta,
+                toPhi: targetPhi,
+                toLookAt: look,
+                duration: 1.2
+            )
+        } else {
+            cameraLook = look
+            rho = targetRho
+            theta = targetTheta
+            phi = targetPhi
+            updateCamera()
+        }    
+    } // novo
+    
+    func repositioningCameraToTree(animated: Bool = true, tree: Entity?) {
+            guard let tree = tree else { return }
+    
+            //Posicao da arvore e para onde olhar, que nem antes
+            let treePos = tree.position
+            let look = SIMD3<Float>(
+                treePos.x - 4,
+                treePos.y,
+                treePos.z
+            )
+    
+            // Define angulos especificos
+            let targetTheta: Float = -4.776666
+            let targetPhi:   Float = self.phi
+            let targetRho:   Float = 21.0
+    
+            if animated {
+                animateCamera(
+                    toRho: targetRho,
+                    toTheta: targetTheta,
+                    toPhi: targetPhi,
+                    toLookAt: look,
+                    duration: 1.5
+                )
+            } else {
+                self.cameraLook = look
+                self.rho = targetRho
+                self.theta = targetTheta
+                self.phi = targetPhi
+                updateCamera()
+            }
+        } //novo
+
     
     func updateCamera() {
         
@@ -133,5 +258,35 @@ class CameraManager  {
             camera.look(at: cameraLook, from: camera.position, relativeTo: nil)
             
         }
-    } 
+    }
+    
+    func focusOnBandstand() {
+        // Posicao do coreto
+        let look = SIMD3<Float>(-7.3, -0.3, -8.2)
+
+        // Posicao da camera
+        let desiredPos = SIMD3<Float>(-3.5, -0.3, -8.2)
+
+        // Vetor do centro (look) até a câmera
+        let distance = desiredPos - look
+        let x = distance.x
+        let y = distance.y
+        let z = distance.z
+
+        // Converte pra coordenadas esfericas
+        let rho   = simd_length(distance)
+        let phi   = acosf(y / rho)
+        let theta = atan2f(z, x)
+
+        animateCamera(
+            toRho: rho,
+            toTheta: theta,
+            toPhi: phi,
+            toLookAt: look,
+            duration: 1.5
+        )
+    }
+
 }
+
+

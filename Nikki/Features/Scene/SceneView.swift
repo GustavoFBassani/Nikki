@@ -5,23 +5,25 @@
 //  Created by Gustavo Ferreira bassani on 17/11/25.
 //
 
-import SwiftUI
 import RealityKit
 import SwiftData
+import SwiftUI
+
 struct SceneView: View {
     
     // FIX
     @State var vm = SceneViewModel()
-    
+    @State var showCanvas = false
+    @State private var isLocalizationMode = false
     
     @Environment(\.modelContext) var context
-    //    @Query var pages: [Page] /*provisorio*/
+    //    @Query var pages: [Page]
     
     var body: some View {
         NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
-                RealityView {  content in
+                RealityView { content in
                     
                 } update: { content in
                     if let scene = vm.scene, content.entities.isEmpty {
@@ -29,19 +31,31 @@ struct SceneView: View {
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
-                .task {
-                    if vm.scene == nil {
-                        await vm.loadScene()
-                        vm.repositioningCameraToTree()
+                
+                // DateBar quando está em modo de localização
+                if isLocalizationMode {
+                    VStack {
+                        Spacer()
+                        DateBar()
+                            .padding(.bottom, 32)
                     }
-                    //
-                    //                    pages.forEach { page in  ///provisorio
-                    //                        context.delete(page)
-                    //                    }
-                    //                    try? context.save()
-                    
-                    vm.updateCamera()
+                    .transition(.move(edge: .bottom))
                 }
+                
+            }
+            .task {
+                if vm.scene == nil {
+                    await vm.loadScene()
+                    vm.repositioningCameraToTree()
+                }
+                //
+                //                    pages.forEach { page in  ///provisorio
+                //                        context.delete(page)
+                //                    }
+                //                    try? context.save()
+                
+                vm.updateCamera()
+                vm.loadMotivation()
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -105,38 +119,108 @@ struct SceneView: View {
                         vm.handleTap(on: value.entity)
                     }
             ) // tocar no tsuru
-        }
-        .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
-            CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
-        })
-        .toolbar {
-            
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    ForEach(PaperStyles.allCases, id: \.self) { style in
-                        Button(style.name) {
-                            vm.openCanvasWithStyle = style.rawValue
+            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
+                CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
+            })
+            .overlay(alignment: .topTrailing) {
+                // Só mostra o + quando:
+                // - não está em modo de localização
+                // - e o canvas não está aberto
+                if !isLocalizationMode && !showCanvas {
+                    Menu {
+                        ForEach(PaperStyles.allCases, id: \.self) { style in
+                            Button(style.name) {
+                                vm.openCanvasWithStyle = style.name
+                                showCanvas.toggle()
+                            }
                         }
-                    }
-                } label: {
-                    Label("Nova página", systemImage: "plus")
-                }
-            }
-            if vm.isFocusedOnTsuru {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        vm.repositioningCameraToTree()
                         
                     } label: {
-                        Image(systemName: "chevron.left")
+                        Image("customPlus")
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 999)
+                                    .fill(Color.white.opacity(0.85))
+                            )
+                            .padding(.trailing, 20)
+                            .padding(.leading, 333)
+                            .padding(.top, 26)
+                    }
+                }
+                
+            }
+            .overlay(alignment: .topLeading) {
+                if isLocalizationMode {
+                    Button {
+                        withAnimation {
+                            isLocalizationMode = false
+                        }
+                    } label: {
+                        Image("xCustom")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .padding(12)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.85))
+                            )
+                    }
+                    .padding(.leading, 20)
+                    .padding(.top, 26)
+                }
+            }
+            .overlay(alignment: .bottomLeading) {
+                // Botão de localização só aparece:
+                // - quando NÃO está em modo de localização
+                // - e quando o canvas NÃO está aberto
+                if !isLocalizationMode && !showCanvas {
+                    Button {
+                        withAnimation {
+                            isLocalizationMode = true
+                        }
+                    } label: {
+                        Image(systemName: "location")
+                            .foregroundStyle(.blueNikki)
+                            .font(Fonts.Footnote)
+                            .frame(width: 44, height: 44)
+                            .clipShape(Circle())
+                            .background(
+                                RoundedRectangle(cornerRadius: 999)
+                                    .fill(Color.white.opacity(0.85))
+                            )
+                    }
+                    .padding(.leading, 20)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        ForEach(PaperStyles.allCases, id: \.self) { style in
+                            Button(style.name) {
+                                vm.openCanvasWithStyle = style.rawValue
+                            }
+                        }
+                    } label: {
+                        Label("Nova página", systemImage: "plus")
+                    }
+                }
+                if vm.isFocusedOnTsuru {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            vm.repositioningCameraToTree()
+                            vm.updateCamera()
+                        } label: {
+                            Image(systemName: "chevron.left")
+
+                        }
                     }
                 }
             }
-            
         }
     }
 }
-
 #Preview {
     SceneView()
 }

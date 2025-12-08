@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "Frame 22.svg",
+      "filename" : "Xmark.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -12,6 +12,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "xLight.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },

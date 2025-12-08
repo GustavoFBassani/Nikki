@@ -13,14 +13,15 @@ import SwiftData
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    private let dataManager = ScrapService.shared
+    private let dataScrapsContainer = ScrapService.shared.container
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Create the SwiftUI view that provides the window contents.
         let scenetView = NavigationStack {
             SceneView()
         }
-        .modelContainer(ScrapService.shared.container)
+        .modelContainer(dataScrapsContainer)
+
         // Use a UIHostingController as window root view controller.
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
         return false

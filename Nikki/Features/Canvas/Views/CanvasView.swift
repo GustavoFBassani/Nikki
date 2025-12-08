@@ -44,6 +44,7 @@ struct CanvasView: View {
                 .toolbar { toolbarContent }
                 .overlay(alignment: .bottom) { tabBarOverlay }
         }
+        .toolbarColorScheme(.light, for: .navigationBar)
         .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
         .sheet(isPresented: $viewModel.showAudioPicker) { audioPickerSheet } /*Sheet para escolher áudios gravados*/
         .sheet(isPresented: $viewModel.showStickers) { stickersSheet } /*Sheet para escolher stickers/carimbos*/
@@ -131,6 +132,7 @@ struct CanvasView: View {
                 // Botão para salvar a página e fechar o canvas
                 Button(action: handleSave) {
                     Image(.tsuruBird)
+                        .accessibilityIdentifier("canvas_save_button")
                 }
             }
             

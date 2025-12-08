@@ -91,6 +91,7 @@ struct CanvasViewModelTest {
         let fetchedPage = try? manager.fetchPage(by: page.id)
         #expect(fetchedPage?.title == "Updated Title")
     }
+
     
     @Test @MainActor
     func deletingCurrentPage() {
