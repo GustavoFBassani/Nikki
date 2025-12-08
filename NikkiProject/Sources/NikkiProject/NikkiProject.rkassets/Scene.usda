@@ -984,7 +984,6 @@ def "Root" (
         float3 xformOp:translate = (0.6021519, 0.08214331, -27.95842)
     }
 
-<<<<<<< HEAD
     def "japanese_Lamp" (
         active = true
         prepend references = @japanese_Lamp.usdz@
@@ -1027,20 +1026,7 @@ def "Root" (
                 }
             }
         }
-=======
-    def "tsuru" (
-        active = true
-        customData = {
-            float3 rotationEulerHint = (0, -0.78539807, 0)
-        }
-        prepend references = @tsuru.usdc@
-    )
-    {
-        quatf xformOp:orient = (0.92387956, 0, -0.38268337, 0)
-        float3 xformOp:scale = (0.0005, 0.0005, 0.0005)
-        float3 xformOp:translate = (5.0072613, 5, 0)
-        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
->>>>>>> dev
+
     }
 }
 

@@ -344,7 +344,6 @@ class SceneViewModel {
             
             print("Nenhuma entidade registrada encontrada na hierarquia")
         }
-    }
     
     // MARK: - Motivation Methods
     
@@ -380,3 +379,5 @@ class SceneViewModel {
         }
     }
 }
+
+    

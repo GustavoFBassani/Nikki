@@ -157,60 +157,6 @@ struct SceneView: View {
             vm.loadMotivation()
         }
     }
-    
-    // MARK: - Popup de Motivação
-    
-    private var motivationPopup: some View {
-        ZStack {
-            // Fundo escurecido atrás do card
-            Color.black.opacity(0.45)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 16) {
-                Text("Why are you writing? \(vm.datadamotivacaodosguri)")
-                    .font(.headline)
-                
-                Text("Describe your motivation. This text stays saved and you can edit it whenever you want.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                
-                // TextEditor ligado ao texto do ViewModel
-                TextEditor(
-                    text: Binding(
-                        get: { vm.motivationText },
-                        set: { vm.motivationText = $0 }
-                    )
-                )
-                .frame(minHeight: 120, maxHeight: 180)
-                .padding(8)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemBackground))
-                )
-                .scrollContentBackground(.hidden)
-                
-                HStack {
-                    Button("Cancel") {
-                        showMotivationPopup = false
-                    }
-                    .buttonStyle(.bordered)
-                    
-                    Button("Save") {
-                        vm.saveMotivation()
-                        showMotivationPopup = false
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-            }
-            .padding(20)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(.regularMaterial)
-            )
-            .padding(.horizontal, 24)
-        }
-    }
 }
 
 #Preview {
