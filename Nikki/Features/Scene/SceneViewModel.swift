@@ -49,6 +49,8 @@ class SceneViewModel {
     var selectedEntityName: Entity? = nil
     var currentPage: Page? = nil
     var selectedPage: Page?
+    var shouldShowLeftButton = true
+    var shouldShowRightButton = true
     
     //MARK: -SCENE ENTITIES
     var scene: Entity?
@@ -79,9 +81,7 @@ class SceneViewModel {
             tree?.components[InputTargetComponent.self] = .init()
             
             tsuru = scene.findEntity(named: "tsuru")
-            
-            print("tsuru: ", tsuru)
-            
+                        
             if let bandstand = scene.findEntity(named: "Japan_HW") {
                 bandstand.generateCollisionShapes(recursive: true)
                 bandstand.components[InputTargetComponent.self] = .init()
@@ -108,10 +108,8 @@ class SceneViewModel {
     //MARK: PERSISTENCE FUNCTIONS
     
     func addNewTsuru() async {
-        print("entrou aqui")
         newTsuru = tsuru?.clone(recursive: true) // clona o tsuru
         if let newTsuru {
-            print("new tsuru:", newTsuru)
             fixTsuruPos(newTsuru) //arruma a posicao do tsuru
             newTsuru.position = tsuruPositions[lastAdded] // coloca o tsuru na posicao certa...
             do {
@@ -122,9 +120,13 @@ class SceneViewModel {
             } catch {
                 print("erro ao adicionar novo tsuru: ", error.localizedDescription)
             }
+            
+            selectedPage = dict[newTsuru]
         }
+        lastAdded += 1
         cameraManager.repositioningCameraNewToTsuru(animated: false, tsuruToFocus: newTsuru)
         playTsuruAnimation(tsuruToAnimate: newTsuru)
+        isFocusedOnTsuru = true
     }//ok
     
     
@@ -225,13 +227,13 @@ class SceneViewModel {
             return
         }
         
-        if !(entity.name == "flappingBird___0PercentFolded") && !isFocusedOnTsuru  {
-            selectedPage = dict[entity]
-            let allEntities = Array(dict.keys)
-            let lastEntity = allEntities.last
-            repositioningCameraToTsuru(lastEntity)
-            
-        }
+        //        if !(entity.name == "flappingBird___0PercentFolded") && !isFocusedOnTsuru  { // toque na arvore... tiramos fora pro MVP
+        //            selectedPage = dict[entity]
+        //            let allEntities = Array(dict.keys)
+        //            let lastEntity = allEntities.last
+        //            repositioningCameraToTsuru(lastEntity)
+        //
+        //        }
     }
     
     func openTsuru() {
@@ -240,6 +242,59 @@ class SceneViewModel {
         openCanvasWithStyle = currentPage?.paperStyle
         
     }
+    
+    func pickFirstTsuru() -> Entity? {
+        let allEntities = Array(dict.keys)
+        guard let lastEntity = allEntities.last else { return nil}
+        return lastEntity
+    }
+    
+    
+    enum SideToMove {
+        case left, right
+    }
+    
+    func navigateToTsuru(at side: SideToMove) {
+        // transforma o dicionário em uma lista de tuplas nomeadas
+        var pagesList: [(entity: Entity, page: Page)] = dict.map { entity, page in
+            (entity: entity, page: page)
+        }
+        
+        // ordena por createdAt
+        pagesList.sort {
+            let lhsDate = $0.page.createdAt ?? .now
+            let rhsDate = $1.page.createdAt ?? .now
+            return lhsDate > rhsDate
+        }
+
+        // acha o item correspondente à selectedPage
+        guard let currentIndex = pagesList.firstIndex(where: { pair in
+            pair.page === selectedPage
+        }) else {
+            fatalError("selectedPage não encontrada")
+        }
+
+        // calcula o próximo índice
+        var nextIndex: Int {
+            switch side {
+            case .left:
+                max(0, currentIndex - 1)
+            case .right:
+                min(currentIndex + 1, pagesList.count - 1)
+            }
+        }
+
+        shouldShowRightButton = nextIndex < pagesList.count - 1
+        shouldShowLeftButton = nextIndex > 0
+
+        selectedPage = pagesList[nextIndex].page
+
+        cameraManager.repositioningCameraNewToTsuru(
+            animated: true,
+            tsuruToFocus: pagesList[nextIndex].entity
+        )
+    }
+
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -251,6 +306,12 @@ class SceneViewModel {
     }
     
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
+        if newTsuru == nil {
+            guard let firstTsuru = pickFirstTsuru() else { return }
+            repositioningCameraToTsuru(firstTsuru)
+            selectedPage = dict[firstTsuru]
+            return
+        }
         cameraManager.repositioningCameraNewToTsuru(animated: true, tsuruToFocus: newTsuru)
         isFocusedOnTsuru = true
     }
@@ -264,35 +325,6 @@ class SceneViewModel {
     func updateCamera() {
         cameraManager.updateCamera()
     }
-    
-    //MARK: - DEBUG FUNCTIONS
-    
-    func debugTsuruComponents(_ obj: Entity) {
-        print("=== DEBUG TSURU ===")
-        print("Objeto pai: \(obj.name)")
-        
-        if let bird = obj.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
-            print("Bird encontrado: \(bird.name)")
-            print("Tem InputTarget? \(bird.components[InputTargetComponent.self] != nil)")
-            print("Tem Collision? \(bird.components[CollisionComponent.self] != nil)")
-            print("Posição: \(bird.position)")
-            print("Escala: \(bird.scale)")
-            print("Está no dicionário? \(dict[bird] != nil)")
-            
-            if let collision = bird.components[CollisionComponent.self] {
-                print("Collision shapes: \(collision.shapes.count) shapes")
-                // Mostra detalhes de cada shape
-                for (index, shape) in collision.shapes.enumerated() {
-                    print("Shape \(index): \(shape)")
-                }
-            }
-        } else {
-            print("✗ Bird NÃO encontrado!")
-        }
-        print("==================")
-        
-    }
-    
     
     // MARK: - Motivation Methods
     
@@ -327,6 +359,35 @@ class SceneViewModel {
             print("Erro ao salvar motivação: \(error)")
         }
     }
+
+    //MARK: - DEBUG FUNCTIONS
+    
+    func debugTsuruComponents(_ obj: Entity) {
+        print("=== DEBUG TSURU ===")
+        print("Objeto pai: \(obj.name)")
+        
+        if let bird = obj.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
+            print("Bird encontrado: \(bird.name)")
+            print("Tem InputTarget? \(bird.components[InputTargetComponent.self] != nil)")
+            print("Tem Collision? \(bird.components[CollisionComponent.self] != nil)")
+            print("Posição: \(bird.position)")
+            print("Escala: \(bird.scale)")
+            print("Está no dicionário? \(dict[bird] != nil)")
+            
+            if let collision = bird.components[CollisionComponent.self] {
+                print("Collision shapes: \(collision.shapes.count) shapes")
+                // Mostra detalhes de cada shape
+                for (index, shape) in collision.shapes.enumerated() {
+                    print("Shape \(index): \(shape)")
+                }
+            }
+        } else {
+            print("✗ Bird NÃO encontrado!")
+        }
+        print("==================")
+        
+    }
+    
 }
 
 

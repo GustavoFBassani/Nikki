@@ -11,13 +11,10 @@ import SwiftUI
 
 struct SceneView: View {
     
-    // FIX
     @State var vm = SceneViewModel()
-    @State var showCanvas = false
-    @State private var isLocalizationMode = false
-    
     @Environment(\.modelContext) var context
-    //        @Query var pages: [Page]
+            @Query var pages: [Page]
+    var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
         NavigationStack {
@@ -36,17 +33,19 @@ struct SceneView: View {
             .task {
                 if vm.scene == nil {
                     await vm.loadScene()
-                    vm.updateCamera()
-                    vm.repositioningCameraToTree()
                     vm.loadMotivation()
+
+
                 }
-                //
-                //                                    pages.forEach { page in  ///provisorio
-                //                                        context.delete(page)
-                //                                    }
-                //                                    try? context.save()
                 
-                
+                vm.repositioningCameraToTree()
+                vm.updateCamera()
+                if DEBUG_SHOULD_DELETE {
+                    pages.forEach { page in  ///provisorio
+                        context.delete(page)
+                    }
+                    try? context.save()
+                }
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -103,37 +102,54 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
-            .simultaneousGesture(
-                TapGesture()
-                    .targetedToAnyEntity()
-                    .onEnded { value in
-                        vm.handleTap(on: value.entity)
-                    }
-            ) // tocar no tsuru
+//            .simultaneousGesture(
+//                TapGesture()
+//                    .targetedToAnyEntity()
+//                    .onEnded { value in
+//                        vm.handleTap(on: value.entity)
+//                    }
+//            ) // tocar no tsuru
             .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
                 CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
             })
             .overlay(alignment: .topTrailing) {
-                Menu {
-                    ForEach(PaperStyles.allCases, id: \.self) { style in
-                        Button(style.name) {
-                            vm.openCanvasWithStyle = style.name
-                        }
-                    }
-                    
-                } label: {
-                    Image("customPlus")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 999)
-                                .fill(Color.white.opacity(0.85))
-                        )
-                        .padding(.trailing, 20)
-                        .padding(.leading, 333)
-                        .padding(.top, 26)
-                }
                 
+                if !vm.isFocusedOnTsuru {
+                    Menu {
+                        ForEach(PaperStyles.allCases, id: \.self) { style in
+                            Button(style.name) {
+                                vm.openCanvasWithStyle = style.name
+                            }
+                        }
+                        
+                    } label: {
+                        Image("customPlus")
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 999)
+                                    .fill(Color.white.opacity(0.85))
+                            )
+                            .padding(.trailing, 20)
+                            .padding(.top, 26)
+                    }
+                } else {
+                    Button {
+                        vm.openTsuru()
+                    } label: {
+                        Text("Abrir origami")
+                            .font(Fonts.Footnote)
+                            .foregroundColor(.blueNikki)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 999)
+                                    .fill(Color.white.opacity(0.85))
+                            )
+                            .padding(.trailing, 16)
+                            .padding(.top, 24)
+                    }
+                }
                 
             } // custom plus toolbar
             .overlay(alignment: .topLeading) {
@@ -147,27 +163,47 @@ struct SceneView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 20, height: 20)
-                            .padding(12)
+                            .padding(8)
                             .background(
                                 Circle()
                                     .fill(Color.white.opacity(0.85))
                             )
                     }
-                    .padding(.leading, 20)
-                    .padding(.top, 26)
+                    .padding(.leading, 16)
+                    .padding(.top, 24)
                 }
             } //  custom xmark toolbar
             .overlay(alignment: .bottom) {
                 if vm.isFocusedOnTsuru {
-                    DateBar()
+                    OrigamiSelectorToolBar(selectedDate: vm.selectedPage?.createdAt ?? Date(), shouldShowLeftButton: vm.shouldShowLeftButton, shouldShowRightButton: vm.shouldShowRightButton, action: { side in
+                        vm.navigateToTsuru(at: side)
+                    })
                         .padding(.bottom, 32)
                         .transition(.move(edge: .bottom))
                 }
                 
             } // custom data and chevrons tabbar
+            .overlay(alignment: .bottomLeading) {
+                // Botão de localização só aparece:
+                // - quando NÃO está em modo de localização
+                // - e quando o canvas NÃO está aberto
+                if !vm.isFocusedOnTsuru {
+                    Button {
+                        vm.repositioningCameraToTsuru(nil)
+                    } label: {
+                        Image(systemName: "location")
+                            .foregroundStyle(.blueNikki)
+                            .font(Fonts.Footnote)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.white.opacity(0.85)))
+                    }
+                    .padding(.leading, 20)
+                }
+            }
+
         }
     }
 }
 #Preview {
-    SceneView()
+    SceneView(vm: SceneViewModel())
 }
