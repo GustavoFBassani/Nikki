@@ -50,9 +50,6 @@ class EditorData {
         // featureSet.remove(.loupes)
         // let controller = PaperMarkupViewController(supportedFeatureSet: featureSet) caso queira escolher as ferramentas igual WWDC
         
-        controller.overrideUserInterfaceStyle = .light
-        controller.view.overrideUserInterfaceStyle = .light
-        
         // Caso usemos delegate tem que descomentar aqui
         // controller.delegate = self
         controller.loadViewIfNeeded()
