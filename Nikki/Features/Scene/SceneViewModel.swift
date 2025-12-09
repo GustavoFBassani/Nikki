@@ -74,14 +74,10 @@ class SceneViewModel {
     //MARK: - LOAD SCENE
     func loadScene() async {
         do {
-            let scene = try await Entity(named: "Scene", in: nikkiProjectBundle) // Carrega a cena do arquivo Reality Composer Pro ou bundle
+            let scene = try await Entity(named: "Scene", in: nikkiProjectBundle)
             self.scene = scene
             let camera = PerspectiveCamera()
-            
             tree = scene.findEntity(named: "Cherry_Tree_2")
-            tree?.generateCollisionShapes(recursive: true)
-            tree?.components[InputTargetComponent.self] = .init()
-            
             tsuru = scene.findEntity(named: "tsuru")
                         
             if let bandstand = scene.findEntity(named: "Japan_HW") {
