@@ -282,6 +282,10 @@ class SceneViewModel {
         guard let lastTsuru = orderedEntities.first else { return nil }
         return lastTsuru
     }
+    
+    func resetPageControl() {
+        pageControl = 0
+    }
 
     
     //MARK: - CAMERA FUNCTIONS
@@ -295,6 +299,8 @@ class SceneViewModel {
     
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
         if newTsuru == nil {
+            resetPageControl()
+            print(pageControl)
             guard let firstTsuru = pickLastTsuru() else { return }
             repositioningCameraToTsuru(firstTsuru)
             selectedPage = dict[firstTsuru]
@@ -374,6 +380,11 @@ class SceneViewModel {
         }
         print("==================")
         
+    }
+    
+    func debugPageControl() {
+        print("pageControl: ", pageControl)
+        print("numero de scraps: ", orderedEntities.count)
     }
     
 }

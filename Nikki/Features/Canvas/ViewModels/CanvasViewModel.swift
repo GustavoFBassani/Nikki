@@ -161,10 +161,7 @@ class CanvasViewModel {
     
     func deleteCurrentPage(using context: ModelContext) throws {
         guard let page = currentPage else { return }
-        
-        context.delete(page)
-        try context.save()
-        
+        try? dataManager.deletePage(page)
         currentPage = nil
     }
     

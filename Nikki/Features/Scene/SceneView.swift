@@ -198,7 +198,7 @@ struct SceneView: View {
                     }
                     .padding(.leading, 20)
                 }
-            }
+            } // focar nos tsurus
 
         }
     }
