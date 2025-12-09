@@ -15,36 +15,36 @@ enum TsuruPosition: CaseIterable {
 
     var position: SIMD3<Float> {
         switch self {
-        case .pos1:  SIMD3(-3.77,  0.19, 1.87)
-        case .pos2:  SIMD3(-3.54, 0.05, 2.026)
-        case .pos3:  SIMD3(-3.06, 0.13, 1.85)
-        case .pos4:  SIMD3(-3.12, 0.17, 1.39)
-        case .pos5:  SIMD3(-2.53, -0.396, 2.2)
-        case .pos6:  SIMD3(-2.26, -0.54, 1.999)
-        case .pos7:  SIMD3(-1.93, -0.786, 1.88)
-        case .pos8:  SIMD3(-3.03, 0.199, 1.052)
-        case .pos9:  SIMD3(-0.976, 0.44, 1.153)
-        case .pos10: SIMD3(-0.879,  0.53, 0.856)
-        case .pos11: SIMD3(-2.53,  -0.52, 4.97)
-        case .pos12: SIMD3(-2.2,  -0.37, 4.998)
-        case .pos13: SIMD3(-1.878,  -0.25, 5.12)
-        case .pos14: SIMD3(-1.17,  0.27, 5.398)
-        case .pos15: SIMD3(-1.45,  -0.26, 5.24)
-        case .pos16: SIMD3(-0.85,  0.55, 5.398)
-        case .pos17: SIMD3(-4.198, 0.27, 3.91)
-        case .pos18: SIMD3(-4.34, 0.56, 4.14)
-        case .pos19: SIMD3(-4.53, 1.03, 4.48)
-        case .pos20: SIMD3(-4.75, 1.199, 4.767)
-        case .pos21: SIMD3(-5.05, 1.577, 4.767)
-        case .pos22: SIMD3(-2.44, -0.516, 3.694)
-        case .pos23: SIMD3(-2.308, -0.327, 3.325)
-        case .pos24: SIMD3(-3.44, -0.12, 4.908)
-        case .pos25: SIMD3(-3.34, 0.29, 5.22)
-        case .pos26: SIMD3(-2.32, 0.14, 1.856)
-        case .pos27: SIMD3(0.465, 0.17, 3.51)
-        case .pos28: SIMD3(-3.73, 0.72, 5.769)
-        case .pos29: SIMD3(-3.84, 0.84, 6.21)
-        case .pos30: SIMD3(-3.565, 1.017, 5.55)
+        case .pos1:  SIMD3(-1.925,  -1.408, 6.489) // ok
+        case .pos2:  SIMD3(-4.242, 0.049, 6.735) // ok
+        case .pos3:  SIMD3(-4.936, 0.067, 6.735) // ok
+        case .pos4:  SIMD3(-3.686, 0.305, 6.735) // ok
+        case .pos5:  SIMD3(-1.191, -0.903, 6.735) // ok
+        case .pos6:  SIMD3(-1.951, 0.448, 6.735) // ok
+        case .pos7:  SIMD3(-4.415, 1.012, 7.122) // ok
+        case .pos8:  SIMD3(-6.257, 1.728, 8.319) // ok
+        case .pos9:  SIMD3(-5.194, 1.663, 8.319) // ok
+        case .pos10: SIMD3(-1.937,  1.44, 7.582) // ok
+        case .pos11: SIMD3(-2.53,  -0.52, 4.97) // ok
+        case .pos12: SIMD3(-5.733,  2.354, 7.313) // ok
+        case .pos13: SIMD3(-6.206,  2.431, 6.157) // ok
+        case .pos14: SIMD3(-7.034,  1.764, 5.8) // ok
+        case .pos15: SIMD3(-7.034,  1.899, 5.076) // ok
+        case .pos16: SIMD3(-5.57,  2.113, 4.529) // ok
+        case .pos17: SIMD3(-4.279, 3.631, 7.511) // ok
+        case .pos18: SIMD3(-3.221, 3.577, 7.229) // ok
+        case .pos19: SIMD3(-0.571, 0.642, 6.198) // ok
+        case .pos20: SIMD3(0.22, 0.538, 4.694) // ok
+        case .pos21: SIMD3(-0.637, 1.607, 6.601) // ok
+        case .pos22: SIMD3(-1.996, 2.187, 6.895) // ok
+        case .pos23: SIMD3(-6.713, 2.187, 5.958) // ok
+        case .pos24: SIMD3(-2.297, 3.108, 5.568) // ok
+        case .pos25: SIMD3(-5.902, 3.89, 6.583) // ok
+        case .pos26: SIMD3(-0.928, 2.77, 4.404) // ok
+        case .pos27: SIMD3(-4.128, 2.887, 7.149) // ok
+        case .pos28: SIMD3(-2.999, 4.247, 6.626) // ok
+        case .pos29: SIMD3(-4.462, 3.755, 6.626) // ok
+        case .pos30: SIMD3(-6.773, 3.387, 5.063) // ok
         }
     }}
 
