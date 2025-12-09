@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import NikkiProject
+import TipKit
 
 @MainActor
 @Observable
@@ -70,6 +71,12 @@ class SceneViewModel {
     ///Bool pra controlar o foco da camera
     var isFocusedOnBandstand = false
     
+    //MARK: - Tips
+    let newPageTip = NewPageButtonTip()
+    let focusTsuruTip = FocusTsuruButtonTip()
+    
+    var showNewPageTip: Bool = false
+    var showFocusTsuruTip: Bool = false
     
     //MARK: - LOAD SCENE
     func loadScene() async {
@@ -263,7 +270,7 @@ class SceneViewModel {
     }
 
     func navigateToTsuru(at side: String) {
-        if side == "left"  { // ir para traz
+        if side == "left"  { // ir para tras
             let nextEntity = orderedEntities[pageControl+1]
             repositioningCameraToTsuru(nextEntity)
             selectedPage = dict[nextEntity]
@@ -387,6 +394,33 @@ class SceneViewModel {
         print("numero de scraps: ", orderedEntities.count)
     }
     
+    // MARK: - TipKit Helpers
+    
+    func evaluateTipsVisibility() {
+        Task {
+            if await newPageTip.shouldDisplay {
+                showNewPageTip = true
+            }
+            if await focusTsuruTip.shouldDisplay {
+                showFocusTsuruTip = true
+            }
+        }
+    }
+    
+    func dismissNewPageTip() {
+        showNewPageTip = false
+        Task {
+            await newPageTip.invalidate(reason: .userClosed)
+        }
+    }
+    
+    /// Called when the user closes or uses the focus tsuru tip.
+    func dismissFocusTsuruTip() {
+        showFocusTsuruTip = false
+        Task {
+            await focusTsuruTip.invalidate(reason: .userClosed)
+        }
+    }
 }
 
 

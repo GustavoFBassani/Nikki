@@ -8,6 +8,7 @@
 import RealityKit
 import SwiftData
 import SwiftUI
+import TipKit
 
 struct SceneView: View {
     
@@ -46,6 +47,7 @@ struct SceneView: View {
                     }
                     try? context.save()
                 }
+                vm.evaluateTipsVisibility()
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -133,11 +135,40 @@ struct SceneView: View {
                             .padding(.trailing, 20)
                             .padding(.top, 26)
                     }
+                    if vm.showNewPageTip {
+                        VStack(alignment: .trailing, spacing: 4) {
+                            TipView(vm.newPageTip)
+                                .tipViewStyle(BubbleTipStyle())
+                                .fixedSize(horizontal: false, vertical: true)
+                                // Position so it doesn't go off-screen
+                                .padding(.trailing, 76)
+                                .padding(.top, 74)
+                            
+                            HStack {
+                                Spacer()
+                                Button {
+                                    vm.dismissNewPageTip()
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.black)
+                                        .padding(6)
+                                        .background(
+                                            Circle()
+                                                .fill(Color.white)
+                                                .shadow(radius: 4)
+                                        )
+                                }
+                                .padding(.trailing, 76)
+                            }
+                        }
+                        .animation(.easeInOut, value: vm.showNewPageTip)
+                    }
                 } else {
                     Button {
                         vm.openTsuru()
                     } label: {
-                        Text("Abrir origami")
+                        Text("Open origami")
                             .font(Fonts.Footnote)
                             .foregroundColor(.blueNikki)
                             .padding(.horizontal, 24)
