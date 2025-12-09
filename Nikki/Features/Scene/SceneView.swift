@@ -10,25 +10,28 @@ import SwiftData
 import SwiftUI
 
 struct SceneView: View {
-    
+
     @State var vm = SceneViewModel()
+    @State private var showMotivationRoll = false
+    @State private var isEditingMotivation = false
     @Environment(\.modelContext) var context
-            @Query var pages: [Page]
+    @Query var pages: [Page]
     var DEBUG_SHOULD_DELETE = false
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
                 RealityView { content in
-                    
+
                 } update: { content in
                     if let scene = vm.scene, content.entities.isEmpty {
                         content.add(scene)
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
-                
+                .allowsHitTesting(!showMotivationRoll)
+
             }
             .task {
                 if vm.scene == nil {
@@ -38,10 +41,10 @@ struct SceneView: View {
                     vm.repositioningCameraToTree()
 
                 }
-                
-               
+
                 if DEBUG_SHOULD_DELETE {
-                    pages.forEach { page in  ///provisorio
+                    pages.forEach { page in
+                        ///provisorio
                         context.delete(page)
                     }
                     try? context.save()
@@ -59,18 +62,23 @@ struct SceneView: View {
                 /// 5. onEnded reseta a posição ao soltar o dedo
                 DragGesture()
                     .onChanged { value in
+                        guard !vm.isFocusedOnBandstand else { return }
                         // Na primeira chamada, apenas salva a posição inicial
                         if vm.lastDragPosition == .zero {
                             vm.lastDragPosition = value.location
                             return
                         }
-                        
+
                         // Calcula quanto o dedo se moveu desde o último frame
                         // dTheta: movimento horizontal (+ = direita, - = esquerda)
-                        let dTheta = Float(value.location.x - vm.lastDragPosition.x)
+                        let dTheta = Float(
+                            value.location.x - vm.lastDragPosition.x
+                        )
                         // dPhi: movimento vertical (+ = baixo, - = cima)
-                        let dPhi = Float(value.location.y - vm.lastDragPosition.y)
-                        
+                        let dPhi = Float(
+                            value.location.y - vm.lastDragPosition.y
+                        )
+
                         // Envia os deltas para o ViewModel atualizar theta e phi
                         vm.rotate(dTheta: dTheta, dPhi: dPhi)
                         // Atualiza a última posição para o próximo frame
@@ -80,10 +88,10 @@ struct SceneView: View {
                         // Prepara para o próximo gesto
                         vm.lastDragPosition = .zero
                     }
-            ) // movimentar para o lado
+            )  // movimentar para o lado
             .gesture(
                 // MARK: - Gesto de Zoom (Pinch)
-                
+
                 /// MagnificationGesture detecta movimento de pinça com dois dedos
                 /// Usado para controlar a distância da câmera (zoom)
                 ///
@@ -101,27 +109,59 @@ struct SceneView: View {
                     .onEnded { _ in
                         vm.lastScale = vm.currentScale
                     }
-            ) // zoom
-//            .simultaneousGesture(
-//                TapGesture()
-//                    .targetedToAnyEntity()
-//                    .onEnded { value in
-//                        vm.handleTap(on: value.entity)
-//                    }
-//            ) // tocar no tsuru
-            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
-                CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
-            })
+            )  // zoom
+            .simultaneousGesture(
+                TapGesture()
+                    .targetedToAnyEntity()
+                    .onEnded { value in
+                        vm.handleTap(on: value.entity)
+                    }
+            )  // tocar nos objetos
+            .navigationDestination(
+                item: $vm.openCanvasWithStyle,
+                destination: { style in
+                    CanvasView(
+                        page: vm.currentPage,
+                        paperStyle: style,
+                        addNewTsuru: vm.addNewTsuru
+                    )
+                }
+            )
+            .onChange(of: vm.isFocusedOnBandstand) { _, newValue in
+                if newValue {
+                    //focou no coreto
+                    showMotivationRoll = false
+                    isEditingMotivation = false
+
+                    Task {
+                        try? await Task.sleep(nanoseconds: 1_000_500_000)
+
+                        // só mostra se ainda estiver focado no coreto
+                        if vm.isFocusedOnBandstand {
+                            await MainActor.run {
+                                withAnimation(.easeInOut) {
+                                    showMotivationRoll = true
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    //saiu do foco no coreto, some na hora
+                    withAnimation(.easeOut) {
+                        showMotivationRoll = false
+                        isEditingMotivation = false
+                    }
+                }
+            }
             .overlay(alignment: .topTrailing) {
-                
-                if !vm.isFocusedOnTsuru {
+                // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
+                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
                     Menu {
                         ForEach(PaperStyles.allCases, id: \.self) { style in
                             Button(style.name) {
                                 vm.openCanvasWithStyle = style.name
                             }
                         }
-                        
                     } label: {
                         Image("customPlus")
                             .scaledToFit()
@@ -133,7 +173,7 @@ struct SceneView: View {
                             .padding(.trailing, 20)
                             .padding(.top, 26)
                     }
-                } else {
+                } else if vm.isFocusedOnTsuru {
                     Button {
                         vm.openTsuru()
                     } label: {
@@ -150,8 +190,7 @@ struct SceneView: View {
                             .padding(.top, 24)
                     }
                 }
-                
-            } // custom plus toolbar
+            }  // custom plus toolbar
             .overlay(alignment: .topLeading) {
                 if vm.isFocusedOnTsuru {
                     Button {
@@ -173,20 +212,23 @@ struct SceneView: View {
                     .padding(.leading, 16)
                     .padding(.top, 24)
                 }
-            } //  custom xmark toolbar
+            }  //  custom xmark toolbar
             .overlay(alignment: .bottom) {
                 if vm.isFocusedOnTsuru {
-                    OrigamiSelectorToolBar(selectedDate: vm.selectedPage?.createdAt ?? Date(), thereIsTsuruAtRight: vm.thereIsTsuruAtRight, thereIsTsuruAtLeft: vm.thereIsTsuruAtLeft, navigateToTsuru: vm.navigateToTsuru)
-                        .padding(.bottom, 32)
-                        .transition(.move(edge: .bottom))
+                    OrigamiSelectorToolBar(
+                        selectedDate: vm.selectedPage?.createdAt ?? Date(),
+                        thereIsTsuruAtRight: vm.thereIsTsuruAtRight,
+                        thereIsTsuruAtLeft: vm.thereIsTsuruAtLeft,
+                        navigateToTsuru: vm.navigateToTsuru
+                    )
+                    .padding(.bottom, 32)
+                    .transition(.move(edge: .bottom))
                 }
-                
-            } // custom data and chevrons tabbar
+
+            }  // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
-                // Botão de localização só aparece:
-                // - quando NÃO está em modo de localização
-                // - e quando o canvas NÃO está aberto
-                if !vm.isFocusedOnTsuru {
+                // Some quando focado no coreto ou no tsuru
+                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
                     Button {
                         vm.repositioningCameraToTsuru(nil)
                     } label: {
@@ -194,13 +236,61 @@ struct SceneView: View {
                             .foregroundStyle(.blueNikki)
                             .font(Fonts.Footnote)
                             .frame(width: 44, height: 44)
-                            .background(Circle().fill(Color.white.opacity(0.85)))
+                            .background(
+                                Circle().fill(Color.white.opacity(0.85))
+                            )
                     }
                     .padding(.leading, 20)
                 }
-            } // focar nos tsurus
-
+            }
+            .overlay {
+                if showMotivationRoll {
+                    MotivationRoll(
+                        motivation: $vm.motivationText,
+                        isEditing: isEditingMotivation
+                    )
+                    .padding(
+                        EdgeInsets(
+                            top: 423,
+                            leading: 46,
+                            bottom: 156,
+                            trailing: 38
+                        )
+                    )
+                    .contentShape(Rectangle())  // garante área de toque
+                    .onTapGesture {
+                        withAnimation(.easeInOut) {
+                            isEditingMotivation = true
+                        }
+                    }
+                    .zIndex(1)
+                }
+            }
+            .overlay(alignment: .topLeading) {
+                if vm.isFocusedOnBandstand {
+                    Button {
+                        vm.repositioningCameraToTree()
+                        vm.isFocusedOnBandstand = false
+                        isEditingMotivation = false
+                        vm.saveMotivation()
+                    } label: {
+                        Image("customXmark")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .padding(8)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.85))
+                            )
+                    }
+                    .padding(.leading, 16)
+                    .padding(.top, 24)
+                    .zIndex(3)
+                }
+            }
         }
+
     }
 }
 #Preview {
