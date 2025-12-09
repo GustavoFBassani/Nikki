@@ -54,6 +54,7 @@ class SceneViewModel {
     var thereIsTsuruAtRight: Bool  {pageControl != 0  }
     var thereIsTsuruAtLeft: Bool { pageControl != orderedPages.count - 1 }
     var isCamerMovingToTree: Bool = false
+    var isDeletingTsuru: Bool = false
     
     //MARK: -SCENE ENTITIES
     var scene: Entity?
@@ -80,7 +81,7 @@ class SceneViewModel {
             let camera = PerspectiveCamera()
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
-                        
+            
             if let bandstand = scene.findEntity(named: "Japan_HW") {
                 bandstand.generateCollisionShapes(recursive: true)
                 bandstand.components[InputTargetComponent.self] = .init()
@@ -114,6 +115,7 @@ class SceneViewModel {
             do {
                 let newPage = try scrapService.fetchLastPage() //recupera a ultima page salva
                 dict[newTsuru] = newPage //coloca no dicionario
+                try orderedPages = scrapService.fetchAllPages()
                 await appliyngTextureToTsuru(scrapImage: newPage?.markupImage, tsuru: newTsuru)
                 scene?.addChild(newTsuru)
             } catch {
@@ -122,15 +124,50 @@ class SceneViewModel {
             
             selectedPage = dict[newTsuru]
             orderedEntities.append(newTsuru)
-
+            
         }
         lastAdded += 1
         cameraManager.repositioningCameraNewToTsuru(animated: false, tsuruToFocus: newTsuru)
         playTsuruAnimation(tsuruToAnimate: newTsuru)
         isFocusedOnTsuru = true
         orderedEntities = orderingEntities()
+        debugPageControl()
     }//ok
     
+    func deleteTsurusAtScene() async {
+        
+        // 1. Remove todas as entidades da cena
+        for tsuru in orderedEntities {
+            tsuru.removeFromParent()
+        }
+        
+        // 2. LIMPA TODOS OS ARRAYS E DICIONÁRIOS
+        orderedEntities.removeAll()
+        dict.removeAll()
+        
+        // 3. Atualiza a lista de páginas do banco
+        fetchUpdatedTsurusAtOrderedPages()
+        
+        // 4. Atualiza o lastAdded baseado nas páginas atuais
+        lastAdded = orderedPages.count
+        
+        // 5. Recarrega os tsurus na cena
+        await loadTsurusAtScene()
+        
+        // 6. Reseta a câmera para a árvore
+        repositioningCameraToTree()
+        
+        isDeletingTsuru = false
+    }
+    
+    func fetchUpdatedTsurusAtOrderedPages() {
+        do {
+            try orderedPages = scrapService.fetchAllPages()
+        } catch {
+            print("erro ao achar tsurus: ", error.localizedDescription)
+        }
+        return
+    }
     
     func loadTsurusAtScene() async {
         do {
@@ -245,7 +282,7 @@ class SceneViewModel {
     
     //MARK: - TSURU CONTROLS
     
-    func orderingEntities() -> Array<Entity> { // entender isso aqui...
+    func orderingEntities() -> Array<Entity> {  // entender isso aqui...
         let arrayEntities = Array(dict.keys)
         
         let orderedEntities = arrayEntities.sorted { ent1, ent2 in
@@ -258,7 +295,7 @@ class SceneViewModel {
         
         return orderedEntities
     }
-
+    
     func navigateToTsuru(at side: String) {
         if side == "left"  { // ir para traz
             let nextEntity = orderedEntities[pageControl+1]
@@ -273,6 +310,8 @@ class SceneViewModel {
             repositioningCameraToTsuru(nextEntity)
             pageControl -= 1
         }
+        
+        debugPageControl()
     }
     
     func pickLastTsuru() -> Entity? {
@@ -283,7 +322,7 @@ class SceneViewModel {
     func resetPageControl() {
         pageControl = 0
     }
-
+    
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -310,6 +349,7 @@ class SceneViewModel {
     func repositioningCameraToTree() {
         cameraManager.repositioningCameraToTree(tree: tree)
         isFocusedOnTsuru = false
+        resetPageControl()
         currentPage = nil
     }
     
@@ -350,7 +390,7 @@ class SceneViewModel {
             print("Erro ao salvar motivação: \(error)")
         }
     }
-
+    
     //MARK: - DEBUG FUNCTIONS
     
     func debugTsuruComponents(_ obj: Entity) {

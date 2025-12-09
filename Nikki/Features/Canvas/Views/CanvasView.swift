@@ -23,6 +23,7 @@ struct CanvasView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     var addNewTsuru: () async -> Void
+    var reloadTsurus: () async -> Void
     
     // appear and dissapear
     // MARK: - Initialization
@@ -32,9 +33,10 @@ struct CanvasView: View {
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
     
-    init(page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void) {
+    init(page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void, reloadTsurus: @escaping () async -> Void) {
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
         self.addNewTsuru = addNewTsuru
+        self.reloadTsurus = reloadTsurus
     }
     
     // MARK: - Body
@@ -105,7 +107,11 @@ struct CanvasView: View {
     @ViewBuilder
     private var deleteAlertButtons: some View {
         Button("Cancel", role: .cancel) {}
-        Button("Delete", role: .destructive, action: handleDeletePage)
+        Button("Delete") {
+            Task {
+                await handleDeletePage()
+            }
+        }
     }
     
     /// Mensagem do alerta de confirmação de exclusão
@@ -203,9 +209,10 @@ struct CanvasView: View {
     
     /// Deleta a página atual do banco de dados
     /// Chamado após confirmação do usuário no alerta
-    private func handleDeletePage() {
+    private func handleDeletePage() async {
         do {
             try viewModel.deleteCurrentPage(using: context)
+            await reloadTsurus()
             dismiss()
         } catch {
             print("Failed to delete page: \(error)")

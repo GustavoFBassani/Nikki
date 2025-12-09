@@ -13,7 +13,7 @@ struct SceneView: View {
     
     @State var vm = SceneViewModel()
     @Environment(\.modelContext) var context
-            @Query var pages: [Page]
+    @Query var pages: [Page]
     var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
@@ -36,10 +36,10 @@ struct SceneView: View {
                     vm.loadMotivation()
                     try? await Task.sleep(nanoseconds: 200_000_000)
                     vm.repositioningCameraToTree()
-
+                    
                 }
                 
-               
+                
                 if DEBUG_SHOULD_DELETE {
                     pages.forEach { page in  ///provisorio
                         context.delete(page)
@@ -102,15 +102,16 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
-//            .simultaneousGesture(
-//                TapGesture()
-//                    .targetedToAnyEntity()
-//                    .onEnded { value in
-//                        vm.handleTap(on: value.entity)
-//                    }
-//            ) // tocar no tsuru
+            //            .simultaneousGesture(
+            //                TapGesture()
+            //                    .targetedToAnyEntity()
+            //                    .onEnded { value in
+            //                        vm.handleTap(on: value.entity)
+            //                    }
+            //            ) // tocar no tsuru
             .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
-                CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
+                CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru, reloadTsurus: vm.deleteTsurusAtScene)
+
             })
             .overlay(alignment: .topTrailing) {
                 
@@ -163,8 +164,8 @@ struct SceneView: View {
                             try? await Task.sleep(nanoseconds: 1_200_000_000)
                             vm.isCamerMovingToTree = false
                             
-                        } // desabilitar botao de foco no tsuru enquanto se move para camera 
-
+                        } // desabilitar botao de foco no tsuru enquanto se move para camera
+                        
                     } label: {
                         Image("xCustom")
                             .resizable()
@@ -206,7 +207,7 @@ struct SceneView: View {
                     .disabled(vm.isCamerMovingToTree)
                 }
             } // focar nos tsurus
-
+            
         }
     }
 }
