@@ -53,6 +53,7 @@ class SceneViewModel {
     var selectedPage: Page?
     var thereIsTsuruAtRight: Bool  {pageControl != 0  }
     var thereIsTsuruAtLeft: Bool { pageControl != orderedPages.count - 1 }
+    var isCamerMovingToTree: Bool = false
     
     //MARK: -SCENE ENTITIES
     var scene: Entity?

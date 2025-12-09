@@ -11,7 +11,7 @@ struct OrigamiSelectorToolBar: View {
     var thereIsTsuruAtRight: Bool
     var thereIsTsuruAtLeft: Bool
     var navigateToTsuru: (String)  -> Void
-    @State var isButtonDisabled: Bool = false
+    @State var isButtonDisabled: Bool = false //desabilitar botao de ir para o proximo tsuru enquanto a animação acontece
     
     private var formattedDate: String {
         let formatter = DateFormatter()

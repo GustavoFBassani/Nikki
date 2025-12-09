@@ -158,6 +158,12 @@ struct SceneView: View {
                         vm.isFocusedOnTsuru = false
                         vm.repositioningCameraToTree()
                         vm.pageControl = 0
+                        Task {
+                            vm.isCamerMovingToTree = true
+                            try? await Task.sleep(nanoseconds: 1_200_000_000)
+                            vm.isCamerMovingToTree = false
+                            
+                        } // desabilitar botao de foco no tsuru enquanto se move para camera 
 
                     } label: {
                         Image("xCustom")
@@ -197,6 +203,7 @@ struct SceneView: View {
                             .background(Circle().fill(Color.white.opacity(0.85)))
                     }
                     .padding(.leading, 20)
+                    .disabled(vm.isCamerMovingToTree)
                 }
             } // focar nos tsurus
 
