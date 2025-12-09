@@ -10,9 +10,9 @@ import SwiftData
 
 /// Gerenciador singleton para operações com SwiftData
 @Observable
-class SwiftDataManager {
+class ScrapService {
     // MARK: - Singleton
-    static let shared = SwiftDataManager()
+    static let shared = ScrapService()
     
     // MARK: - Properties
     let container: ModelContainer
@@ -101,6 +101,15 @@ class SwiftDataManager {
         if context.hasChanges {
             try context.save()
         }
+    }
+    
+    func fetchLastPage() throws -> Page? {
+        var descriptor = FetchDescriptor<Page>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1  // Pega apenas o último
+        
+        return try context.fetch(descriptor).first
     }
     
     /// Desfaz mudanças não salvas

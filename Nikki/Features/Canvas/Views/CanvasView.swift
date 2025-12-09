@@ -17,14 +17,12 @@ import AVFoundation
 struct CanvasView: View {
     // MARK: - Properties
     @State private var viewModel: CanvasViewModel
-    @Binding var scrapToExport: UIImage?
-    @Binding var dismissCanvasView: Bool
     @State private var showDeleteAlert = false
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
-    var addNewTsuru: ()-> Void
+    var addNewTsuru: () async -> Void
     
     // appear and dissapear
     // MARK: - Initialization
@@ -34,9 +32,7 @@ struct CanvasView: View {
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
     
-    init(scrapToExport: Binding<UIImage?>, dismissCanvasView: Binding<Bool>, page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () -> Void) {
-        self._scrapToExport = scrapToExport
-        self._dismissCanvasView = dismissCanvasView
+    init(page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void) {
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
         self.addNewTsuru = addNewTsuru
     }
@@ -45,11 +41,10 @@ struct CanvasView: View {
     var body: some View {
         NavigationStack {
             editorContent
-                .toolbar {  toolbarContent }
+                .toolbar { toolbarContent }
                 .overlay(alignment: .bottom) { tabBarOverlay }
         }
         .toolbarColorScheme(.light, for: .navigationBar)
-        
         .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
         .sheet(isPresented: $viewModel.showAudioPicker) { audioPickerSheet } /*Sheet para escolher áudios gravados*/
         .sheet(isPresented: $viewModel.showStickers) { stickersSheet } /*Sheet para escolher stickers/carimbos*/
@@ -123,7 +118,6 @@ struct CanvasView: View {
     /// Toolbar superior com ações principais: deletar, desfazer e salvar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        if dismissCanvasView {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 // Botão para deletar a página atual
                 Button(role: .destructive, action: { showDeleteAlert = true }) {
@@ -156,7 +150,6 @@ struct CanvasView: View {
                     .clipShape(Circle())
                 }
             }
-        }
     }
     
     // MARK: - Actions
@@ -195,14 +188,13 @@ struct CanvasView: View {
     /// Salva a página atual no SwiftData e fecha a view
     /// Executa de forma assíncrona e trata possíveis erros
     private func handleSave() {
-        addNewTsuru()
-        
         Task {
             do {
-                try await viewModel.savePage()
-                self.scrapToExport = await viewModel.editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
-                dismissCanvasView.toggle()
                 
+                try await viewModel.savePage()
+                await addNewTsuru()
+                dismiss()
+            
             } catch {
                 print("Error saving page: \(error)")
             }
