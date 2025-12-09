@@ -36,39 +36,24 @@ struct ITunesSearchView: View {
                         .padding()
                 }
             }
-            .overlay {
-                if let errorMessage = viewModel.errorMessage {
-                    VStack {
-                        Text("Erro")
-                            .font(.headline)
-                        Text(errorMessage)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                }
-            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.black)
-                            .padding(8)
-                            .background(
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.4), lineWidth: 2)
-                            )
+                        Image("xCustom")
+                            .resizable()
+                            .frame(width: 16, height: 16)
                     }
                 }
                 ToolbarItem(placement: .principal) {
                     Text("Música")
-                        .font(Fonts.Subheadline)
+                        .font(Fonts.Title2)
+                        .foregroundStyle(.blueNikki)
                 }
             }
+            .preferredColorScheme(.light)
         }
     }
 }
@@ -104,7 +89,7 @@ struct TrackCardButton: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(track.name)
                         .font(.headline)
-                        .lineLimit(2)
+                        .lineLimit(1)
                         .foregroundColor(.primary)
                     
                     Text(track.artist)

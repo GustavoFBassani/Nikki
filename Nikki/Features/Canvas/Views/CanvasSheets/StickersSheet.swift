@@ -28,6 +28,7 @@ struct StickersSheet: View {
                 .toolbar { closeButton }
         }
         .background(Color.clear)
+        .preferredColorScheme(.light)
     }
     
     // MARK: - View Components
