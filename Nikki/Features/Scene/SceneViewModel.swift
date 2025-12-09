@@ -39,8 +39,10 @@ class SceneViewModel {
     
     
     //MARK: - SCENE DATA
-    var orderedPages: [Page?] = []
-    var dict: [Entity:Page] = [:]
+    var orderedPages: [Page?] = [] // pra descarregar
+    var orderedEntities: [Entity] = [] // pra ordenar as chaves ( entidades )
+    var dict: [Entity:Page] = [:] // dicionario que contem a parada toda
+    var pageControl: Int = 0 //controle do fluxo
     var lastAdded: Int = 0
     let tsuruPositions: [SIMD3<Float>] = TsuruPosition.allCases.map { tsuru in
         return tsuru.position
@@ -49,8 +51,8 @@ class SceneViewModel {
     var selectedEntityName: Entity? = nil
     var currentPage: Page? = nil
     var selectedPage: Page?
-    var shouldShowLeftButton = true
-    var shouldShowRightButton = true
+    var thereIsTsuruAtRight: Bool  {pageControl != 0  }
+    var thereIsTsuruAtLeft: Bool { pageControl != orderedPages.count - 1 }
     
     //MARK: -SCENE ENTITIES
     var scene: Entity?
@@ -122,15 +124,15 @@ class SceneViewModel {
             }
             
             selectedPage = dict[newTsuru]
+            orderedEntities.append(newTsuru)
+
         }
         lastAdded += 1
         cameraManager.repositioningCameraNewToTsuru(animated: false, tsuruToFocus: newTsuru)
         playTsuruAnimation(tsuruToAnimate: newTsuru)
         isFocusedOnTsuru = true
+        orderedEntities = orderingEntities()
     }//ok
-    
-    
-    //MARK: - CAMERA FUNCTIONS
     
     
     func loadTsurusAtScene() async {
@@ -162,6 +164,7 @@ class SceneViewModel {
                     }
                 }
             }
+            orderedEntities = orderingEntities() // ordena na hora da criacao
             print("scraps adicionados: ", orderedPages.count)
         }
     }
@@ -234,7 +237,7 @@ class SceneViewModel {
         //            repositioningCameraToTsuru(lastEntity)
         //
         //        }
-    }
+    } // essa aqui vai ficar pra depois
     
     func openTsuru() {
         
@@ -243,56 +246,41 @@ class SceneViewModel {
         
     }
     
-    func pickFirstTsuru() -> Entity? {
-        let allEntities = Array(dict.keys)
-        guard let lastEntity = allEntities.last else { return nil}
-        return lastEntity
-    }
+    //MARK: - TSURU CONTROLS
     
-    
-    enum SideToMove {
-        case left, right
-    }
-    
-    func navigateToTsuru(at side: SideToMove) {
-        // transforma o dicionário em uma lista de tuplas nomeadas
-        var pagesList: [(entity: Entity, page: Page)] = dict.map { entity, page in
-            (entity: entity, page: page)
+    func orderingEntities() -> Array<Entity> { // entender isso aqui...
+        let arrayEntities = Array(dict.keys)
+        
+        let orderedEntities = arrayEntities.sorted { ent1, ent2 in
+            guard let page1 = dict[ent1], let page2 = dict[ent2] else {
+                return false
+            }
+            // Páginas mais novas primeiro (ordem decrescente)
+            return page1.createdAt ?? Date() > page2.createdAt ?? Date()
         }
         
-        // ordena por createdAt
-        pagesList.sort {
-            let lhsDate = $0.page.createdAt ?? .now
-            let rhsDate = $1.page.createdAt ?? .now
-            return lhsDate > rhsDate
+        return orderedEntities
+    }
+
+    func navigateToTsuru(at side: String) {
+        if side == "left"  { // ir para traz
+            let nextEntity = orderedEntities[pageControl+1]
+            repositioningCameraToTsuru(nextEntity)
+            selectedPage = dict[nextEntity]
+            pageControl += 1
         }
-
-        // acha o item correspondente à selectedPage
-        guard let currentIndex = pagesList.firstIndex(where: { pair in
-            pair.page === selectedPage
-        }) else {
-            fatalError("selectedPage não encontrada")
+        
+        if side == "right" { // ir para frente
+            let nextEntity = orderedEntities[pageControl-1]
+            selectedPage = dict[nextEntity]
+            repositioningCameraToTsuru(nextEntity)
+            pageControl -= 1
         }
-
-        // calcula o próximo índice
-        var nextIndex: Int {
-            switch side {
-            case .left:
-                max(0, currentIndex - 1)
-            case .right:
-                min(currentIndex + 1, pagesList.count - 1)
-            }
-        }
-
-        shouldShowRightButton = nextIndex < pagesList.count - 1
-        shouldShowLeftButton = nextIndex > 0
-
-        selectedPage = pagesList[nextIndex].page
-
-        cameraManager.repositioningCameraNewToTsuru(
-            animated: true,
-            tsuruToFocus: pagesList[nextIndex].entity
-        )
+    }
+    
+    func pickLastTsuru() -> Entity? {
+        guard let lastTsuru = orderedEntities.first else { return nil }
+        return lastTsuru
     }
 
     
@@ -307,7 +295,7 @@ class SceneViewModel {
     
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
         if newTsuru == nil {
-            guard let firstTsuru = pickFirstTsuru() else { return }
+            guard let firstTsuru = pickLastTsuru() else { return }
             repositioningCameraToTsuru(firstTsuru)
             selectedPage = dict[firstTsuru]
             return

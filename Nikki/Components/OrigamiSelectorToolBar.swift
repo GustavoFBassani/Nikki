@@ -8,9 +8,9 @@ import SwiftUI
 
 struct OrigamiSelectorToolBar: View {
     var selectedDate: Date
-    var shouldShowLeftButton = true
-    var shouldShowRightButton = true
-    var action: (SceneViewModel.SideToMove) -> Void = {_ in }
+    var thereIsTsuruAtRight: Bool
+    var thereIsTsuruAtLeft: Bool
+    var navigateToTsuru: (String)  -> Void
     
     private var formattedDate: String {
         let formatter = DateFormatter()
@@ -19,24 +19,43 @@ struct OrigamiSelectorToolBar: View {
     }
     
     var body: some View {
-        HStack(spacing: 76) {
-            if shouldShowLeftButton {
-                Button {
-                    action(.left)
-                } label: {
-                    Image("leftChevron")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 18, height: 18)
-                        .foregroundStyle(.blueNikki)
-                        .padding(10)
-                        .background(Circle().fill(Color.white.opacity(0.85)))
-
+        ZStack {
+            HStack(spacing: 76) {
+                if thereIsTsuruAtLeft {
+                    Button {
+                        navigateToTsuru("left")
+                    } label: {
+                        Image("leftChevron")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
+                            .foregroundStyle(.blueNikki)
+                            .padding(10)
+                            .background(Circle().fill(Color.white.opacity(0.85)))
+                            .padding(.leading, 16)
+                        
+                    }
                 }
-            } else {
+                
                 Spacer()
+                
+                if thereIsTsuruAtRight {
+                    Button {
+                        navigateToTsuru("right")
+                    } label: {
+                        Image("rightChevron")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
+                            .foregroundStyle(.blueNikki)
+                            .padding(10)
+                            .background(Circle().fill(Color.white.opacity(0.85)))
+                            .padding(.trailing, 16)
+                        
+                    }
+                }
+                
             }
-            
             
             Text(formattedDate)
                 .font(Fonts.Footnote)
@@ -47,30 +66,17 @@ struct OrigamiSelectorToolBar: View {
                     RoundedRectangle(cornerRadius: 100)
                         .fill(Color.white.opacity(0.85))
                 )
-            
-            
-            if shouldShowRightButton {
-                Button {
-                    action(.right)
-                } label: {
-                    Image("rightChevron")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 18, height: 18)
-                        .foregroundStyle(.blueNikki)
-                        .padding(10)
-                        .background(Circle().fill(Color.white.opacity(0.85)))
-
-                }
-            } else {
-                Spacer()
-            }
-            
         }
     }
 }
 
-
 #Preview {
-    OrigamiSelectorToolBar(selectedDate: Date())
+    OrigamiSelectorToolBar(
+        selectedDate: Date(),
+        thereIsTsuruAtRight: true,
+        thereIsTsuruAtLeft: false,
+        navigateToTsuru: { side in
+            print("Navegando para o lado: \(side)")
+        }
+    )
 }

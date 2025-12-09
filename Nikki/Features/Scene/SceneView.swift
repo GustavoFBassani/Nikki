@@ -34,12 +34,12 @@ struct SceneView: View {
                 if vm.scene == nil {
                     await vm.loadScene()
                     vm.loadMotivation()
-
+                    try? await Task.sleep(nanoseconds: 200_000_000)
+                    vm.repositioningCameraToTree()
 
                 }
                 
-                vm.repositioningCameraToTree()
-                vm.updateCamera()
+               
                 if DEBUG_SHOULD_DELETE {
                     pages.forEach { page in  ///provisorio
                         context.delete(page)
@@ -157,6 +157,7 @@ struct SceneView: View {
                     Button {
                         vm.isFocusedOnTsuru = false
                         vm.repositioningCameraToTree()
+                        vm.pageControl = 0
 
                     } label: {
                         Image("xCustom")
@@ -175,9 +176,7 @@ struct SceneView: View {
             } //  custom xmark toolbar
             .overlay(alignment: .bottom) {
                 if vm.isFocusedOnTsuru {
-                    OrigamiSelectorToolBar(selectedDate: vm.selectedPage?.createdAt ?? Date(), shouldShowLeftButton: vm.shouldShowLeftButton, shouldShowRightButton: vm.shouldShowRightButton, action: { side in
-                        vm.navigateToTsuru(at: side)
-                    })
+                    OrigamiSelectorToolBar(selectedDate: vm.selectedPage?.createdAt ?? Date(), thereIsTsuruAtRight: vm.thereIsTsuruAtRight, thereIsTsuruAtLeft: vm.thereIsTsuruAtLeft, navigateToTsuru: vm.navigateToTsuru)
                         .padding(.bottom, 32)
                         .transition(.move(edge: .bottom))
                 }
