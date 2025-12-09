@@ -102,16 +102,19 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
-//            .simultaneousGesture(
-//                TapGesture()
-//                    .targetedToAnyEntity()
-//                    .onEnded { value in
-//                        vm.handleTap(on: value.entity)
-//                    }
-//            ) // tocar no tsuru
+            .simultaneousGesture(
+                TapGesture()
+                    .targetedToAnyEntity()
+                    .onEnded { value in
+                        vm.handleTap(on: value.entity)
+                    }
+            ) // tocar no tsuru
             .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
                 CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
             })
+            .navigationDestination(isPresented: $vm.showCredits){
+                CreditsView()
+            }
             .overlay(alignment: .topTrailing) {
                 
                 if !vm.isFocusedOnTsuru {
