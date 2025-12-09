@@ -5,33 +5,22 @@
 //  Created by Rafael Toneto on 09/12/25.
 //
 
-import TipKit
 import SwiftUI
+import TipKit
 
 struct NewPageTip: Tip {
-    var title: Text {
-        Text("Create a new page")
-    }
-
+    var title: Text { Text("Crie seu scrap") }
     var message: Text? {
-        Text("Tap here to write a new memory in your journal.")
-    }
-
-    var image: Image? {
-        Image(systemName: "plus.circle.fill")
+        Text("Após finalizar ele irá se transformar em um origami no cenário")
     }
 }
 
 struct FocusTsuruTip: Tip {
     var title: Text {
-        Text("Find your origamis")
+        Text("Volte para o seu tsuru")
     }
-
+    
     var message: Text? {
-        Text("Use this button to focus the camera on your origami pages.")
-    }
-
-    var image: Image? {
-        Image(systemName: "location")
+        Text("Use este botão para focar rapidamente no seu último origami na árvore.")
     }
 }

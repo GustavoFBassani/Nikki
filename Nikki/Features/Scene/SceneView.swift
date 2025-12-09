@@ -135,33 +135,26 @@ struct SceneView: View {
                             .padding(.trailing, 20)
                             .padding(.top, 26)
                     }
+                    
                     if vm.showNewPageTip {
-                        VStack(alignment: .trailing, spacing: 4) {
+                        ZStack(alignment: .topTrailing) {
                             TipView(vm.newPageTip)
                                 .tipViewStyle(BubbleTipStyle())
                                 .fixedSize(horizontal: false, vertical: true)
-                                // Position so it doesn't go off-screen
-                                .padding(.trailing, 76)
-                                .padding(.top, 74)
                             
-                            HStack {
-                                Spacer()
-                                Button {
-                                    vm.dismissNewPageTip()
-                                } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.black)
-                                        .padding(6)
-                                        .background(
-                                            Circle()
-                                                .fill(Color.white)
-                                                .shadow(radius: 4)
-                                        )
-                                }
-                                .padding(.trailing, 76)
+                            Button {
+                                vm.dismissNewPageTip()
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.gray)
+                                    .padding(6)
                             }
+                            .padding(.trailing, 18)
+                            .padding(.top, 12)
                         }
+                        .padding(.trailing, 20)
+                        .padding(.top, 12)
                         .animation(.easeInOut, value: vm.showNewPageTip)
                     }
                 } else {

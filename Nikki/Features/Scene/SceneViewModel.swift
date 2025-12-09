@@ -72,8 +72,8 @@ class SceneViewModel {
     var isFocusedOnBandstand = false
     
     //MARK: - Tips
-    let newPageTip = NewPageButtonTip()
-    let focusTsuruTip = FocusTsuruButtonTip()
+    let newPageTip = NewPageTip()
+    let focusTsuruTip = FocusTsuruTip()
     
     var showNewPageTip: Bool = false
     var showFocusTsuruTip: Bool = false
@@ -90,7 +90,7 @@ class SceneViewModel {
             tree?.components[InputTargetComponent.self] = .init()
             
             tsuru = scene.findEntity(named: "tsuru")
-                        
+            
             if let bandstand = scene.findEntity(named: "Japan_HW") {
                 bandstand.generateCollisionShapes(recursive: true)
                 bandstand.components[InputTargetComponent.self] = .init()
@@ -132,7 +132,7 @@ class SceneViewModel {
             
             selectedPage = dict[newTsuru]
             orderedEntities.append(newTsuru)
-
+            
         }
         lastAdded += 1
         cameraManager.repositioningCameraNewToTsuru(animated: false, tsuruToFocus: newTsuru)
@@ -268,7 +268,7 @@ class SceneViewModel {
         
         return orderedEntities
     }
-
+    
     func navigateToTsuru(at side: String) {
         if side == "left"  { // ir para tras
             let nextEntity = orderedEntities[pageControl+1]
@@ -293,7 +293,7 @@ class SceneViewModel {
     func resetPageControl() {
         pageControl = 0
     }
-
+    
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -360,7 +360,7 @@ class SceneViewModel {
             print("Erro ao salvar motivação: \(error)")
         }
     }
-
+    
     //MARK: - DEBUG FUNCTIONS
     
     func debugTsuruComponents(_ obj: Entity) {
@@ -396,30 +396,23 @@ class SceneViewModel {
     
     // MARK: - TipKit Helpers
     
+    private let hasSeenNewPageTipKey = "hasSeenNewPageTip"
+    private let hasSeenFocusTsuruTipKey = "hasSeenFocusTsuruTip"
+    
     func evaluateTipsVisibility() {
-        Task {
-            if await newPageTip.shouldDisplay {
-                showNewPageTip = true
-            }
-            if await focusTsuruTip.shouldDisplay {
-                showFocusTsuruTip = true
-            }
-        }
+        // Mostra as tips apenas se o usuário ainda não as viu
+        showNewPageTip = !UserDefaults.standard.bool(forKey: hasSeenNewPageTipKey)
+        showFocusTsuruTip = !UserDefaults.standard.bool(forKey: hasSeenFocusTsuruTipKey)
     }
     
     func dismissNewPageTip() {
         showNewPageTip = false
-        Task {
-            await newPageTip.invalidate(reason: .userClosed)
-        }
+        UserDefaults.standard.set(true, forKey: hasSeenNewPageTipKey)
     }
     
-    /// Called when the user closes or uses the focus tsuru tip.
     func dismissFocusTsuruTip() {
         showFocusTsuruTip = false
-        Task {
-            await focusTsuruTip.invalidate(reason: .userClosed)
-        }
+        UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
     }
 }
 
@@ -448,4 +441,3 @@ class SceneViewModel {
 //
 //        print("Nenhuma entidade registrada encontrada na hierarquia")
 //    }
-
