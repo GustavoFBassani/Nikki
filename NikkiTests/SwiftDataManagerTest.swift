@@ -17,10 +17,10 @@ struct SwiftDataManagerTest {
     func settingDataManager() {
         // Given
         resetDatabase()
-        let manager: SwiftDataManager
+        let manager: ScrapService
         
         // When
-        manager = SwiftDataManager.shared
+        manager = ScrapService.shared
            
         // Then
         #expect(manager.context.container === manager.container)
@@ -31,7 +31,7 @@ struct SwiftDataManagerTest {
     func savingPageSuccessfully(){
         // Given
         resetDatabase()
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         
         // When
         let page = Page(title: "Page 1",
@@ -50,7 +50,7 @@ struct SwiftDataManagerTest {
     func updatingPageSuccessfully(){
         // Given
         resetDatabase()
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         
         // When
         let page = Page(title: "Page 1",
@@ -71,7 +71,7 @@ struct SwiftDataManagerTest {
     func deletingPageSuccessfully(){
         // Given
         resetDatabase()
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         
         // When
         let page = Page(title: "Page 1",
@@ -95,7 +95,7 @@ struct SwiftDataManagerTest {
     func fetchingPageSuccesfully(){
         // Given
         resetDatabase()
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         
         // When
         let page = Page(title: "Page 1",
@@ -114,7 +114,7 @@ struct SwiftDataManagerTest {
     func fetchingNonExistantPageReturnsNil() {
         // Given
         resetDatabase()
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         
         // When
         let nonExistantPage = try? manager.fetchPage(by: UUID())
@@ -125,7 +125,7 @@ struct SwiftDataManagerTest {
     
     // Aux funcs
     func resetDatabase() {
-        let manager = SwiftDataManager.shared
+        let manager = ScrapService.shared
         let pages = try? manager.fetchAllPages()
         if let pages {
             for page in pages {

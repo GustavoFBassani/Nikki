@@ -17,7 +17,7 @@ import AVFoundation
 class CanvasViewModel {
     // MARK: - Services
     private let iTunesService = ITunesService()
-    private let dataManager = SwiftDataManager.shared
+    private let dataManager = ScrapService.shared
     let audioRecorder = AudioRecorder()
     private let audioPlayer = AudioPlayer.shared
     private let canvasSize = CGSize(width: 3610, height: 3610)
@@ -141,14 +141,19 @@ class CanvasViewModel {
     func savePage() async throws {
         // Exporta o Data do PaperKit
         let data = await editorData.exportMarkupData()
+        let image = await editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610))) //exportar imagem
+        
+        // Converte UIImage para Data (PNG)
+        let imageData = image?.pngData()
         
         if let page = currentPage {
             // Atualiza página existente
             page.markupData = data
+            page.markupImageData = imageData  // Salva como Data
             try dataManager.updatePage(page)
         } else {
             // Cria nova página
-            let newPage = Page(title: "Nova Página", markupData: data, paperStyle: paperStyle)
+            let newPage = Page(title: "Nova Página", markupData: data, paperStyle: paperStyle, markupImageData: imageData)
             try dataManager.savePage(newPage)
             currentPage = newPage
         }
@@ -156,10 +161,7 @@ class CanvasViewModel {
     
     func deleteCurrentPage(using context: ModelContext) throws {
         guard let page = currentPage else { return }
-        
-        context.delete(page)
-        try context.save()
-        
+        try? dataManager.deletePage(page)
         currentPage = nil
     }
     
