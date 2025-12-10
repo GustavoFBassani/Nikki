@@ -11,20 +11,20 @@ import SwiftUI
 import TipKit
 
 struct SceneView: View {
-
+    
     @State var vm = SceneViewModel()
     @State private var showMotivationRoll = false
     @State private var isEditingMotivation = false
     @Environment(\.modelContext) var context
     @Query var pages: [Page]
     var DEBUG_SHOULD_DELETE = false
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
                 RealityView { content in
-
+                    
                 } update: { content in
                     if let scene = vm.scene, content.entities.isEmpty {
                         content.add(scene)
@@ -32,7 +32,7 @@ struct SceneView: View {
                 }
                 .edgesIgnoringSafeArea(.all)
                 .allowsHitTesting(!showMotivationRoll)
-
+                
             }
             .task {
                 if vm.scene == nil {
@@ -40,7 +40,7 @@ struct SceneView: View {
                     vm.loadMotivation()
                     try? await Task.sleep(nanoseconds: 200_000_000)
                     vm.repositioningCameraToTree()
-
+                    
                 }
                 if DEBUG_SHOULD_DELETE {
                     pages.forEach { page in
@@ -69,7 +69,7 @@ struct SceneView: View {
                             vm.lastDragPosition = value.location
                             return
                         }
-
+                        
                         // Calcula quanto o dedo se moveu desde o último frame
                         // dTheta: movimento horizontal (+ = direita, - = esquerda)
                         let dTheta = Float(
@@ -79,7 +79,7 @@ struct SceneView: View {
                         let dPhi = Float(
                             value.location.y - vm.lastDragPosition.y
                         )
-
+                        
                         // Envia os deltas para o ViewModel atualizar theta e phi
                         vm.rotate(dTheta: dTheta, dPhi: dPhi)
                         // Atualiza a última posição para o próximo frame
@@ -92,7 +92,7 @@ struct SceneView: View {
             )  // movimentar para o lado
             .gesture(
                 // MARK: - Gesto de Zoom (Pinch)
-
+                
                 /// MagnificationGesture detecta movimento de pinça com dois dedos
                 /// Usado para controlar a distância da câmera (zoom)
                 ///
@@ -123,10 +123,10 @@ struct SceneView: View {
                     //focou no coreto
                     showMotivationRoll = false
                     isEditingMotivation = false
-
+                    
                     Task {
                         try? await Task.sleep(nanoseconds: 1_000_500_000)
-
+                        
                         // só mostra se ainda estiver focado no coreto
                         if vm.isFocusedOnBandstand {
                             await MainActor.run {
@@ -143,7 +143,7 @@ struct SceneView: View {
                         isEditingMotivation = false
                     }
                 }
-            ) // tocar no tsuru
+            } // tocar no tsuru
             .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru) })
             .navigationDestination(isPresented: $vm.showCredits){ CreditsView() }
             .overlay(alignment: .topTrailing) {
@@ -151,13 +151,14 @@ struct SceneView: View {
                 if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
                     VStack(alignment: .trailing, spacing: 8) {
                         
-                    Menu {
-                        ForEach(PaperStyles.allCases, id: \.self) { style in
-                            Button {
-                                vm.openCanvasWithStyle = style.name
-                            } label: {
-                                Text(style.title)
-                                    .font(.custom("CaveatBrush-Regular", size: 5))
+                        Menu {
+                            ForEach(PaperStyles.allCases, id: \.self) { style in
+                                Button {
+                                    vm.openCanvasWithStyle = style.name
+                                } label: {
+                                    Text(style.title)
+                                        .font(.custom("CaveatBrush-Regular", size: 5))
+                                }
                             }
                             
                         } label: {
@@ -169,32 +170,34 @@ struct SceneView: View {
                                         .fill(Color.white.opacity(0.85))
                                 )
                         }
-                    } else if vm.isFocusedOnTsuru {
-                        
-                        // tip popup
-                        if vm.showNewPageTip {
-                            ZStack(alignment: .topTrailing) {
-                                TipView(vm.newPageTip)
-                                    .tipViewStyle(BubbleTipStyle())
-                                    .tipBackground(.clear)
-                                
-                                Button {
-                                    vm.dismissNewPageTip()
-                                } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(.gray)
-                                        .padding(8)
-                                }
-                                .padding(.trailing, 8)
-                                .padding(.top)
+                        .padding(.trailing, 16)
+                        .padding(.top, 26)
+
+                    }
+                    
+                } else if vm.isFocusedOnTsuru {
+                    
+                    // tip popup
+                    if vm.showNewPageTip {
+                        ZStack(alignment: .topTrailing) {
+                            TipView(vm.newPageTip)
+                                .tipViewStyle(BubbleTipStyle())
+                                .tipBackground(.clear)
+                                .padding(.top, 50)
+                            
+                            Button {
+                                vm.dismissNewPageTip()
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.gray)
+                                    .padding(8)
+                                    .font(.custom("CaveatBrush-Regular", size: 5))
                             }
-                            .offset(x: 0)
+                            .padding(.trailing, 8)
+                            .padding(.top)
                         }
                     }
-                    .padding(.trailing, 16)
-                    .padding(.top, 26)   
-                    .font(.custom("CaveatBrush-Regular", size: 5))
                 } else {
                     Button {
                         vm.openTsuru()
@@ -212,129 +215,130 @@ struct SceneView: View {
                             .padding(.top, 24)
                     }
                 }
-            }  // custom plus toolbar
-            .overlay(alignment: .topLeading) {
-                if vm.isFocusedOnTsuru {
-                    Button {
-                        vm.isFocusedOnTsuru = false
-                        vm.repositioningCameraToTree()
-                        vm.pageControl = 0
-
-                    } label: {
-                        Image("xCustom")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20, height: 20)
-                            .padding(10)
-                            .background(
-                                Circle()
-                                    .fill(Color.white.opacity(0.85))
-                            )
-                    }
-                    .padding(.leading, 16)
-                    .padding(.top, 24)
-                }
-            }  //  custom xmark toolbar
-            .overlay(alignment: .bottom) {
-                if vm.isFocusedOnTsuru {
-                    OrigamiSelectorToolBar(
-                        selectedDate: vm.selectedPage?.createdAt ?? Date(),
-                        thereIsTsuruAtRight: vm.thereIsTsuruAtRight,
-                        thereIsTsuruAtLeft: vm.thereIsTsuruAtLeft,
-                        navigateToTsuru: vm.navigateToTsuru
-                    )
-                    .padding(.bottom, 32)
-                    .transition(.move(edge: .bottom))
-                }
-
-            }  // custom data and chevrons tabbar
-            .overlay(alignment: .bottomLeading) {
-                if !vm.isFocusedOnTsuru {
-                    VStack(alignment: .leading, spacing: 8) {
-
-                        if vm.showFocusTsuruTip {
-                            ZStack(alignment: .topTrailing) {
-                                TipView(vm.focusTsuruTip)
-                                    .tipViewStyle(BottomLeftBubbleTipStyle())
-                                    .tipBackground(.clear)
-
-                                Button {
-                                    vm.dismissFocusTsuruTip()
-                                } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(.gray)
-                                        .padding(8)
-                                }
-                                .padding(.trailing, 8)
-                                .padding(.top, 12)
-                            }
-                        }
-
-                        Button {
-                            vm.repositioningCameraToTsuru(nil)
-                        } label: {
-                            Image(systemName: "location")
-                                .foregroundStyle(.blueNikki)
-                                .font(Fonts.Footnote)
-                                .frame(width: 44, height: 44)
-                                .background(Circle().fill(Color.white.opacity(0.85)))
-                        }
-                    }
-                    .padding(.leading, 16)
-                    .padding(.bottom, 24)
-                }
             }
-            .overlay {
-                if showMotivationRoll {
-                    MotivationRoll(
-                        motivation: $vm.motivationText,
-                        isEditing: isEditingMotivation
-                    )
-                    .padding(
-                        EdgeInsets(
-                            top: 423,
-                            leading: 46,
-                            bottom: 156,
-                            trailing: 38
+        }  // custom plus toolbar
+        .overlay(alignment: .topLeading) {
+            if vm.isFocusedOnTsuru {
+                Button {
+                    vm.isFocusedOnTsuru = false
+                    vm.repositioningCameraToTree()
+                    vm.pageControl = 0
+                    
+                } label: {
+                    Image("xCustom")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .padding(10)
+                        .background(
+                            Circle()
+                                .fill(Color.white.opacity(0.85))
                         )
-                    )
-                    .contentShape(Rectangle())  // garante área de toque
-                    .onTapGesture {
-                        withAnimation(.easeInOut) {
-                            isEditingMotivation = true
+                }
+                .padding(.leading, 16)
+                .padding(.top, 24)
+            }
+        }  //  custom xmark toolbar
+        .overlay(alignment: .bottom) {
+            if vm.isFocusedOnTsuru {
+                OrigamiSelectorToolBar(
+                    selectedDate: vm.selectedPage?.createdAt ?? Date(),
+                    thereIsTsuruAtRight: vm.thereIsTsuruAtRight,
+                    thereIsTsuruAtLeft: vm.thereIsTsuruAtLeft,
+                    navigateToTsuru: vm.navigateToTsuru
+                )
+                .padding(.bottom, 32)
+                .transition(.move(edge: .bottom))
+            }
+            
+        }  // custom data and chevrons tabbar
+        .overlay(alignment: .bottomLeading) {
+            if !vm.isFocusedOnTsuru {
+                VStack(alignment: .leading, spacing: 8) {
+                    
+                    if vm.showFocusTsuruTip {
+                        ZStack(alignment: .topTrailing) {
+                            TipView(vm.focusTsuruTip)
+                                .tipViewStyle(BottomLeftBubbleTipStyle())
+                                .tipBackground(.clear)
+                            
+                            Button {
+                                vm.dismissFocusTsuruTip()
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.gray)
+                                    .padding(8)
+                            }
+                            .padding(.trailing, 8)
+                            .padding(.top, 12)
                         }
                     }
-                    .zIndex(1)
-                }
-            }
-            .overlay(alignment: .topLeading) {
-                if vm.isFocusedOnBandstand {
+                    
                     Button {
-                        vm.repositioningCameraToTree()
-                        vm.isFocusedOnBandstand = false
-                        isEditingMotivation = false
-                        vm.saveMotivation()
+                        vm.repositioningCameraToTsuru(nil)
                     } label: {
-                        Image("customXmark")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20, height: 20)
-                            .padding(8)
-                            .background(
-                                Circle()
-                                    .fill(Color.white.opacity(0.85))
-                            )
+                        Image(systemName: "location")
+                            .foregroundStyle(.blueNikki)
+                            .font(Fonts.Footnote)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.white.opacity(0.85)))
                     }
-                    .padding(.leading, 16)
-                    .padding(.top, 24)
-                    .zIndex(3)
                 }
+                .padding(.leading, 16)
+                .padding(.bottom, 24)
             }
         }
-
+        .overlay {
+            if showMotivationRoll {
+                MotivationRoll(
+                    motivation: $vm.motivationText,
+                    isEditing: isEditingMotivation
+                )
+                .padding(
+                    EdgeInsets(
+                        top: 423,
+                        leading: 46,
+                        bottom: 156,
+                        trailing: 38
+                    )
+                )
+                .contentShape(Rectangle())  // garante área de toque
+                .onTapGesture {
+                    withAnimation(.easeInOut) {
+                        isEditingMotivation = true
+                    }
+                }
+                .zIndex(1)
+            }
+        }
+        .overlay(alignment: .topLeading) {
+            if vm.isFocusedOnBandstand {
+                Button {
+                    vm.repositioningCameraToTree()
+                    vm.isFocusedOnBandstand = false
+                    isEditingMotivation = false
+                    vm.saveMotivation()
+                } label: {
+                    Image("customXmark")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .padding(8)
+                        .background(
+                            Circle()
+                                .fill(Color.white.opacity(0.85))
+                        )
+                }
+                .padding(.leading, 16)
+                .padding(.top, 24)
+                .zIndex(3)
+            }
+        }
     }
+
 }
+
 #Preview {
     SceneView(vm: SceneViewModel())
 }
