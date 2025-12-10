@@ -363,17 +363,7 @@ class SceneViewModel {
     }
     
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
-        if newTsuru == nil {
-            resetPageControl()
-            guard let firstTsuru = pickLastTsuru() else { return }
-            repositioningCameraToTsuru(firstTsuru)
-            selectedPage = dict[firstTsuru]
-            return
-        }
-        cameraManager.repositioningCameraNewToTsuru(
-            animated: true,
-            tsuruToFocus: newTsuru
-        )
+        cameraManager.repositioningCameraNewToTsuru(animated: true, tsuruToFocus: pickLastTsuru())
         isFocusedOnTsuru = true
     }
     
