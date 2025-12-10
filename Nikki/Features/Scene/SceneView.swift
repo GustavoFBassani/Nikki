@@ -246,6 +246,7 @@ struct SceneView: View {
                                 
                                 Button {
                                     vm.dismissFocusTsuruTip()
+                                    
                                 } label: {
                                     Image(systemName: "xmark")
                                         .font(.system(size: 16, weight: .bold))
@@ -306,6 +307,14 @@ struct SceneView: View {
                         vm.isFocusedOnBandstand = false
                         isEditingMotivation = false
                         vm.saveMotivation()
+                        
+                        Task {
+                            vm.isCamerMovingToTree = true
+                            try? await Task.sleep(nanoseconds: 1_200_000_000
+                            )
+                            vm.isCamerMovingToTree = false
+                        }
+                        
                     } label: {
                         Image("customXmark")
                             .resizable()

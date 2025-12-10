@@ -82,7 +82,6 @@ class SceneViewModel {
             tsuru = scene.findEntity(named: "tsuru")
             
             if let bandstand = scene.findEntity(named: "Japan_HW") {
-                print("achei o coreto")
                 bandstand.generateCollisionShapes(recursive: true)
                 bandstand.components[InputTargetComponent.self] = .init()
             }
@@ -143,7 +142,6 @@ class SceneViewModel {
         isFocusedOnTsuru = true
         orderedEntities = orderedEntitiesByPageCreationDate()
         debugPageControl()
-        print("numero de scraps do orderedPages: ", orderedPages.count)
     }//ok
     
     func deleteTsurusAtScene() async {
@@ -294,7 +292,7 @@ class SceneViewModel {
         }
     }
     
-    func handleTap(on entity: Entity) {  // toca só na arvore, pelo menos pra MVP
+    func handleTap(on entity: Entity) {
         
         var current: Entity? = entity
         
@@ -316,7 +314,7 @@ class SceneViewModel {
     
     func openTsuru() {
         
-        currentPage = selectedPage
+        currentPage = selectedPage // isso aqui eu poderia simplesmente passar o selectedpage direto ?
         openCanvasWithStyle = currentPage?.paperStyle
         
     }
@@ -339,6 +337,7 @@ class SceneViewModel {
     
     func pickLastTsuru() -> Entity? {
         guard let lastTsuru = orderedEntities.first else { return nil }
+        selectedPage = dict[lastTsuru] // se isso aqui estiver no repositioningcameratotsuru talvez nem precise estar no navigate to tsuru.. ai centraliza o lugar onde atualiza o selectedPage
         return lastTsuru
     }
     
