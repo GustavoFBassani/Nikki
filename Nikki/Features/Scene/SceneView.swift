@@ -172,32 +172,30 @@ struct SceneView: View {
                         }
                         .padding(.trailing, 16)
                         .padding(.top, 26)
-
-                    }
-                    
-                } else if vm.isFocusedOnTsuru {
-                    
-                    // tip popup
-                    if vm.showNewPageTip {
-                        ZStack(alignment: .topTrailing) {
-                            TipView(vm.newPageTip)
-                                .tipViewStyle(BubbleTipStyle())
-                                .tipBackground(.clear)
-                                .padding(.top, 50)
-                            
-                            Button {
-                                vm.dismissNewPageTip()
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.gray)
-                                    .padding(8)
-                                    .font(.custom("CaveatBrush-Regular", size: 5))
+ 
+                        // tip popup
+                        if vm.showNewPageTip {
+                            ZStack(alignment: .topTrailing) {
+                                TipView(vm.newPageTip)
+                                    .tipViewStyle(BubbleTipStyle())
+                                    .tipBackground(.clear)
+                                    .padding(.trailing, 16)
+                                
+                                Button {
+                                    vm.dismissNewPageTip()
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.gray)
+                                        .padding(8)
+                                        .font(.custom("CaveatBrush-Regular", size: 5))
+                                }
+                                .padding(.trailing, 32)
+                                .padding(.top, 20)
                             }
-                            .padding(.trailing, 8)
-                            .padding(.top)
                         }
                     }
+                    
                 } else {
                     Button {
                         vm.openTsuru()
