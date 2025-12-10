@@ -400,7 +400,6 @@ class SceneViewModel {
     private let hasSeenFocusTsuruTipKey = "hasSeenFocusTsuruTip"
     
     func evaluateTipsVisibility() {
-        // Mostra as tips apenas se o usuário ainda não as viu
         showNewPageTip = !UserDefaults.standard.bool(forKey: hasSeenNewPageTipKey)
         showFocusTsuruTip = !UserDefaults.standard.bool(forKey: hasSeenFocusTsuruTipKey)
     }

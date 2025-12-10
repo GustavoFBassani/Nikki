@@ -5,26 +5,16 @@
 //  Created by Rafael Toneto on 09/12/25.
 //
 
-
 import SwiftUI
 import TipKit
 
 struct BubbleTipStyle: TipViewStyle {
     func makeBody(configuration: Configuration) -> some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .topTrailing) {
 
-            // tail
-            Triangle()
-                .fill(Color.white)
-                .frame(width: 28, height: 14)
-                .rotationEffect(.degrees(180))
-                .offset(x: 120, y: 6)
-                .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 2)
-
-            // body
+            // tip body
             HStack(alignment: .top, spacing: 12) {
-
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 4) {
 
                     configuration.title
                         .font(.custom("CaveatBrush-Regular", size: 26))
@@ -39,25 +29,20 @@ struct BubbleTipStyle: TipViewStyle {
 
                 Spacer()
             }
-            .padding(20)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
+            .frame(width: 300, alignment: .leading)   // largura do balão
             .background(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .fill(Color.white)
-                    .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 4)
+                    .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
             )
+            //tip tail
+            Image("tipTail")
+                .resizable()
+                .frame(width: 37, height: 13)
+                .offset(x: -9, y: -9)
         }
-    }
-}
-
-struct Triangle: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.closeSubpath()
-
-        return path
+        .padding(.top, 10)
     }
 }

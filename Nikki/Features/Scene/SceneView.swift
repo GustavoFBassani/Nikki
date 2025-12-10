@@ -40,7 +40,6 @@ struct SceneView: View {
 
                 }
                 
-               
                 if DEBUG_SHOULD_DELETE {
                     pages.forEach { page in  ///provisorio
                         context.delete(page)
@@ -117,46 +116,50 @@ struct SceneView: View {
             .overlay(alignment: .topTrailing) {
                 
                 if !vm.isFocusedOnTsuru {
-                    Menu {
-                        ForEach(PaperStyles.allCases, id: \.self) { style in
-                            Button(style.name) {
-                                vm.openCanvasWithStyle = style.name
+                    VStack(alignment: .trailing, spacing: 8) {
+                        
+                        // BOTÃO +
+                        Menu {
+                            ForEach(PaperStyles.allCases, id: \.self) { style in
+                                Button(style.name) {
+                                    vm.openCanvasWithStyle = style.name
+                                }
                             }
+                            
+                        } label: {
+                            Image("customPlus")
+                                .scaledToFit()
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 999)
+                                        .fill(Color.white.opacity(0.85))
+                                )
                         }
                         
-                    } label: {
-                        Image("customPlus")
-                            .scaledToFit()
-                            .frame(width: 44, height: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 999)
-                                    .fill(Color.white.opacity(0.85))
-                            )
-                            .padding(.trailing, 20)
-                            .padding(.top, 26)
-                    }
-                    
-                    if vm.showNewPageTip {
-                        ZStack(alignment: .topTrailing) {
-                            TipView(vm.newPageTip)
-                                .tipViewStyle(BubbleTipStyle())
-                                .fixedSize(horizontal: false, vertical: true)
-                            
-                            Button {
-                                vm.dismissNewPageTip()
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.gray)
-                                    .padding(6)
+                        // BALÃO LOGO ABAIXO DO BOTÃO
+                        if vm.showNewPageTip {
+                            ZStack(alignment: .topTrailing) {
+                                TipView(vm.newPageTip)
+                                    .tipViewStyle(BubbleTipStyle())
+                                    .tipBackground(.clear)
+                                
+                                Button {
+                                    vm.dismissNewPageTip()
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.gray)
+                                        .padding(8)
+                                }
+                                .padding(.trailing, 8)
+                                .padding(.top, 8)
                             }
-                            .padding(.trailing, 18)
-                            .padding(.top, 12)
+                            .offset(x: -10)
                         }
-                        .padding(.trailing, 20)
-                        .padding(.top, 12)
-                        .animation(.easeInOut, value: vm.showNewPageTip)
                     }
+                    .padding(.trailing, 8)
+                    .padding(.top, 26)
+                    
                 } else {
                     Button {
                         vm.openTsuru()
@@ -207,9 +210,6 @@ struct SceneView: View {
                 
             } // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
-                // Botão de localização só aparece:
-                // - quando NÃO está em modo de localização
-                // - e quando o canvas NÃO está aberto
                 if !vm.isFocusedOnTsuru {
                     Button {
                         vm.repositioningCameraToTsuru(nil)
