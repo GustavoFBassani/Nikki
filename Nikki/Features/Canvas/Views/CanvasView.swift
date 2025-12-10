@@ -21,7 +21,6 @@ struct CanvasView: View {
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var context
     var addNewTsuru: () async -> Void
     var reloadTsurus: () async -> Void
     var isPageNil: Bool = false
@@ -218,7 +217,7 @@ struct CanvasView: View {
     /// Chamado após confirmação do usuário no alerta
     private func handleDeletePage() async {
         do {
-            try viewModel.deleteCurrentPage(using: context)
+            try viewModel.deleteCurrentPage()
             await reloadTsurus()
             dismiss()
         } catch {

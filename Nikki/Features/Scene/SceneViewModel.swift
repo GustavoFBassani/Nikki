@@ -115,14 +115,14 @@ class SceneViewModel {
         newTsuru = tsuru?.clone(recursive: true) // clona o tsuru
         
         if let newTsuru {
-            fixTsuruPos(newTsuru)  //arruma a posicao do tsuru
             newTsuru.position = tsuruPositions[lastAdded]  // coloca o tsuru na posicao certa...
             do {
                 let newPage = try scrapService.fetchLastPage() //recupera a ultima page salva
                 dict[newTsuru] = newPage //coloca no dicionario
-                try orderedPages = scrapService.fetchAllPages()
-                await applyTexture(to: newTsuru, texture: newPage?.markupImage)
-                
+                try orderedPages = scrapService.fetchAllPages() // atualiza no array de pages todas as paginas
+                await applyTexture(to: newTsuru, texture: newPage?.markupImage) // aplica textura
+                fixTsuruPos(newTsuru)  //arruma a posicao do tsuru
+
                 scene?.addChild(newTsuru)
             } catch {
                 print(
@@ -132,7 +132,6 @@ class SceneViewModel {
             }
             
             selectedPage = dict[newTsuru]
-            orderedEntities.append(newTsuru)
             
         }
         lastAdded += 1
@@ -144,6 +143,7 @@ class SceneViewModel {
         isFocusedOnTsuru = true
         orderedEntities = orderedEntitiesByPageCreationDate()
         debugPageControl()
+        print("numero de scraps do orderedPages: ", orderedPages.count)
     }//ok
     
     func deleteTsurusAtScene() async {

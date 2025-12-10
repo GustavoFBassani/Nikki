@@ -259,7 +259,9 @@ struct SceneView: View {
                         }
                         
                         Button {
-                            vm.repositioningCameraToTsuru(vm.pickLastTsuru())
+                            if !vm.orderedPages.isEmpty {
+                                vm.repositioningCameraToTsuru(vm.pickLastTsuru())
+                            }
                         } label: {
                             Image(systemName: "location")
                                 .foregroundStyle(.blueNikki)
