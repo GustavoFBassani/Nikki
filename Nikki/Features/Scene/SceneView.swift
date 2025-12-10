@@ -103,27 +103,31 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
-//            .simultaneousGesture(
-//                TapGesture()
-//                    .targetedToAnyEntity()
-//                    .onEnded { value in
-//                        vm.handleTap(on: value.entity)
-//                    }
-//            ) // tocar no tsuru
+            .simultaneousGesture(
+                TapGesture()
+                    .targetedToAnyEntity()
+                    .onEnded { value in
+                        vm.handleTap(on: value.entity)
+                    }
+            ) // tocar no tsuru
             .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
                 CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru)
             })
+            .navigationDestination(isPresented: $vm.showCredits){
+                CreditsView()
+            }
             .overlay(alignment: .topTrailing) {
                 
                 if !vm.isFocusedOnTsuru {
                     VStack(alignment: .trailing, spacing: 8) {
                         
-                        // BOTÃO +
-                        Menu {
-                            ForEach(PaperStyles.allCases, id: \.self) { style in
-                                Button(style.name) {
-                                    vm.openCanvasWithStyle = style.name
-                                }
+                    Menu {
+                        ForEach(PaperStyles.allCases, id: \.self) { style in
+                            Button {
+                                vm.openCanvasWithStyle = style.name
+                            } label: {
+                                Text(style.title)
+                                    .font(.custom("CaveatBrush-Regular", size: 5))
                             }
                             
                         } label: {
@@ -158,8 +162,8 @@ struct SceneView: View {
                         }
                     }
                     .padding(.trailing, 16)
-                    .padding(.top, 26)
-                    
+                    .padding(.top, 26)   
+                    .font(.custom("CaveatBrush-Regular", size: 5))
                 } else {
                     Button {
                         vm.openTsuru()
@@ -191,7 +195,7 @@ struct SceneView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 20, height: 20)
-                            .padding(8)
+                            .padding(10)
                             .background(
                                 Circle()
                                     .fill(Color.white.opacity(0.85))

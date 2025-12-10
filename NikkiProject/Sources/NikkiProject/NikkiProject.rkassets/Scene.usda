@@ -16,7 +16,7 @@ def "Root" (
     references = @Scene.usdz@</Root>
 )
 {
-    reorder nameChildren = ["Cherry_Tree_2", "Japanese_garden", "japanese_Lamp", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material", "Oriental_Lantern"]
+    reorder nameChildren = ["Cherry_Tree_2", "Japanese_garden", "japanese_Lamp", "Chinese_Lamp___4096px_", "tsuru", "invisibleMaterial", "creditsHitbox", "Bonsai", "Japanese_Red_Bridge", "Low_Poly_Bonsai_Garden", "Japanese_Lantern_Very_Lowpoly", "Japanese_Torii_Gate", "Japan_HW", "SkyDome", "Material"]
     quatf xformOp:orient = (1, 0, 0, 0)
     float3 xformOp:scale = (1, 1, 1)
     float3 xformOp:translate = (-4.0072613, -5, 0)
@@ -986,7 +986,7 @@ def "Root" (
 
     def "japanese_Lamp" (
         active = true
-        prepend references = @japanese_Lamp.usdz@
+        references = @japanese_Lamp.usdz@
     )
     {
         quatf xformOp:orient = (1, 0, 0, 0)
@@ -1006,7 +1006,7 @@ def "Root" (
 
     def "Chinese_Lamp___4096px_" (
         active = true
-        prepend references = @Chinese_Lamp_-_4096px².usdz@
+        references = @Chinese_Lamp_-_4096px².usdz@
     )
     {
         float3 xformOp:scale = (0.018, 0.018, 0.018)
@@ -1030,12 +1030,64 @@ def "Root" (
 
     def "tsuru" (
         active = true
-        prepend references = @tsuru.usdc@
+        references = @tsuru.usdc@
     )
     {
         float3 xformOp:scale = (1, 1, 1)
         float3 xformOp:translate = (4.0072613, -5, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Material "invisibleMaterial"
+    {
+        token outputs:mtlx:surface.connect = </Root/invisibleMaterial/PreviewSurface.outputs:out>
+        token outputs:realitykit:vertex
+        float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (335.25, 100.5)
+
+        def Shader "PreviewSurface"
+        {
+            uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+            float inputs:clearcoatRoughness = 0
+            color3f inputs:diffuseColor = (1, 1, 1) (
+                colorSpace = "srgb_displayp3"
+            )
+            float inputs:ior = 0
+            float3 inputs:normal = (0, 0, 1)
+            float inputs:occlusion = 0
+            float inputs:opacity = 0
+            float inputs:roughness = 0
+            token outputs:out
+            float2 ui:nodegraph:node:pos = (93.5, 100.5)
+            int ui:nodegraph:node:stackingOrder = 2
+            string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["Advanced"]
+        }
+    }
+
+    def Sphere "creditsHitbox" (
+        active = true
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        rel material:binding = </Root/invisibleMaterial> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double radius = 0.1
+        float3 xformOp:scale = (9, 9, 9)
+        float3 xformOp:translate = (4.3718333, 1.9509034, -5.5088973)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def Material "DefaultMaterial"
+        {
+            token outputs:surface.connect = </Root/creditsHitbox/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+            def Shader "DefaultSurfaceShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (1, 1, 1)
+                float inputs:roughness = 0.75
+                token outputs:surface
+            }
+        }
     }
 }
 

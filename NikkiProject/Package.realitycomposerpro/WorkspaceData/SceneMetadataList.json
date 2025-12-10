@@ -49,6 +49,15 @@
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
+        "invisibleMaterial"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root",
         "Japanese_garden",
         "Meshes",
         "Sketchfab_model",
@@ -72,20 +81,20 @@
       },
       [
         "FFC58350-29AE-427E-B132-68A0AF6B14CD",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
         "Root",
         "Japanese_Red_Bridge"
       ],
       {
         "disallowsFraming" : true,
         "isExpanded" : false,
-        "isLocked" : false
-      },
-      [
-        "FFC58350-29AE-427E-B132-68A0AF6B14CD",
-        "Root"
-      ],
-      {
-        "isExpanded" : true,
         "isLocked" : false
       },
       [
