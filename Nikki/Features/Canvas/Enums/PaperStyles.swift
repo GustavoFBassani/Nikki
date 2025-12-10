@@ -8,10 +8,9 @@
 import Foundation
 
 enum PaperStyles: String, CaseIterable {
-    case recycled = "recycledPaper"
-    case white = "whitePaper"
-    case red = "redPaper"
     case dotted = "dotted"
+    case lantern = "lantern"
+    case fan = "fan"
     
     var name: String {
         return rawValue
@@ -19,10 +18,9 @@ enum PaperStyles: String, CaseIterable {
     
     var title: String {
         switch self {
-        case .recycled: return String(localized: "Papel reciclado")
-        case .white:    return String(localized: "Papel branco")
-        case .red:      return String(localized: "Papel vermelho")
-        case .dotted:   return String(localized: "Papel pontilhado")
+        case .dotted:   return String(localized: "Pontilhado")
+        case .lantern:  return String(localized: "Lanternas Orientais")
+        case .fan:  return String(localized: "Leques Floridos")
         }
     }
 }

@@ -150,8 +150,11 @@ struct SceneView: View {
                 if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
                     Menu {
                         ForEach(PaperStyles.allCases, id: \.self) { style in
-                            Button(style.name) {
+                            Button {
                                 vm.openCanvasWithStyle = style.name
+                            } label: {
+                                Text(style.title)
+                                    .font(.custom("CaveatBrush-Regular", size: 5))
                             }
                         }
                     } label: {
@@ -195,7 +198,7 @@ struct SceneView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 20, height: 20)
-                            .padding(8)
+                            .padding(10)
                             .background(
                                 Circle()
                                     .fill(Color.white.opacity(0.85))
