@@ -9,18 +9,18 @@ import SwiftUI
 import TipKit
 
 struct NewPageTip: Tip {
-    var title: Text { Text("Crie seu scrap") }
-    var message: Text? { Text("Após finalizar ele irá se transformar em um origami no cenário") }
+    var title: Text { Text("Create your scrap") }
+    var message: Text? { Text("After finishing, it will transform into an origami in the scene.") }
 
     var actions: [Tip.Action] { [] }
 }
 
 struct FocusTsuruTip: Tip {
     var title: Text {
-        Text("Volte para o seu tsuru")
+        Text("Localize your origamis")
     }
     
     var message: Text? {
-        Text("Use este botão para focar rapidamente no seu último origami na árvore.")
+        Text("Find your scraps easily")
     }
 }

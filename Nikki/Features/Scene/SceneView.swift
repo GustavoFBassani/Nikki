@@ -136,7 +136,7 @@ struct SceneView: View {
                                 )
                         }
                         
-                        // BALÃO LOGO ABAIXO DO BOTÃO
+                        // tip popup
                         if vm.showNewPageTip {
                             ZStack(alignment: .topTrailing) {
                                 TipView(vm.newPageTip)
@@ -152,12 +152,12 @@ struct SceneView: View {
                                         .padding(8)
                                 }
                                 .padding(.trailing, 8)
-                                .padding(.top, 8)
+                                .padding(.top)
                             }
-                            .offset(x: -10)
+                            .offset(x: 0)
                         }
                     }
-                    .padding(.trailing, 8)
+                    .padding(.trailing, 16)
                     .padding(.top, 26)
                     
                 } else {
@@ -211,19 +211,41 @@ struct SceneView: View {
             } // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
                 if !vm.isFocusedOnTsuru {
-                    Button {
-                        vm.repositioningCameraToTsuru(nil)
-                    } label: {
-                        Image(systemName: "location")
-                            .foregroundStyle(.blueNikki)
-                            .font(Fonts.Footnote)
-                            .frame(width: 44, height: 44)
-                            .background(Circle().fill(Color.white.opacity(0.85)))
+                    VStack(alignment: .leading, spacing: 8) {
+
+                        if vm.showFocusTsuruTip {
+                            ZStack(alignment: .topTrailing) {
+                                TipView(vm.focusTsuruTip)
+                                    .tipViewStyle(BottomLeftBubbleTipStyle())
+                                    .tipBackground(.clear)
+
+                                Button {
+                                    vm.dismissFocusTsuruTip()
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.gray)
+                                        .padding(8)
+                                }
+                                .padding(.trailing, 8)
+                                .padding(.top, 12)
+                            }
+                        }
+
+                        Button {
+                            vm.repositioningCameraToTsuru(nil)
+                        } label: {
+                            Image(systemName: "location")
+                                .foregroundStyle(.blueNikki)
+                                .font(Fonts.Footnote)
+                                .frame(width: 44, height: 44)
+                                .background(Circle().fill(Color.white.opacity(0.85)))
+                        }
                     }
-                    .padding(.leading, 20)
+                    .padding(.leading, 16)
+                    .padding(.bottom, 24)
                 }
             } // focar nos tsurus
-
         }
     }
 }
