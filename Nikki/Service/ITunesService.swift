@@ -24,7 +24,7 @@ class ITunesService {
         guard !searchTerm.isEmpty else { return }
         
         let term = searchTerm.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlString = "https://itunes.apple.com/search?term=\(term)&entity=song&limit=25"
+        let urlString = "https://itunes.apple.com/search?term=\(term)&entity=song&limit=10"
         guard let url = URL(string: urlString) else {
             errorMessage = "URL inválida"
             return

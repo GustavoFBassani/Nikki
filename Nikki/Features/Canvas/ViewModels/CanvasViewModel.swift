@@ -35,28 +35,19 @@ class CanvasViewModel {
     
     let stickers: [String] = [
             "redLetter",
-            "sparkle",
             "leque",
-            "bamboo",
             "blueDragon",
             "cloud",
             "dragon",
             "envelope",
-            "fish",
-            "flower",
             "fuji",
             "goldenStar",
-            "greenBamboo",
             "house",
             "lamp",
-            "letter",
             "redEnvelope",
             "moth",
             "orangeFish",
-            "redTorii",
             "star",
-            "teaBag",
-            "zen"
       ]
     
     var photoItem: PhotosPickerItem?

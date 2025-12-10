@@ -44,6 +44,7 @@ struct CanvasView: View {
                 .toolbar { toolbarContent }
                 .overlay(alignment: .bottom) { tabBarOverlay }
         }
+        .preferredColorScheme(.light)
         .toolbarColorScheme(.light, for: .navigationBar)
         .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
         .sheet(isPresented: $viewModel.showAudioPicker) { audioPickerSheet } /*Sheet para escolher áudios gravados*/
