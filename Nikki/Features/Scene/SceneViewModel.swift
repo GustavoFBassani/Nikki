@@ -5,9 +5,10 @@
 //  Created by Gustavo Ferreira bassani on 17/11/25.
 //
 
-import SwiftUI
-import RealityKit
 import NikkiProject
+import RealityKit
+import SwiftUI
+import TipKit
 
 @MainActor
 @Observable
@@ -21,14 +22,6 @@ class SceneViewModel {
     var scrapService = ScrapService.shared
     
     //MARK: - CAMERA PROPERTIES
-    /*
-     OBS: Estas propriedades devem permanecer na ViewModel, não no CameraManager.
-     Razão: Representam estado temporário dos gestos de UI (touch/drag tracking),
-     não estado da câmera orbital 3D. Manter aqui preserva a separação de
-     responsabilidades:
-     - ViewModel: interpreta gestos do usuário e orquestra comandos
-     - CameraManager: gerencia matemática e posicionamento da câmera 3D
-     */
     var lastDragPosition: CGPoint = .zero
     /// Escala atual do gesto de zoom
     var currentScale: CGFloat = 1.0
@@ -57,6 +50,7 @@ class SceneViewModel {
     //MARK: - PAGE CONTROL
     var thereIsTsuruAtRight: Bool  {pageControlTsuru.currentPageControl != 0  }
     var thereIsTsuruAtLeft: Bool { pageControlTsuru.currentPageControl != orderedPages.count - 1 }
+    var showCredits = false
     
     //MARK: -SCENE ENTITIES
     var scene: Entity?
@@ -68,8 +62,16 @@ class SceneViewModel {
     private var currentMotivation: Motivation?
     var motivationText: String = ""
     var datadamotivacaodosguri: Date = Date()
-
-
+    
+    
+    //MARK: - Tips
+    let newPageTip = NewPageTip()
+    let focusTsuruTip = FocusTsuruTip()
+    var showNewPageTip: Bool = false
+    var showFocusTsuruTip: Bool = false
+    private let hasSeenNewPageTipKey = "hasSeenNewPageTip"
+    private let hasSeenFocusTsuruTipKey = "hasSeenFocusTsuruTip"
+    
     //MARK: - LOAD SCENE
     func loadScene() async {
         do {
@@ -80,10 +82,15 @@ class SceneViewModel {
             tsuru = scene.findEntity(named: "tsuru")
             
             if let bandstand = scene.findEntity(named: "Japan_HW") {
+                print("achei o coreto")
                 bandstand.generateCollisionShapes(recursive: true)
                 bandstand.components[InputTargetComponent.self] = .init()
             }
             
+            if let credits = scene.findEntity(named: "creditsHitbox") {
+                credits.generateCollisionShapes(recursive: true)
+                credits.components[InputTargetComponent.self] = .init()
+            }
             //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
@@ -106,17 +113,22 @@ class SceneViewModel {
     
     func parseCanvasDateAndAddNewTsuruAtScene() async {
         newTsuru = tsuru?.clone(recursive: true) // clona o tsuru
+        
         if let newTsuru {
-            fixTsuruPos(newTsuru) //arruma a posicao do tsuru
-            newTsuru.position = tsuruPositions[lastAdded] // coloca o tsuru na posicao certa...
+            fixTsuruPos(newTsuru)  //arruma a posicao do tsuru
+            newTsuru.position = tsuruPositions[lastAdded]  // coloca o tsuru na posicao certa...
             do {
                 let newPage = try scrapService.fetchLastPage() //recupera a ultima page salva
                 dict[newTsuru] = newPage //coloca no dicionario
                 try orderedPages = scrapService.fetchAllPages()
                 await applyTexture(to: newTsuru, texture: newPage?.markupImage)
+                
                 scene?.addChild(newTsuru)
             } catch {
-                print("erro ao adicionar novo tsuru: ", error.localizedDescription)
+                print(
+                    "erro ao adicionar novo tsuru: ",
+                    error.localizedDescription
+                )
             }
             
             selectedPage = dict[newTsuru]
@@ -124,7 +136,10 @@ class SceneViewModel {
             
         }
         lastAdded += 1
-        cameraManager.repositioningCameraNewToTsuru(animated: false, tsuruToFocus: newTsuru)
+        cameraManager.repositioningCameraNewToTsuru(
+            animated: false,
+            tsuruToFocus: newTsuru
+        )
         playTsuruAnimation(tsuruToAnimate: newTsuru)
         isFocusedOnTsuru = true
         orderedEntities = orderedEntitiesByPageCreationDate()
@@ -162,6 +177,8 @@ class SceneViewModel {
         } catch {
             print("erro ao achar tsurus: ", error.localizedDescription)
         }
+        orderedEntities = orderedEntitiesByPageCreationDate()
+        
         return
     }
     
@@ -181,20 +198,27 @@ class SceneViewModel {
                         
                         let obj = tsuru.clone(recursive: true)
                         fixTsuruPos(obj)
-                        obj.transform.rotation = simd_quatf(angle: .pi, axis: [0, 1, 0])
+                        obj.transform.rotation = simd_quatf(
+                            angle: .pi,
+                            axis: [0, 1, 0]
+                        )
                         obj.position = tsuruPositions[i]
                         
                         
                         await applyTexture(to: obj, texture: page.markupImage )
+                        
                         scene.addChild(obj)
                         playTsuruAnimation(tsuruToAnimate: obj)
-                        if let newFlapBird = obj.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
+                        if let newFlapBird = obj.children.first(where: {
+                            $0.name == "flappingBird___0PercentFolded"
+                        }) {
                             dict.updateValue(page, forKey: newFlapBird)
                         }
                     }
                 }
             }
             orderedEntities = orderedEntitiesByPageCreationDate() // ordena na hora da criacao
+            
             print("scraps adicionados: ", orderedPages.count)
         }
     }
@@ -203,20 +227,28 @@ class SceneViewModel {
     func playTsuruAnimation(tsuruToAnimate: Entity?) {
         
         if let tsuruAnimation = tsuruToAnimate?.availableAnimations.first {
-            tsuruToAnimate?.playAnimation(tsuruAnimation, transitionDuration: 0.3, startsPaused: false)
+            tsuruToAnimate?.playAnimation(
+                tsuruAnimation,
+                transitionDuration: 0.3,
+                startsPaused: false
+            )
         }
         
     }
     
     func fixTsuruPos(_ e: Entity) {
         
-        guard let newFlapBird = e.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else {
+        guard
+            let newFlapBird = e.children.first(where: {
+                $0.name == "flappingBird___0PercentFolded"
+            })
+        else {
             print("flappingBird não encontrado em: \(e.name)")
             return
         }
         
-        newFlapBird.scale = [1,1,1]
-        newFlapBird.position  = [0,0,0]
+        newFlapBird.scale = [1, 1, 1]
+        newFlapBird.position = [0, 0, 0]
         // Gera collision shapes apenas uma vez
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
@@ -228,22 +260,32 @@ class SceneViewModel {
         let sourceImage: UIImage? = scrapImage ?? UIImage(named: "teste")
         guard let cgImage = sourceImage?.cgImage else { return }
         guard let tsuru else { return }
-        guard let newFlapBird = tsuru.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) else { return }
-        
+        guard
+            let newFlapBird = tsuru.children.first(where: {
+                $0.name == "flappingBird___0PercentFolded"
+            })
+        else { return }
         
         // Create material with the texture
         do {
-            let texture = try await TextureResource(image: cgImage, options: .init(semantic: .color))
+            let texture = try await TextureResource(
+                image: cgImage,
+                options: .init(semantic: .color)
+            )
             var material = PhysicallyBasedMaterial()
             
-            let rotationRadians =  Float.pi / 180
-            material.textureCoordinateTransform = .init(scale: SIMD2<Float>(x:1, y: -1), rotation: rotationRadians)
+            let rotationRadians = Float.pi / 180
+            material.textureCoordinateTransform = .init(
+                scale: SIMD2<Float>(x: 1, y: -1),
+                rotation: rotationRadians
+            )
             material.baseColor = .init(tint: .white, texture: .init(texture))
-            material.metallic = 0.0      // Paper is not metallic
-            material.roughness = 0.7     // Paper is somewhat matte (0.6-0.8)
-            material.specular = 0.3      // Low specular reflection
+            material.metallic = 0.0  // Paper is not metallic
+            material.roughness = 0.7  // Paper is somewhat matte (0.6-0.8)
+            material.specular = 0.3  // Low specular reflection
             
-            if var modelComponent = newFlapBird.components[ModelComponent.self] {
+            if var modelComponent = newFlapBird.components[ModelComponent.self]
+            {
                 modelComponent.materials = [material]
                 newFlapBird.components[ModelComponent.self] = modelComponent
                 
@@ -252,22 +294,25 @@ class SceneViewModel {
         }
     }
     
-    func handleTap(on entity: Entity) { // toca só na arvore, pelo menos pra MVP
+    func handleTap(on entity: Entity) {  // toca só na arvore, pelo menos pra MVP
         
-        if entity.name == "Japan_HW" && !isFocusedOnBandstand {
-            cameraManager.focusOnBandstand()
-            isFocusedOnBandstand = true
-            return
+        var current: Entity? = entity
+        
+        while let ent = current {
+            if ent.name == "Japan_HW" && !isFocusedOnBandstand {
+                cameraManager.focusOnBandstand()
+                isFocusedOnBandstand = true
+                return
+            }
+            
+            if ent.name == "creditsHitbox" {
+                showCredits = true
+                return
+            }
+            current = ent.parent
         }
         
-        //        if !(entity.name == "flappingBird___0PercentFolded") && !isFocusedOnTsuru  { // toque na arvore... tiramos fora pro MVP
-        //            selectedPage = dict[entity]
-        //            let allEntities = Array(dict.keys)
-        //            let lastEntity = allEntities.last
-        //            repositioningCameraToTsuru(lastEntity)
-        //
-        //        }
-    } // essa aqui vai ficar pra depois
+    }
     
     func openTsuru() {
         
@@ -276,7 +321,9 @@ class SceneViewModel {
         
     }
     
-    func orderedEntitiesByPageCreationDate() -> Array<Entity> {  // entender isso aqui...
+    //MARK: - TSURU CONTROLS
+    
+    func orderedEntitiesByPageCreationDate() -> [Entity] {
         let arrayEntities = Array(dict.keys)
         
         let orderedEntities = arrayEntities.sorted { ent1, ent2 in
@@ -294,8 +341,7 @@ class SceneViewModel {
         guard let lastTsuru = orderedEntities.first else { return nil }
         return lastTsuru
     }
-
-
+    
     //MARK: - TSURU CONTROLS
     
     func navigateToTsuru(at side: String) {
@@ -324,7 +370,10 @@ class SceneViewModel {
             selectedPage = dict[firstTsuru]
             return
         }
-        cameraManager.repositioningCameraNewToTsuru(animated: true, tsuruToFocus: newTsuru)
+        cameraManager.repositioningCameraNewToTsuru(
+            animated: true,
+            tsuruToFocus: newTsuru
+        )
         isFocusedOnTsuru = true
     }
     
@@ -379,10 +428,16 @@ class SceneViewModel {
         print("=== DEBUG TSURU ===")
         print("Objeto pai: \(obj.name)")
         
-        if let bird = obj.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) {
+        if let bird = obj.children.first(where: {
+            $0.name == "flappingBird___0PercentFolded"
+        }) {
             print("Bird encontrado: \(bird.name)")
-            print("Tem InputTarget? \(bird.components[InputTargetComponent.self] != nil)")
-            print("Tem Collision? \(bird.components[CollisionComponent.self] != nil)")
+            print(
+                "Tem InputTarget? \(bird.components[InputTargetComponent.self] != nil)"
+            )
+            print(
+                "Tem Collision? \(bird.components[CollisionComponent.self] != nil)"
+            )
             print("Posição: \(bird.position)")
             print("Escala: \(bird.scale)")
             print("Está no dicionário? \(dict[bird] != nil)")
@@ -406,31 +461,22 @@ class SceneViewModel {
         print("numero de scraps: ", orderedEntities.count)
     }
     
+    // MARK: - TipKit Helpers
+    
+    func evaluateTipsVisibility() {
+        showNewPageTip = !UserDefaults.standard.bool(forKey: hasSeenNewPageTipKey)
+        showFocusTsuruTip = !UserDefaults.standard.bool(forKey: hasSeenFocusTsuruTipKey)
+    }
+    
+    func dismissNewPageTip() {
+        showNewPageTip = false
+        UserDefaults.standard.set(true, forKey: hasSeenNewPageTipKey)
+    }
+    
+    func dismissFocusTsuruTip() {
+        showFocusTsuruTip = false
+        UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
+    }
 }
 
-
-//    func handleTap(on entity: Entity) {
-//        print(" Tocou na entidade: \(entity.name)")
-//
-//        var current: Entity? = entity
-//
-//        // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
-//        while let ent = current {
-//            print("Encontrou entidade associada: \(ent.name)")
-//            if let page = dict[ent] {
-//                currentPage = page
-//                return
-//            }
-//
-//            // Coreto. O && serve pra ele nao ficar animando posicao estatica caso o usuario fique clicando varias vezes no coreto, ai da uma travada (melhor previnir vai saber)
-//            if ent.name == "Japan_HW" && !isFocusedOnBandstand {
-//                focusOnBandstand()
-//                isFocusedOnBandstand = true
-//                return
-//            }
-//            current = ent.parent
-//        }
-//
-//        print("Nenhuma entidade registrada encontrada na hierarquia")
-//    }
 
