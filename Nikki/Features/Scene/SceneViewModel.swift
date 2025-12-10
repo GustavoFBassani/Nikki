@@ -8,6 +8,7 @@
 import NikkiProject
 import RealityKit
 import SwiftUI
+import TipKit
 
 @MainActor
 @Observable
@@ -68,7 +69,14 @@ class SceneViewModel {
     private var cameraLook: SIMD3<Float>?
     ///Bool pra controlar o foco da camera
     var isFocusedOnBandstand = false
-
+    
+    //MARK: - Tips
+    let newPageTip = NewPageTip()
+    let focusTsuruTip = FocusTsuruTip()
+    
+    var showNewPageTip: Bool = false
+    var showFocusTsuruTip: Bool = false
+    
     //MARK: - LOAD SCENE
     func loadScene() async {
         do {
@@ -78,7 +86,6 @@ class SceneViewModel {
 
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
-
             if let bandstand = scene.findEntity(named: "Japan_HW") {
                 print("achei o coreto")
                 bandstand.generateCollisionShapes(recursive: true)
@@ -131,7 +138,7 @@ class SceneViewModel {
 
             selectedPage = dict[newTsuru]
             orderedEntities.append(newTsuru)
-
+            
         }
         lastAdded += 1
         cameraManager.repositioningCameraNewToTsuru(
@@ -297,10 +304,10 @@ class SceneViewModel {
 
         return orderedEntities
     }
-
+    
     func navigateToTsuru(at side: String) {
-        if side == "left" {  // ir para traz
-            let nextEntity = orderedEntities[pageControl + 1]
+        if side == "left"  { // ir para tras
+            let nextEntity = orderedEntities[pageControl+1]
             repositioningCameraToTsuru(nextEntity)
             selectedPage = dict[nextEntity]
             pageControl += 1
@@ -322,7 +329,6 @@ class SceneViewModel {
     func resetPageControl() {
         pageControl = 0
     }
-
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
         cameraManager.rotate(dTheta: dTheta, dPhi: dPhi)
@@ -391,7 +397,7 @@ class SceneViewModel {
             print("Erro ao salvar motivação: \(error)")
         }
     }
-
+    
     //MARK: - DEBUG FUNCTIONS
 
     func debugTsuruComponents(_ obj: Entity) {
@@ -430,5 +436,24 @@ class SceneViewModel {
         print("pageControl: ", pageControl)
         print("numero de scraps: ", orderedEntities.count)
     }
-
+    
+    // MARK: - TipKit Helpers
+    
+    private let hasSeenNewPageTipKey = "hasSeenNewPageTip"
+    private let hasSeenFocusTsuruTipKey = "hasSeenFocusTsuruTip"
+    
+    func evaluateTipsVisibility() {
+        showNewPageTip = !UserDefaults.standard.bool(forKey: hasSeenNewPageTipKey)
+        showFocusTsuruTip = !UserDefaults.standard.bool(forKey: hasSeenFocusTsuruTipKey)
+    }
+    
+    func dismissNewPageTip() {
+        showNewPageTip = false
+        UserDefaults.standard.set(true, forKey: hasSeenNewPageTipKey)
+    }
+    
+    func dismissFocusTsuruTip() {
+        showFocusTsuruTip = false
+        UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
+    }
 }

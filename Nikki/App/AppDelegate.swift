@@ -8,6 +8,7 @@
 import UIKit
 import SwiftUI
 import SwiftData
+import TipKit
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,6 +17,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private let dataScrapsContainer = ScrapService.shared.container
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
+        do {
+            try Tips.configure()
+        } catch {
+            print("Failed to configure TipKit: \(error)")
+        }
+        
         // Create the SwiftUI view that provides the window contents.
         let scenetView = NavigationStack {
             SceneView()
