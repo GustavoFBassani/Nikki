@@ -363,7 +363,7 @@ class SceneViewModel {
     }
     
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
-        cameraManager.repositioningCameraNewToTsuru(animated: true, tsuruToFocus: pickLastTsuru())
+        cameraManager.repositioningCameraNewToTsuru(animated: true, tsuruToFocus: newTsuru)
         isFocusedOnTsuru = true
     }
     
@@ -412,6 +412,23 @@ class SceneViewModel {
         }
     }
     
+    // MARK: - TipKit Helpers
+    
+    func evaluateTipsVisibility() {
+        showNewPageTip = !UserDefaults.standard.bool(forKey: hasSeenNewPageTipKey)
+        showFocusTsuruTip = !UserDefaults.standard.bool(forKey: hasSeenFocusTsuruTipKey)
+    }
+    
+    func dismissNewPageTip() {
+        showNewPageTip = false
+        UserDefaults.standard.set(true, forKey: hasSeenNewPageTipKey)
+    }
+    
+    func dismissFocusTsuruTip() {
+        showFocusTsuruTip = false
+        UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
+    }
+    
     //MARK: - DEBUG FUNCTIONS
     
     func debugTsuruComponents(_ obj: Entity) {
@@ -449,23 +466,6 @@ class SceneViewModel {
     func debugPageControl() {
         print("pageControl: ", pageControlTsuru.currentPageControl)
         print("numero de scraps: ", orderedEntities.count)
-    }
-    
-    // MARK: - TipKit Helpers
-    
-    func evaluateTipsVisibility() {
-        showNewPageTip = !UserDefaults.standard.bool(forKey: hasSeenNewPageTipKey)
-        showFocusTsuruTip = !UserDefaults.standard.bool(forKey: hasSeenFocusTsuruTipKey)
-    }
-    
-    func dismissNewPageTip() {
-        showNewPageTip = false
-        UserDefaults.standard.set(true, forKey: hasSeenNewPageTipKey)
-    }
-    
-    func dismissFocusTsuruTip() {
-        showFocusTsuruTip = false
-        UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
     }
 }
 

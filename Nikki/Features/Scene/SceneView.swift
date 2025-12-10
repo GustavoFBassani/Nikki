@@ -256,10 +256,10 @@ struct SceneView: View {
                                 .padding(.top, 12)
 
                             }
-                        } // ok
+                        }
                         
                         Button {
-                            vm.repositioningCameraToTsuru(nil)
+                            vm.repositioningCameraToTsuru(vm.pickLastTsuru())
                         } label: {
                             Image(systemName: "location")
                                 .foregroundStyle(.blueNikki)
