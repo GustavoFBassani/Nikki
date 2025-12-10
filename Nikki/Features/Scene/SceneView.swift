@@ -110,7 +110,7 @@ struct SceneView: View {
             //                    }
             //            ) // tocar no tsuru
             .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
-                CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru, reloadTsurus: vm.deleteTsurusAtScene)
+                CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.parseCanvasDateAndAddNewTsuruAtScene, reloadTsurus: vm.deleteTsurusAtScene)
 
             })
             .overlay(alignment: .topTrailing) {
@@ -158,7 +158,7 @@ struct SceneView: View {
                     Button {
                         vm.isFocusedOnTsuru = false
                         vm.repositioningCameraToTree()
-                        vm.pageControl = 0
+                        vm.resetPageControl()
                         Task {
                             vm.isCamerMovingToTree = true
                             try? await Task.sleep(nanoseconds: 1_200_000_000)
