@@ -53,6 +53,7 @@ class SceneViewModel {
     var selectedPage: Page?
     var thereIsTsuruAtRight: Bool  {pageControl != 0  }
     var thereIsTsuruAtLeft: Bool { pageControl != orderedPages.count - 1 }
+    var showCredits = false
     
     //MARK: -SCENE ENTITIES
     var scene: Entity?
@@ -79,8 +80,6 @@ class SceneViewModel {
             let camera = PerspectiveCamera()
             
             tree = scene.findEntity(named: "Cherry_Tree_2")
-            tree?.generateCollisionShapes(recursive: true)
-            tree?.components[InputTargetComponent.self] = .init()
             
             tsuru = scene.findEntity(named: "tsuru")
                         
@@ -89,6 +88,10 @@ class SceneViewModel {
                 bandstand.components[InputTargetComponent.self] = .init()
             }
             
+            if let credits = scene.findEntity(named: "creditsHitbox") {
+                credits.generateCollisionShapes(recursive: true)
+                credits.components[InputTargetComponent.self] = .init()
+            }
             //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
@@ -224,10 +227,22 @@ class SceneViewModel {
     
     func handleTap(on entity: Entity) { // toca só na arvore, pelo menos pra MVP
         
-        if entity.name == "Japan_HW" && !isFocusedOnBandstand {
-            cameraManager.focusOnBandstand()
-            isFocusedOnBandstand = true
-            return
+        var current: Entity? = entity
+        
+        // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
+        while let ent = current {
+            if ent.name == "Japan_HW" && !isFocusedOnBandstand {
+                cameraManager.focusOnBandstand()
+                isFocusedOnBandstand = true
+                return
+            }
+            
+            
+            if ent.name == "creditsHitbox" {
+                showCredits = true
+                return
+            }
+            current = ent.parent
         }
         
         //        if !(entity.name == "flappingBird___0PercentFolded") && !isFocusedOnTsuru  { // toque na arvore... tiramos fora pro MVP
