@@ -51,8 +51,9 @@ class SceneViewModel {
     var selectedPage: Page?
     var thereIsTsuruAtRight: Bool { pageControl != 0 }
     var thereIsTsuruAtLeft: Bool { pageControl != orderedPages.count - 1 }
-
-    //MARK: -SCENE ENTITIES
+    var showCredits = false
+    
+  //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
     var tsuru: Entity?
@@ -76,7 +77,6 @@ class SceneViewModel {
             let camera = PerspectiveCamera()
 
             tree = scene.findEntity(named: "Cherry_Tree_2")
-
             tsuru = scene.findEntity(named: "tsuru")
 
             if let bandstand = scene.findEntity(named: "Japan_HW") {
@@ -85,6 +85,10 @@ class SceneViewModel {
                 bandstand.components[InputTargetComponent.self] = .init()
             }
 
+            if let credits = scene.findEntity(named: "creditsHitbox") {
+                credits.generateCollisionShapes(recursive: true)
+                credits.components[InputTargetComponent.self] = .init()
+            }
             //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
@@ -254,26 +258,22 @@ class SceneViewModel {
     func handleTap(on entity: Entity) {  // toca só na arvore, pelo menos pra MVP
 
         var current: Entity? = entity
-        print(current?.name ?? "nil")
 
         while let ent = current {
-            print(current?.name ?? "nil")
             if ent.name == "Japan_HW" && !isFocusedOnBandstand {
                 cameraManager.focusOnBandstand()
                 isFocusedOnBandstand = true
                 return
             }
+
+            if ent.name == "creditsHitbox" {
+                showCredits = true
+                return
+            }
             current = ent.parent
         }
 
-        //        if !(entity.name == "flappingBird___0PercentFolded") && !isFocusedOnTsuru  { // toque na arvore... tiramos fora pro MVP
-        //            selectedPage = dict[entity]
-        //            let allEntities = Array(dict.keys)
-        //            let lastEntity = allEntities.last
-        //            repositioningCameraToTsuru(lastEntity)
-        //
-        //        }
-    }  // essa aqui vai ficar pra depois
+    } 
 
     func openTsuru() {
 
@@ -432,28 +432,3 @@ class SceneViewModel {
     }
 
 }
-
-//    func handleTap(on entity: Entity) {
-//        print(" Tocou na entidade: \(entity.name)")
-//
-//        var current: Entity? = entity
-//
-//        // Sobe pela hierarquia até encontrar uma entidade registrada no dicionário
-//        while let ent = current {
-//            print("Encontrou entidade associada: \(ent.name)")
-//            if let page = dict[ent] {
-//                currentPage = page
-//                return
-//            }
-//
-//            // Coreto. O && serve pra ele nao ficar animando posicao estatica caso o usuario fique clicando varias vezes no coreto, ai da uma travada (melhor previnir vai saber)
-//            if ent.name == "Japan_HW" && !isFocusedOnBandstand {
-//                focusOnBandstand()
-//                isFocusedOnBandstand = true
-//                return
-//            }
-//            current = ent.parent
-//        }
-//
-//        print("Nenhuma entidade registrada encontrada na hierarquia")
-//    }

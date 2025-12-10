@@ -109,7 +109,7 @@ struct SceneView: View {
                     .onEnded { _ in
                         vm.lastScale = vm.currentScale
                     }
-            )  // zoom
+            ) // zoom
             .simultaneousGesture(
                 TapGesture()
                     .targetedToAnyEntity()
@@ -117,16 +117,6 @@ struct SceneView: View {
                         vm.handleTap(on: value.entity)
                     }
             )  // tocar nos objetos
-            .navigationDestination(
-                item: $vm.openCanvasWithStyle,
-                destination: { style in
-                    CanvasView(
-                        page: vm.currentPage,
-                        paperStyle: style,
-                        addNewTsuru: vm.addNewTsuru
-                    )
-                }
-            )
             .onChange(of: vm.isFocusedOnBandstand) { _, newValue in
                 if newValue {
                     //focou no coreto
@@ -152,7 +142,9 @@ struct SceneView: View {
                         isEditingMotivation = false
                     }
                 }
-            }
+            ) // tocar no tsuru
+            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru) })
+            .navigationDestination(isPresented: $vm.showCredits){ CreditsView() }
             .overlay(alignment: .topTrailing) {
                 // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
                 if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
