@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import NikkiProject
+import TipKit
 
 @MainActor
 @Observable
@@ -71,6 +72,12 @@ class SceneViewModel {
     ///Bool pra controlar o foco da camera
     var isFocusedOnBandstand = false
     
+    //MARK: - Tips
+    let newPageTip = NewPageTip()
+    let focusTsuruTip = FocusTsuruTip()
+    
+    var showNewPageTip: Bool = false
+    var showFocusTsuruTip: Bool = false
     
     //MARK: - LOAD SCENE
     func loadScene() async {
@@ -82,7 +89,7 @@ class SceneViewModel {
             tree = scene.findEntity(named: "Cherry_Tree_2")
             
             tsuru = scene.findEntity(named: "tsuru")
-                        
+            
             if let bandstand = scene.findEntity(named: "Japan_HW") {
                 bandstand.generateCollisionShapes(recursive: true)
                 bandstand.components[InputTargetComponent.self] = .init()
@@ -128,7 +135,7 @@ class SceneViewModel {
             
             selectedPage = dict[newTsuru]
             orderedEntities.append(newTsuru)
-
+            
         }
         lastAdded += 1
         cameraManager.repositioningCameraNewToTsuru(animated: false, tsuruToFocus: newTsuru)
@@ -276,9 +283,9 @@ class SceneViewModel {
         
         return orderedEntities
     }
-
+    
     func navigateToTsuru(at side: String) {
-        if side == "left"  { // ir para traz
+        if side == "left"  { // ir para tras
             let nextEntity = orderedEntities[pageControl+1]
             repositioningCameraToTsuru(nextEntity)
             selectedPage = dict[nextEntity]
@@ -301,7 +308,7 @@ class SceneViewModel {
     func resetPageControl() {
         pageControl = 0
     }
-
+    
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
@@ -368,7 +375,7 @@ class SceneViewModel {
             print("Erro ao salvar motivação: \(error)")
         }
     }
-
+    
     //MARK: - DEBUG FUNCTIONS
     
     func debugTsuruComponents(_ obj: Entity) {
@@ -402,6 +409,25 @@ class SceneViewModel {
         print("numero de scraps: ", orderedEntities.count)
     }
     
+    // MARK: - TipKit Helpers
+    
+    private let hasSeenNewPageTipKey = "hasSeenNewPageTip"
+    private let hasSeenFocusTsuruTipKey = "hasSeenFocusTsuruTip"
+    
+    func evaluateTipsVisibility() {
+        showNewPageTip = !UserDefaults.standard.bool(forKey: hasSeenNewPageTipKey)
+        showFocusTsuruTip = !UserDefaults.standard.bool(forKey: hasSeenFocusTsuruTipKey)
+    }
+    
+    func dismissNewPageTip() {
+        showNewPageTip = false
+        UserDefaults.standard.set(true, forKey: hasSeenNewPageTipKey)
+    }
+    
+    func dismissFocusTsuruTip() {
+        showFocusTsuruTip = false
+        UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
+    }
 }
 
 
@@ -429,4 +455,3 @@ class SceneViewModel {
 //
 //        print("Nenhuma entidade registrada encontrada na hierarquia")
 //    }
-

@@ -8,6 +8,7 @@
 import RealityKit
 import SwiftData
 import SwiftUI
+import TipKit
 
 struct SceneView: View {
     
@@ -39,13 +40,13 @@ struct SceneView: View {
 
                 }
                 
-               
                 if DEBUG_SHOULD_DELETE {
                     pages.forEach { page in  ///provisorio
                         context.delete(page)
                     }
                     try? context.save()
                 }
+                vm.evaluateTipsVisibility()
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -118,6 +119,8 @@ struct SceneView: View {
             .overlay(alignment: .topTrailing) {
                 
                 if !vm.isFocusedOnTsuru {
+                    VStack(alignment: .trailing, spacing: 8) {
+                        
                     Menu {
                         ForEach(PaperStyles.allCases, id: \.self) { style in
                             Button {
@@ -126,25 +129,46 @@ struct SceneView: View {
                                 Text(style.title)
                                     .font(.custom("CaveatBrush-Regular", size: 5))
                             }
+                            
+                        } label: {
+                            Image("customPlus")
+                                .scaledToFit()
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 999)
+                                        .fill(Color.white.opacity(0.85))
+                                )
                         }
                         
-                    } label: {
-                        Image("customPlus")
-                            .scaledToFit()
-                            .frame(width: 44, height: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 999)
-                                    .fill(Color.white.opacity(0.85))
-                            )
-                            .padding(.trailing, 20)
-                            .padding(.top, 26)
+                        // tip popup
+                        if vm.showNewPageTip {
+                            ZStack(alignment: .topTrailing) {
+                                TipView(vm.newPageTip)
+                                    .tipViewStyle(BubbleTipStyle())
+                                    .tipBackground(.clear)
+                                
+                                Button {
+                                    vm.dismissNewPageTip()
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.gray)
+                                        .padding(8)
+                                }
+                                .padding(.trailing, 8)
+                                .padding(.top)
+                            }
+                            .offset(x: 0)
+                        }
                     }
+                    .padding(.trailing, 16)
+                    .padding(.top, 26)   
                     .font(.custom("CaveatBrush-Regular", size: 5))
                 } else {
                     Button {
                         vm.openTsuru()
                     } label: {
-                        Text("Abrir origami")
+                        Text("Open origami")
                             .font(Fonts.Footnote)
                             .foregroundColor(.blueNikki)
                             .padding(.horizontal, 24)
@@ -190,23 +214,42 @@ struct SceneView: View {
                 
             } // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
-                // Botão de localização só aparece:
-                // - quando NÃO está em modo de localização
-                // - e quando o canvas NÃO está aberto
                 if !vm.isFocusedOnTsuru {
-                    Button {
-                        vm.repositioningCameraToTsuru(nil)
-                    } label: {
-                        Image(systemName: "location")
-                            .foregroundStyle(.blueNikki)
-                            .font(Fonts.Footnote)
-                            .frame(width: 44, height: 44)
-                            .background(Circle().fill(Color.white.opacity(0.85)))
+                    VStack(alignment: .leading, spacing: 8) {
+
+                        if vm.showFocusTsuruTip {
+                            ZStack(alignment: .topTrailing) {
+                                TipView(vm.focusTsuruTip)
+                                    .tipViewStyle(BottomLeftBubbleTipStyle())
+                                    .tipBackground(.clear)
+
+                                Button {
+                                    vm.dismissFocusTsuruTip()
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.gray)
+                                        .padding(8)
+                                }
+                                .padding(.trailing, 8)
+                                .padding(.top, 12)
+                            }
+                        }
+
+                        Button {
+                            vm.repositioningCameraToTsuru(nil)
+                        } label: {
+                            Image(systemName: "location")
+                                .foregroundStyle(.blueNikki)
+                                .font(Fonts.Footnote)
+                                .frame(width: 44, height: 44)
+                                .background(Circle().fill(Color.white.opacity(0.85)))
+                        }
                     }
-                    .padding(.leading, 20)
+                    .padding(.leading, 16)
+                    .padding(.bottom, 24)
                 }
             } // focar nos tsurus
-
         }
     }
 }
