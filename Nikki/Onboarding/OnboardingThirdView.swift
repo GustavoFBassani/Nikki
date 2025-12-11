@@ -46,8 +46,8 @@ struct OnboardingThirdView: View {
                     OnboardingPageControl(totalPages: 4, currentPage: 2)
 
                     OnboardingButtons(
-                        primaryTitle: "Próximo",
-                        secondaryTitle: "Pular",
+                        primaryTitle: String(localized: "Próximo"),
+                        secondaryTitle: String(localized: "Pular"),
                         isSecondHidden: false,
                         onPrimaryTap: {
                             goToNext = true

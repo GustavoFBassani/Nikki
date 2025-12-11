@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		21BEF4BA2EE9EBCC00B328D8 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 21BEF4B92EE9EBCC00B328D8 /* SDWebImageSwiftUI */; };
+		BF9AFBE92EEB2BB300530047 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = BF9AFBE82EEB2BB300530047 /* Localizable.xcstrings */; };
 		C43B06F42ECBF48B006145AE /* NikkiProject in Frameworks */ = {isa = PBXBuildFile; productRef = C43B06F32ECBF48B006145AE /* NikkiProject */; };
 /* End PBXBuildFile section */
 
@@ -31,6 +32,7 @@
 /* Begin PBXFileReference section */
 		21BEF2B52EE351D800B328D8 /* NikkiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NikkiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B882EC522ED64322002DB85A /* NikkiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NikkiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF9AFBE82EEB2BB300530047 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		C43B06D22ECBF1DE006145AE /* Nikki.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nikki.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C43B06E62ECBF263006145AE /* NikkiProject */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = NikkiProject; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -96,6 +98,7 @@
 		C43B06C92ECBF1DD006145AE = {
 			isa = PBXGroup;
 			children = (
+				BF9AFBE82EEB2BB300530047 /* Localizable.xcstrings */,
 				C43B06E62ECBF263006145AE /* NikkiProject */,
 				C43B06D42ECBF1DE006145AE /* Nikki */,
 				B882EC532ED64322002DB85A /* NikkiTests */,
@@ -261,6 +264,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF9AFBE92EEB2BB300530047 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -462,6 +466,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -519,6 +524,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

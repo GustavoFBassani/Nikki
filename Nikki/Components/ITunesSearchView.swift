@@ -28,8 +28,8 @@ struct ITunesSearchView: View {
                 .padding()
             }
             .preferredColorScheme(.light)
-            .navigationTitle("Search Music")
-            .searchable(text: $viewModel.searchText, prompt: "Search music")
+            .navigationTitle("Buscar música")
+            .searchable(text: $viewModel.searchText, prompt: "Buscar música")
             .overlay {
                 if viewModel.isLoading {
                     ProgressView()

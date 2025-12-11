@@ -49,7 +49,7 @@ struct OnboardingFourthView: View {
                     OnboardingPageControl(totalPages: 4, currentPage: 3)
 
                     OnboardingButtons(
-                        primaryTitle: "Próximo",
+                        primaryTitle: String(localized: "Próximo"),
                         secondaryTitle: "",
                         isSecondHidden: true,
                         onPrimaryTap: {

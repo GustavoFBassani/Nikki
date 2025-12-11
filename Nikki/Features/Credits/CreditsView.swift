@@ -27,7 +27,7 @@ struct CreditsView: View {
                     Spacer()
                 }
                 .overlay(
-                    Text("Credits")
+                    Text("Creditos")
                         .font(.custom("CaveatBrush-Regular", size: 24))
                         .foregroundStyle(Color(.black))
                 )

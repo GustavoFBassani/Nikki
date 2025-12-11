@@ -205,7 +205,7 @@ struct SceneView: View {
                     Button {
                         vm.openTsuru()
                     } label: {
-                        Text("Open origami")
+                        Text("Abrir origami")
                             .font(Fonts.Footnote)
                             .foregroundColor(.blueNikki)
                             .padding(.horizontal, 24)
