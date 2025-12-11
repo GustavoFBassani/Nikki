@@ -257,6 +257,7 @@ struct SceneView: View {
                                 .padding(.top, 12)
 
                             }
+                            .offset(x: 18)
                         }
                         
                         Button {
