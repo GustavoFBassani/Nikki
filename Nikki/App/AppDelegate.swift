@@ -14,31 +14,19 @@ import TipKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    private let dataScrapsContainer = ScrapService.shared.container
 
     func application(
         _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]?
     ) -> Bool {
 
-        // configures TipKit on app launch
         do {
             try Tips.configure()
         } catch {
             print("Failed to configure TipKit: \(error)")
         }
 
-        // check if user has seen onboarding
-        let hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
-
-        let rootView = NavigationStack {
-            if hasSeenOnboarding {
-                SceneView()
-            } else {
-                OnboardingFirstView()
-            }
-        }
-        .modelContainer(dataScrapsContainer)
+        let rootView = RootView()
 
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
             return false
