@@ -333,6 +333,7 @@ struct SceneView: View {
                 }
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
     
