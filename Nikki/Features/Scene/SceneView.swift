@@ -121,6 +121,11 @@ struct SceneView: View {
                     .targetedToAnyEntity()
                     .onEnded { value in
                         vm.handleTap(on: value.entity)
+                        Task {
+                            vm.isCameraNotMoving = false
+                            try? await Task.sleep(nanoseconds: 1_200_000_000)
+                            vm.isCameraNotMoving = true
+                        }
                     }
             )  // tocar nos objetos
             .onChange(of: vm.isFocusedOnBandstand) { _, newValue in
@@ -264,6 +269,13 @@ struct SceneView: View {
                             if !vm.orderedPages.isEmpty {
                                 vm.repositioningCameraToTsuru(vm.pickLastTsuru())
                             }
+                            
+                            Task {
+                                vm.isCameraNotMoving = false
+                                try? await Task.sleep(nanoseconds: 700_000_000)
+                                vm.isCameraNotMoving = true
+                            }
+                            
                         } label: {
                             Image(systemName: "location")
                                 .foregroundStyle(.blueNikki)

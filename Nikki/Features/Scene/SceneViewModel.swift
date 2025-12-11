@@ -44,6 +44,7 @@ class SceneViewModel {
     //MARK: - LOGIC VIEW PROPERTIES
     var openCanvasWithStyle: PaperStyles.RawValue?
     var isCamerMovingToTree: Bool = false
+    var isCameraNotMoving: Bool = true
     var isFocusedOnBandstand = false //Bool pra controlar o foco da camera
     var currentPageControl: Int { pageControlTsuru.currentPageControl }
     
@@ -345,7 +346,12 @@ class SceneViewModel {
     
     func navigateToTsuru(at side: String) {
         pageControlTsuru.navigateToTsuru(at: side, orderedEntities: orderedEntities, selectedPage: &selectedPage, dict: &dict, repositioningCameraToTsuru: repositioningCameraToTsuru(_:))
-        debugPageControl()
+        Task {
+            isCameraNotMoving = false
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            isCameraNotMoving = true
+        }
+
     }
     
     func resetPageControl() {
@@ -354,14 +360,19 @@ class SceneViewModel {
     
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
-        cameraManager.rotate(dTheta: dTheta, dPhi: dPhi)
+        if isCameraNotMoving {
+            cameraManager.rotate(dTheta: dTheta, dPhi: dPhi)
+        }
     }
     
     func zoom(scale: Float) {
-        cameraManager.zoom(scale: scale)
+        if isCameraNotMoving {
+            cameraManager.zoom(scale: scale)
+        }
     }
     
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
+        
         cameraManager.repositioningCameraNewToTsuru(animated: true, tsuruToFocus: newTsuru)
         isFocusedOnTsuru = true
     }
