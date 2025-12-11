@@ -53,9 +53,10 @@ struct OnboardingFourthView: View {
                         secondaryTitle: "",
                         isSecondHidden: true,
                         onPrimaryTap: {
+                            // saves motivation
                             saveOnboardingMotivation(motivation)
+                            // marks onboarding as seen
                             hasSeenOnboarding = true
-                            goToNext = true
                         },
                         onSecondaryTap: { }
                     )
@@ -64,9 +65,6 @@ struct OnboardingFourthView: View {
             .padding(.top, 8)
             .navigationBarBackButtonHidden(true)
             .preferredColorScheme(.light)
-            .navigationDestination(isPresented: $goToNext) {
-                SceneView()
-            }
         }
     }
 }
