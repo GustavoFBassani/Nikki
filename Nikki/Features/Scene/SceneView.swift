@@ -155,7 +155,7 @@ struct SceneView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                // Só mostra o + quando NÃO está focado no tsuru ou NÃO está focado no coreto
+                // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
                 if !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
                     VStack(alignment: .trailing, spacing: 8) {
                         
