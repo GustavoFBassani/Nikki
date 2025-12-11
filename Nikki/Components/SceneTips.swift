@@ -10,7 +10,10 @@ import TipKit
 
 struct NewPageTip: Tip {
     var title: Text { Text("Create your scrap") }
-    var message: Text? { Text("After finishing, it will transform into an origami in the scene.") }
+    var message: Text? {
+        Text("After finishing, it will transform into an origami in the scene.")
+            .foregroundStyle(.blueNikki)
+    }
 
     var actions: [Tip.Action] { [] }
 }
@@ -22,5 +25,6 @@ struct FocusTsuruTip: Tip {
     
     var message: Text? {
         Text("Find your scraps easily")
+            .foregroundStyle(.blueNikki)
     }
 }

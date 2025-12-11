@@ -11,6 +11,7 @@ struct OrigamiSelectorToolBar: View {
     var thereIsTsuruAtRight: Bool
     var thereIsTsuruAtLeft: Bool
     var navigateToTsuru: (String)  -> Void
+    @State var isButtonDisabled: Bool = false //desabilitar botao de ir para o proximo tsuru enquanto a animação acontece
     
     private var formattedDate: String {
         let formatter = DateFormatter()
@@ -24,6 +25,12 @@ struct OrigamiSelectorToolBar: View {
                 if thereIsTsuruAtLeft {
                     Button {
                         navigateToTsuru("left")
+                        
+                        Task {
+                            isButtonDisabled = true
+                            try? await Task.sleep(nanoseconds: 500_000_100)
+                            isButtonDisabled = false
+                        }
                     } label: {
                         Image("leftChevron")
                             .resizable()
@@ -35,6 +42,7 @@ struct OrigamiSelectorToolBar: View {
                             .padding(.leading, 16)
                         
                     }
+                    .disabled(isButtonDisabled)
                 }
                 
                 Spacer()
@@ -42,6 +50,12 @@ struct OrigamiSelectorToolBar: View {
                 if thereIsTsuruAtRight {
                     Button {
                         navigateToTsuru("right")
+                        
+                        Task {
+                            isButtonDisabled = true
+                            try? await Task.sleep(nanoseconds: 500_000_100)
+                            isButtonDisabled = false
+                        }
                     } label: {
                         Image("rightChevron")
                             .resizable()
@@ -53,6 +67,8 @@ struct OrigamiSelectorToolBar: View {
                             .padding(.trailing, 16)
                         
                     }
+                    .disabled(isButtonDisabled)
+
                 }
                 
             }

@@ -42,6 +42,7 @@ struct SceneView: View {
                     vm.repositioningCameraToTree()
                     
                 }
+                
                 if DEBUG_SHOULD_DELETE {
                     pages.forEach { page in
                         ///provisorio
@@ -111,6 +112,10 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
+            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.parseCanvasDateAndAddNewTsuruAtScene, reloadTsurus: vm.deleteTsurusAtScene)
+                
+            })
+            .navigationDestination(isPresented: $vm.showCredits){ CreditsView() }
             .simultaneousGesture(
                 TapGesture()
                     .targetedToAnyEntity()
@@ -143,9 +148,7 @@ struct SceneView: View {
                         isEditingMotivation = false
                     }
                 }
-            } // tocar no tsuru
-            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.addNewTsuru) })
-            .navigationDestination(isPresented: $vm.showCredits){ CreditsView() }
+            }
             .overlay(alignment: .topTrailing) {
                 // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
                 if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
@@ -172,33 +175,33 @@ struct SceneView: View {
                         }
                         .padding(.trailing, 16)
                         .padding(.top, 26)
-
-                    }
-                    
-                } else if vm.isFocusedOnTsuru {
-                    
-                    // tip popup
-                    if vm.showNewPageTip {
-                        ZStack(alignment: .topTrailing) {
-                            TipView(vm.newPageTip)
-                                .tipViewStyle(BubbleTipStyle())
-                                .tipBackground(.clear)
-                                .padding(.top, 50)
+                        
+                        // tip popup
+                        if vm.showNewPageTip {
                             
-                            Button {
-                                vm.dismissNewPageTip()
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.gray)
-                                    .padding(8)
-                                    .font(.custom("CaveatBrush-Regular", size: 5))
+                            ZStack(alignment: .topTrailing) {
+                                TipView(vm.newPageTip)
+                                    .tipViewStyle(BubbleTipStyle())
+                                    .tipBackground(.clear)
+                                    .padding(.trailing, 16)
+                                
+                                Button {
+                                    vm.dismissNewPageTip()
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.gray)
+                                        .padding(8)
+                                        .font(.custom("CaveatBrush-Regular", size: 5))
+                                }
+                                .padding(.trailing, 32)
+                                .padding(.top, 20)
                             }
-                            .padding(.trailing, 8)
-                            .padding(.top)
+                            
                         }
+                        
                     }
-                } else {
+                }  else {
                     Button {
                         vm.openTsuru()
                     } label: {
@@ -214,131 +217,124 @@ struct SceneView: View {
                             .padding(.trailing, 16)
                             .padding(.top, 24)
                     }
-                }
-            }
-        }  // custom plus toolbar
-        .overlay(alignment: .topLeading) {
-            if vm.isFocusedOnTsuru {
-                Button {
-                    vm.isFocusedOnTsuru = false
-                    vm.repositioningCameraToTree()
-                    vm.pageControl = 0
                     
-                } label: {
-                    Image("xCustom")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                        .padding(10)
-                        .background(
-                            Circle()
-                                .fill(Color.white.opacity(0.85))
-                        )
                 }
-                .padding(.leading, 16)
-                .padding(.top, 24)
-            }
-        }  //  custom xmark toolbar
-        .overlay(alignment: .bottom) {
-            if vm.isFocusedOnTsuru {
-                OrigamiSelectorToolBar(
-                    selectedDate: vm.selectedPage?.createdAt ?? Date(),
-                    thereIsTsuruAtRight: vm.thereIsTsuruAtRight,
-                    thereIsTsuruAtLeft: vm.thereIsTsuruAtLeft,
-                    navigateToTsuru: vm.navigateToTsuru
-                )
-                .padding(.bottom, 32)
-                .transition(.move(edge: .bottom))
-            }
-            
-        }  // custom data and chevrons tabbar
-        .overlay(alignment: .bottomLeading) {
-            if !vm.isFocusedOnTsuru {
-                VStack(alignment: .leading, spacing: 8) {
-                    
-                    if vm.showFocusTsuruTip {
-                        ZStack(alignment: .topTrailing) {
-                            TipView(vm.focusTsuruTip)
-                                .tipViewStyle(BottomLeftBubbleTipStyle())
-                                .tipBackground(.clear)
-                            
-                            Button {
-                                vm.dismissFocusTsuruTip()
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.gray)
-                                    .padding(8)
+                
+            }  //  custom xmark toolbar
+            .overlay(alignment: .bottom) {
+                if vm.isFocusedOnTsuru {
+                    OrigamiSelectorToolBar(
+                        selectedDate: vm.selectedPage?.createdAt ?? Date(),
+                        thereIsTsuruAtRight: vm.thereIsTsuruAtRight,
+                        thereIsTsuruAtLeft: vm.thereIsTsuruAtLeft,
+                        navigateToTsuru: vm.navigateToTsuru
+                    )
+                    .padding(.bottom, 32)
+                    .transition(.move(edge: .bottom))
+                }
+                
+            }  // custom data and chevrons tabbar
+            .overlay(alignment: .bottomLeading) {
+                if !vm.isFocusedOnTsuru {
+                    VStack(alignment: .leading, spacing: 8) {
+                        
+                        if vm.showFocusTsuruTip {
+                            ZStack(alignment: .topTrailing) {
+                                TipView(vm.focusTsuruTip)
+                                    .tipViewStyle(BottomLeftBubbleTipStyle())
+                                    .tipBackground(.clear)
+                                
+                                Button {
+                                    vm.dismissFocusTsuruTip()
+                                    
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.gray)
+                                        .padding(8)
+                                }
+                                .padding(.trailing, 8)
+                                .padding(.top, 12)
+
                             }
-                            .padding(.trailing, 8)
-                            .padding(.top, 12)
+                        }
+                        
+                        Button {
+                            if !vm.orderedPages.isEmpty {
+                                vm.repositioningCameraToTsuru(vm.pickLastTsuru())
+                            }
+                        } label: {
+                            Image(systemName: "location")
+                                .foregroundStyle(.blueNikki)
+                                .font(Fonts.Footnote)
+                                .frame(width: 44, height: 44)
+                                .background(Circle().fill(Color.white.opacity(0.85)))
+                        }
+                        .padding(.leading, 20)
+                        .disabled(vm.isCamerMovingToTree)
+                    }
+                } else {
+
+                }
+            }
+            .overlay {
+                if showMotivationRoll {
+                    MotivationRoll(
+                        motivation: $vm.motivationText,
+                        isEditing: isEditingMotivation
+                    )
+                    .padding(
+                        EdgeInsets(
+                            top: 423,
+                            leading: 46,
+                            bottom: 156,
+                            trailing: 38
+                        )
+                    )
+                    .contentShape(Rectangle())  // garante área de toque
+                    .onTapGesture {
+                        withAnimation(.easeInOut) {
+                            isEditingMotivation = true
                         }
                     }
-                    
+                    .zIndex(1)
+                }
+            }
+            .overlay(alignment: .topLeading) {
+                if vm.isFocusedOnBandstand || vm.isFocusedOnTsuru {
                     Button {
-                        vm.repositioningCameraToTsuru(nil)
+                        vm.repositioningCameraToTree()
+                        vm.isFocusedOnBandstand = false
+                        isEditingMotivation = false
+                        vm.saveMotivation()
+                        
+                        Task {
+                            vm.isCamerMovingToTree = true
+                            try? await Task.sleep(nanoseconds: 1_200_000_000
+                            )
+                            vm.isCamerMovingToTree = false
+                        }
+                        
                     } label: {
-                        Image(systemName: "location")
-                            .foregroundStyle(.blueNikki)
-                            .font(Fonts.Footnote)
-                            .frame(width: 44, height: 44)
-                            .background(Circle().fill(Color.white.opacity(0.85)))
+                        Image("customXmark")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .padding(8)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.85))
+                            )
                     }
+                    .padding(.leading, 16)
+                    .padding(.top, 24)
+                    .zIndex(3)
                 }
-                .padding(.leading, 16)
-                .padding(.bottom, 24)
-            }
-        }
-        .overlay {
-            if showMotivationRoll {
-                MotivationRoll(
-                    motivation: $vm.motivationText,
-                    isEditing: isEditingMotivation
-                )
-                .padding(
-                    EdgeInsets(
-                        top: 423,
-                        leading: 46,
-                        bottom: 156,
-                        trailing: 38
-                    )
-                )
-                .contentShape(Rectangle())  // garante área de toque
-                .onTapGesture {
-                    withAnimation(.easeInOut) {
-                        isEditingMotivation = true
-                    }
-                }
-                .zIndex(1)
-            }
-        }
-        .overlay(alignment: .topLeading) {
-            if vm.isFocusedOnBandstand {
-                Button {
-                    vm.repositioningCameraToTree()
-                    vm.isFocusedOnBandstand = false
-                    isEditingMotivation = false
-                    vm.saveMotivation()
-                } label: {
-                    Image("customXmark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                        .padding(8)
-                        .background(
-                            Circle()
-                                .fill(Color.white.opacity(0.85))
-                        )
-                }
-                .padding(.leading, 16)
-                .padding(.top, 24)
-                .zIndex(3)
             }
         }
     }
-
 }
-
-#Preview {
-    SceneView(vm: SceneViewModel())
-}
+    
+    #Preview {
+        SceneView(vm: SceneViewModel())
+    }

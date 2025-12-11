@@ -13,22 +13,15 @@ import TipKit
 @MainActor
 @Observable
 class SceneViewModel {
-
+    
     //MARK: - MANAGER
     var cameraManager = CameraManager()
-
+    var pageControlTsuru = PageControlTsurus()
+    
     //MARK: - SERVICES
     var scrapService = ScrapService.shared
-
+    
     //MARK: - CAMERA PROPERTIES
-    /*
-     OBS: Estas propriedades devem permanecer na ViewModel, não no CameraManager.
-     Razão: Representam estado temporário dos gestos de UI (touch/drag tracking),
-     não estado da câmera orbital 3D. Manter aqui preserva a separação de
-     responsabilidades:
-     - ViewModel: interpreta gestos do usuário e orquestra comandos
-     - CameraManager: gerencia matemática e posicionamento da câmera 3D
-     */
     var lastDragPosition: CGPoint = .zero
     /// Escala atual do gesto de zoom
     var currentScale: CGFloat = 1.0
@@ -36,62 +29,63 @@ class SceneViewModel {
     var lastScale: CGFloat = 1.0
     /// controla o foco no tsuru
     var isFocusedOnTsuru: Bool = false
-
+    
     //MARK: - SCENE DATA
-    var orderedPages: [Page?] = []  // pra descarregar
-    var orderedEntities: [Entity] = []  // pra ordenar as chaves ( entidades )
-    var dict: [Entity: Page] = [:]  // dicionario que contem a parada toda
-    var pageControl: Int = 0  //controle do fluxo
+    var orderedPages: [Page?] = [] // pra descarregar
+    var orderedEntities: [Entity] = [] // pra ordenar as chaves ( entidades )
+    var dict: [Entity:Page] = [:] // dicionario que contem a parada toda
     var lastAdded: Int = 0
     let tsuruPositions: [SIMD3<Float>] = TsuruPosition.allCases.map { tsuru in
         return tsuru.position
-    }
-    var openCanvasWithStyle: PaperStyles.RawValue?
-    var selectedEntityName: Entity? = nil
+    }  // posicao dos tsurus
     var currentPage: Page? = nil
     var selectedPage: Page?
-    var thereIsTsuruAtRight: Bool { pageControl != 0 }
-    var thereIsTsuruAtLeft: Bool { pageControl != orderedPages.count - 1 }
+    
+    //MARK: - LOGIC VIEW PROPERTIES
+    var openCanvasWithStyle: PaperStyles.RawValue?
+    var isCamerMovingToTree: Bool = false
+    var isFocusedOnBandstand = false //Bool pra controlar o foco da camera
+    var currentPageControl: Int { pageControlTsuru.currentPageControl }
+    
+    //MARK: - PAGE CONTROL
+    var thereIsTsuruAtRight: Bool  {pageControlTsuru.currentPageControl != 0  }
+    var thereIsTsuruAtLeft: Bool { pageControlTsuru.currentPageControl != orderedPages.count - 1 }
     var showCredits = false
     
-  //MARK: -SCENE ENTITIES
+    //MARK: -SCENE ENTITIES
     var scene: Entity?
     var tree: Entity?
     var tsuru: Entity?
     var newTsuru: Entity?
-
+    
     // MARK: - Motivation
     private var currentMotivation: Motivation?
     var motivationText: String = ""
     var datadamotivacaodosguri: Date = Date()
-    /// Entidade que controla para onde a camera está olhando
-    /// Deve estar atualizando para mudar o foco da camera
-    private var cameraLook: SIMD3<Float>?
-    ///Bool pra controlar o foco da camera
-    var isFocusedOnBandstand = false
+    
     
     //MARK: - Tips
     let newPageTip = NewPageTip()
     let focusTsuruTip = FocusTsuruTip()
-    
     var showNewPageTip: Bool = false
     var showFocusTsuruTip: Bool = false
+    private let hasSeenNewPageTipKey = "hasSeenNewPageTip"
+    private let hasSeenFocusTsuruTipKey = "hasSeenFocusTsuruTip"
     
     //MARK: - LOAD SCENE
     func loadScene() async {
         do {
-            let scene = try await Entity(named: "Scene", in: nikkiProjectBundle)  // Carrega a cena do arquivo Reality Composer Pro ou bundle
+            let scene = try await Entity(named: "Scene", in: nikkiProjectBundle)
             self.scene = scene
             let camera = PerspectiveCamera()
-
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
+            
             if let bandstand = scene.findEntity(named: "Japan_HW") {
-                print("achei o coreto")
                 bandstand.generateCollisionShapes(recursive: true)
                 bandstand.components[InputTargetComponent.self] = .init()
             }
-
+            
             if let credits = scene.findEntity(named: "creditsHitbox") {
                 credits.generateCollisionShapes(recursive: true)
                 credits.components[InputTargetComponent.self] = .init()
@@ -99,35 +93,35 @@ class SceneViewModel {
             //            await appliyngTextureToTsuru(scrapImage: nil)
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
-
+            
             scene.addChild(camera)
             self.cameraManager.camera = camera
-
+            
             try orderedPages = scrapService.fetchAllPages()
             await loadTsurusAtScene()
-
+            
             lastAdded = orderedPages.count
-
+            
             updateCamera()
         } catch {
             print("Erro ao carregar cena: \(error)")
         }
     }
-
+    
     //MARK: PERSISTENCE FUNCTIONS
-
-    func addNewTsuru() async {
-        newTsuru = tsuru?.clone(recursive: true)  // clona o tsuru
+    
+    func parseCanvasDateAndAddNewTsuruAtScene() async {
+        newTsuru = tsuru?.clone(recursive: true) // clona o tsuru
+        
         if let newTsuru {
-            fixTsuruPos(newTsuru)  //arruma a posicao do tsuru
             newTsuru.position = tsuruPositions[lastAdded]  // coloca o tsuru na posicao certa...
             do {
-                let newPage = try scrapService.fetchLastPage()  //recupera a ultima page salva
-                dict[newTsuru] = newPage  //coloca no dicionario
-                await appliyngTextureToTsuru(
-                    scrapImage: newPage?.markupImage,
-                    tsuru: newTsuru
-                )
+                let newPage = try scrapService.fetchLastPage() //recupera a ultima page salva
+                dict[newTsuru] = newPage //coloca no dicionario
+                try orderedPages = scrapService.fetchAllPages() // atualiza no array de pages todas as paginas
+                await applyTexture(to: newTsuru, texture: newPage?.markupImage) // aplica textura
+                fixTsuruPos(newTsuru)  //arruma a posicao do tsuru
+
                 scene?.addChild(newTsuru)
             } catch {
                 print(
@@ -135,9 +129,8 @@ class SceneViewModel {
                     error.localizedDescription
                 )
             }
-
+            
             selectedPage = dict[newTsuru]
-            orderedEntities.append(newTsuru)
             
         }
         lastAdded += 1
@@ -147,23 +140,60 @@ class SceneViewModel {
         )
         playTsuruAnimation(tsuruToAnimate: newTsuru)
         isFocusedOnTsuru = true
-        orderedEntities = orderingEntities()
-    }  //ok
-
+        orderedEntities = orderedEntitiesByPageCreationDate()
+        debugPageControl()
+    }//ok
+    
+    func deleteTsurusAtScene() async {
+        
+        // 1. Remove todas as entidades da cena
+        for tsuru in orderedEntities {
+            tsuru.removeFromParent()
+        }
+        
+        // 2. LIMPA TODOS OS ARRAYS E DICIONÁRIOS
+        orderedEntities.removeAll()
+        dict.removeAll()
+        
+        // 3. Atualiza a lista de páginas do banco
+        fetchUpdatedTsurusAtOrderedPages()
+        
+        // 4. Atualiza o lastAdded baseado nas páginas atuais
+        lastAdded = orderedPages.count
+        
+        // 5. Recarrega os tsurus na cena
+        await loadTsurusAtScene()
+        
+        // 6. Reseta a câmera para a árvore
+        repositioningCameraToTree()
+        
+    }
+    
+    func fetchUpdatedTsurusAtOrderedPages() {
+        do {
+            try orderedPages = scrapService.fetchAllPages()
+        } catch {
+            print("erro ao achar tsurus: ", error.localizedDescription)
+        }
+        orderedEntities = orderedEntitiesByPageCreationDate()
+        
+        return
+    }
+    
     func loadTsurusAtScene() async {
         do {
             guard let scene else {
                 print("Cena não carregada")
                 return
             }
-
+            
             for i in 0..<orderedPages.count {
                 if orderedPages.count < 30 {
-
+                    
                     if let page = orderedPages[i] {
-
+                        
                         guard let tsuru else { return }
-
+                        
                         let obj = tsuru.clone(recursive: true)
                         fixTsuruPos(obj)
                         obj.transform.rotation = simd_quatf(
@@ -171,11 +201,10 @@ class SceneViewModel {
                             axis: [0, 1, 0]
                         )
                         obj.position = tsuruPositions[i]
-
-                        await appliyngTextureToTsuru(
-                            scrapImage: page.markupImage,
-                            tsuru: obj
-                        )
+                        
+                        
+                        await applyTexture(to: obj, texture: page.markupImage )
+                        
                         scene.addChild(obj)
                         playTsuruAnimation(tsuruToAnimate: obj)
                         if let newFlapBird = obj.children.first(where: {
@@ -186,14 +215,15 @@ class SceneViewModel {
                     }
                 }
             }
-            orderedEntities = orderingEntities()  // ordena na hora da criacao
+            orderedEntities = orderedEntitiesByPageCreationDate() // ordena na hora da criacao
+            
             print("scraps adicionados: ", orderedPages.count)
         }
     }
-
+    
     //MARK: - TSURU FUNCTIONS
     func playTsuruAnimation(tsuruToAnimate: Entity?) {
-
+        
         if let tsuruAnimation = tsuruToAnimate?.availableAnimations.first {
             tsuruToAnimate?.playAnimation(
                 tsuruAnimation,
@@ -201,11 +231,11 @@ class SceneViewModel {
                 startsPaused: false
             )
         }
-
+        
     }
-
+    
     func fixTsuruPos(_ e: Entity) {
-
+        
         guard
             let newFlapBird = e.children.first(where: {
                 $0.name == "flappingBird___0PercentFolded"
@@ -214,17 +244,17 @@ class SceneViewModel {
             print("flappingBird não encontrado em: \(e.name)")
             return
         }
-
+        
         newFlapBird.scale = [1, 1, 1]
         newFlapBird.position = [0, 0, 0]
         // Gera collision shapes apenas uma vez
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
-
+        
     }
-
-    func appliyngTextureToTsuru(scrapImage: UIImage?, tsuru: Entity?) async {
-
+    
+    func applyTexture(to tsuru: Entity?, texture scrapImage: UIImage?) async {
+        
         let sourceImage: UIImage? = scrapImage ?? UIImage(named: "teste")
         guard let cgImage = sourceImage?.cgImage else { return }
         guard let tsuru else { return }
@@ -233,7 +263,7 @@ class SceneViewModel {
                 $0.name == "flappingBird___0PercentFolded"
             })
         else { return }
-
+        
         // Create material with the texture
         do {
             let texture = try await TextureResource(
@@ -241,7 +271,7 @@ class SceneViewModel {
                 options: .init(semantic: .color)
             )
             var material = PhysicallyBasedMaterial()
-
+            
             let rotationRadians = Float.pi / 180
             material.textureCoordinateTransform = .init(
                 scale: SIMD2<Float>(x: 1, y: -1),
@@ -251,49 +281,49 @@ class SceneViewModel {
             material.metallic = 0.0  // Paper is not metallic
             material.roughness = 0.7  // Paper is somewhat matte (0.6-0.8)
             material.specular = 0.3  // Low specular reflection
-
+            
             if var modelComponent = newFlapBird.components[ModelComponent.self]
             {
                 modelComponent.materials = [material]
                 newFlapBird.components[ModelComponent.self] = modelComponent
-
+                
             }
         } catch {
         }
     }
-
-    func handleTap(on entity: Entity) {  // toca só na arvore, pelo menos pra MVP
-
+    
+    func handleTap(on entity: Entity) {
+        
         var current: Entity? = entity
-
+        
         while let ent = current {
             if ent.name == "Japan_HW" && !isFocusedOnBandstand {
                 cameraManager.focusOnBandstand()
                 isFocusedOnBandstand = true
                 return
             }
-
+            
             if ent.name == "creditsHitbox" {
                 showCredits = true
                 return
             }
             current = ent.parent
         }
-
-    } 
-
-    func openTsuru() {
-
-        currentPage = selectedPage
-        openCanvasWithStyle = currentPage?.paperStyle
-
+        
     }
-
+    
+    func openTsuru() {
+        
+        currentPage = selectedPage // isso aqui eu poderia simplesmente passar o selectedpage direto ?
+        openCanvasWithStyle = currentPage?.paperStyle
+        
+    }
+    
     //MARK: - TSURU CONTROLS
-
-    func orderingEntities() -> [Entity] {  // entender isso aqui...
+    
+    func orderedEntitiesByPageCreationDate() -> [Entity] {
         let arrayEntities = Array(dict.keys)
-
+        
         let orderedEntities = arrayEntities.sorted { ent1, ent2 in
             guard let page1 = dict[ent1], let page2 = dict[ent2] else {
                 return false
@@ -301,71 +331,54 @@ class SceneViewModel {
             // Páginas mais novas primeiro (ordem decrescente)
             return page1.createdAt ?? Date() > page2.createdAt ?? Date()
         }
-
+        
         return orderedEntities
     }
     
-    func navigateToTsuru(at side: String) {
-        if side == "left"  { // ir para tras
-            let nextEntity = orderedEntities[pageControl+1]
-            repositioningCameraToTsuru(nextEntity)
-            selectedPage = dict[nextEntity]
-            pageControl += 1
-        }
-
-        if side == "right" {  // ir para frente
-            let nextEntity = orderedEntities[pageControl - 1]
-            selectedPage = dict[nextEntity]
-            repositioningCameraToTsuru(nextEntity)
-            pageControl -= 1
-        }
-    }
-
     func pickLastTsuru() -> Entity? {
         guard let lastTsuru = orderedEntities.first else { return nil }
+        selectedPage = dict[lastTsuru] // se isso aqui estiver no repositioningcameratotsuru talvez nem precise estar no navigate to tsuru.. ai centraliza o lugar onde atualiza o selectedPage
         return lastTsuru
     }
-
-    func resetPageControl() {
-        pageControl = 0
+    
+    //MARK: - TSURU CONTROLS
+    
+    func navigateToTsuru(at side: String) {
+        pageControlTsuru.navigateToTsuru(at: side, orderedEntities: orderedEntities, selectedPage: &selectedPage, dict: &dict, repositioningCameraToTsuru: repositioningCameraToTsuru(_:))
+        debugPageControl()
     }
+    
+    func resetPageControl() {
+        pageControlTsuru.resetPageControl()
+    }
+    
     //MARK: - CAMERA FUNCTIONS
     func rotate(dTheta: Float, dPhi: Float) {
         cameraManager.rotate(dTheta: dTheta, dPhi: dPhi)
     }
-
+    
     func zoom(scale: Float) {
         cameraManager.zoom(scale: scale)
     }
-
+    
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
-        if newTsuru == nil {
-            resetPageControl()
-            print(pageControl)
-            guard let firstTsuru = pickLastTsuru() else { return }
-            repositioningCameraToTsuru(firstTsuru)
-            selectedPage = dict[firstTsuru]
-            return
-        }
-        cameraManager.repositioningCameraNewToTsuru(
-            animated: true,
-            tsuruToFocus: newTsuru
-        )
+        cameraManager.repositioningCameraNewToTsuru(animated: true, tsuruToFocus: newTsuru)
         isFocusedOnTsuru = true
     }
-
+    
     func repositioningCameraToTree() {
         cameraManager.repositioningCameraToTree(tree: tree)
         isFocusedOnTsuru = false
+        resetPageControl()
         currentPage = nil
     }
-
+    
     func updateCamera() {
         cameraManager.updateCamera()
     }
-
+    
     // MARK: - Motivation Methods
-
+    
     func loadMotivation() {
         do {
             if let motivation = try scrapService.fetchMotivation() {
@@ -381,7 +394,7 @@ class SceneViewModel {
             print("Erro ao carregar motivação: \(error)")
         }
     }
-
+    
     func saveMotivation() {
         do {
             if let motivation = currentMotivation {
@@ -398,49 +411,7 @@ class SceneViewModel {
         }
     }
     
-    //MARK: - DEBUG FUNCTIONS
-
-    func debugTsuruComponents(_ obj: Entity) {
-        print("=== DEBUG TSURU ===")
-        print("Objeto pai: \(obj.name)")
-
-        if let bird = obj.children.first(where: {
-            $0.name == "flappingBird___0PercentFolded"
-        }) {
-            print("Bird encontrado: \(bird.name)")
-            print(
-                "Tem InputTarget? \(bird.components[InputTargetComponent.self] != nil)"
-            )
-            print(
-                "Tem Collision? \(bird.components[CollisionComponent.self] != nil)"
-            )
-            print("Posição: \(bird.position)")
-            print("Escala: \(bird.scale)")
-            print("Está no dicionário? \(dict[bird] != nil)")
-
-            if let collision = bird.components[CollisionComponent.self] {
-                print("Collision shapes: \(collision.shapes.count) shapes")
-                // Mostra detalhes de cada shape
-                for (index, shape) in collision.shapes.enumerated() {
-                    print("Shape \(index): \(shape)")
-                }
-            }
-        } else {
-            print("✗ Bird NÃO encontrado!")
-        }
-        print("==================")
-
-    }
-
-    func debugPageControl() {
-        print("pageControl: ", pageControl)
-        print("numero de scraps: ", orderedEntities.count)
-    }
-    
     // MARK: - TipKit Helpers
-    
-    private let hasSeenNewPageTipKey = "hasSeenNewPageTip"
-    private let hasSeenFocusTsuruTipKey = "hasSeenFocusTsuruTip"
     
     func evaluateTipsVisibility() {
         showNewPageTip = !UserDefaults.standard.bool(forKey: hasSeenNewPageTipKey)
@@ -456,4 +427,45 @@ class SceneViewModel {
         showFocusTsuruTip = false
         UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
     }
+    
+    //MARK: - DEBUG FUNCTIONS
+    
+    func debugTsuruComponents(_ obj: Entity) {
+        print("=== DEBUG TSURU ===")
+        print("Objeto pai: \(obj.name)")
+        
+        if let bird = obj.children.first(where: {
+            $0.name == "flappingBird___0PercentFolded"
+        }) {
+            print("Bird encontrado: \(bird.name)")
+            print(
+                "Tem InputTarget? \(bird.components[InputTargetComponent.self] != nil)"
+            )
+            print(
+                "Tem Collision? \(bird.components[CollisionComponent.self] != nil)"
+            )
+            print("Posição: \(bird.position)")
+            print("Escala: \(bird.scale)")
+            print("Está no dicionário? \(dict[bird] != nil)")
+            
+            if let collision = bird.components[CollisionComponent.self] {
+                print("Collision shapes: \(collision.shapes.count) shapes")
+                // Mostra detalhes de cada shape
+                for (index, shape) in collision.shapes.enumerated() {
+                    print("Shape \(index): \(shape)")
+                }
+            }
+        } else {
+            print("✗ Bird NÃO encontrado!")
+        }
+        print("==================")
+        
+    }
+    
+    func debugPageControl() {
+        print("pageControl: ", pageControlTsuru.currentPageControl)
+        print("numero de scraps: ", orderedEntities.count)
+    }
 }
+
+

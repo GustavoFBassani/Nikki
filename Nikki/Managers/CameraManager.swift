@@ -188,7 +188,7 @@ class CameraManager  {
                 toTheta: targetTheta,
                 toPhi: targetPhi,
                 toLookAt: look,
-                duration: 1.2
+                duration: 0.5
             )
         } else {
             cameraLook = look
