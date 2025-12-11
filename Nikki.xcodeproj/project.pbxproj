@@ -222,11 +222,12 @@
 				};
 			};
 			buildConfigurationList = C43B06CD2ECBF1DE006145AE /* Build configuration list for PBXProject "Nikki" */;
-			developmentRegion = en;
+			developmentRegion = "pt-BR";
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				"pt-BR",
 			);
 			mainGroup = C43B06C92ECBF1DD006145AE;
 			minimizedProjectReferenceProxies = 1;
