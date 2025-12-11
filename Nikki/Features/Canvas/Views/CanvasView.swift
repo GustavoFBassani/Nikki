@@ -56,7 +56,7 @@ struct CanvasView: View {
         .sheet(isPresented: $viewModel.showStickers) { stickersSheet } /*Sheet para escolher stickers/carimbos*/
         .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem) /*Photo picker para selecionar imagens da galeria*/
         .onChange(of: viewModel.photoItem) { _, _ in handlePhotoSelection() } /*Observa mudanças na seleção de foto e processa a imagem*/
-        .alert("Delete page?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
+        .alert("Deletar página?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
     }
     
     // MARK: - View Components
@@ -110,8 +110,8 @@ struct CanvasView: View {
     /// Botões do alerta de confirmação de exclusão
     @ViewBuilder
     private var deleteAlertButtons: some View {
-        Button("Cancel", role: .cancel) {}
-        Button("Delete") {
+        Button("Cancelar", role: .cancel) {}
+        Button("Deletar") {
             Task {
                 await handleDeletePage()
             }
@@ -120,7 +120,7 @@ struct CanvasView: View {
     
     /// Mensagem do alerta de confirmação de exclusão
     private var deleteAlertMessage: some View {
-        Text("This action can't be undone, are you sure you want to delete this page?")
+        Text("Essa ação não pode ser desfeita, você tem certeza que deseja excluir esta página?")
     }
     
     // MARK: - Toolbar
