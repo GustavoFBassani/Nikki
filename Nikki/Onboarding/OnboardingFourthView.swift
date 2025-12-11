@@ -17,6 +17,7 @@ struct OnboardingFourthView: View {
         ZStack {
             Color("onboardingBackground")
                 .ignoresSafeArea()
+                .onTapGesture { hideKeyboard() }
 
             VStack(spacing: 0) {
 
