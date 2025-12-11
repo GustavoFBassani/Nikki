@@ -150,8 +150,8 @@ struct SceneView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
-                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
+                // Só mostra o + quando NÃO está focado no tsuru ou NÃO está focado no coreto
+                if !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
                     VStack(alignment: .trailing, spacing: 8) {
                         
                         Menu {
@@ -201,11 +201,11 @@ struct SceneView: View {
                         }
                         
                     }
-                }  else {
+                }  else if vm.isFocusedOnTsuru {
                     Button {
                         vm.openTsuru()
                     } label: {
-                        Text("Open origami")
+                        Text("Abrir origami")
                             .font(Fonts.Footnote)
                             .foregroundColor(.blueNikki)
                             .padding(.horizontal, 24)
@@ -235,7 +235,7 @@ struct SceneView: View {
                 
             }  // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
-                if !vm.isFocusedOnTsuru {
+                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
                     VStack(alignment: .leading, spacing: 8) {
                         
                         if vm.showFocusTsuruTip {
