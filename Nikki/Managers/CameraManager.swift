@@ -221,7 +221,7 @@ class CameraManager  {
                     toTheta: targetTheta,
                     toPhi: targetPhi,
                     toLookAt: look,
-                    duration: 1.5
+                    duration: 1.0
                 )
             } else {
                 self.cameraLook = look
@@ -272,7 +272,7 @@ class CameraManager  {
             toTheta: theta,
             toPhi: phi,
             toLookAt: look,
-            duration: 1.5
+            duration: 1.0
         )
     }
 

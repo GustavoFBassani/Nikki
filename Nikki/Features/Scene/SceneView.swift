@@ -121,6 +121,11 @@ struct SceneView: View {
                     .targetedToAnyEntity()
                     .onEnded { value in
                         vm.handleTap(on: value.entity)
+                        Task {
+                            vm.isCameraNotMoving = false
+                            try? await Task.sleep(nanoseconds: 1_200_000_000)
+                            vm.isCameraNotMoving = true
+                        }
                     }
             )  // tocar nos objetos
             .onChange(of: vm.isFocusedOnBandstand) { _, newValue in
@@ -151,7 +156,7 @@ struct SceneView: View {
             }
             .overlay(alignment: .topTrailing) {
                 // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
-                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
+                if !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
                     VStack(alignment: .trailing, spacing: 8) {
                         
                         Menu {
@@ -201,7 +206,7 @@ struct SceneView: View {
                         }
                         
                     }
-                }  else {
+                }  else if vm.isFocusedOnTsuru {
                     Button {
                         vm.openTsuru()
                     } label: {
@@ -235,7 +240,7 @@ struct SceneView: View {
                 
             }  // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
-                if !vm.isFocusedOnTsuru {
+                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
                     VStack(alignment: .leading, spacing: 8) {
                         
                         if vm.showFocusTsuruTip {
@@ -264,6 +269,13 @@ struct SceneView: View {
                             if !vm.orderedPages.isEmpty {
                                 vm.repositioningCameraToTsuru(vm.pickLastTsuru())
                             }
+                            
+                            Task {
+                                vm.isCameraNotMoving = false
+                                try? await Task.sleep(nanoseconds: 700_000_000)
+                                vm.isCameraNotMoving = true
+                            }
+                            
                         } label: {
                             Image(systemName: "location")
                                 .foregroundStyle(.blueNikki)
