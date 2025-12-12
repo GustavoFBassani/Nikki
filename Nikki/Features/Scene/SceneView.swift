@@ -344,6 +344,8 @@ struct SceneView: View {
                     .zIndex(3)
                 }
             }
+            .sensoryFeedback(.impact, trigger: vm.selectedPage)
+
         }
         .navigationBarBackButtonHidden(true)
     }

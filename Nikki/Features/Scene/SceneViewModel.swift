@@ -47,6 +47,7 @@ class SceneViewModel {
     var isCameraNotMoving: Bool = true
     var isFocusedOnBandstand = false //Bool pra controlar o foco da camera
     var currentPageControl: Int { pageControlTsuru.currentPageControl }
+    let generator = UIImpactFeedbackGenerator(style: .rigid)
     
     //MARK: - PAGE CONTROL
     var thereIsTsuruAtRight: Bool  {pageControlTsuru.currentPageControl != 0  }
@@ -346,6 +347,9 @@ class SceneViewModel {
     
     func navigateToTsuru(at side: String) {
         pageControlTsuru.navigateToTsuru(at: side, orderedEntities: orderedEntities, selectedPage: &selectedPage, dict: &dict, repositioningCameraToTsuru: repositioningCameraToTsuru(_:))
+            generator.impactOccurred()
+        
+
         Task {
             isCameraNotMoving = false
             try? await Task.sleep(nanoseconds: 500_000_000)
