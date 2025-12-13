@@ -7,12 +7,27 @@
 
 import SwiftUI
 
+
+
 struct OnboardingFourthView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
 
     @State private var goToNext = false
-    @State var motivation: String = ""
-
+    @State var motivationString: String = ""
+    
+    func saveOnboardingMotivation(_ rawText: String) {
+        let text = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        
+        do {
+            let service = MotivationService.shared
+            let motivation = Motivation(text: text, updatedAt: Date())
+            try service.saveMotivation(motivation)
+        } catch {
+            print("Erro ao salvar motivação no onboarding: \(error)")
+        }
+    }
+    
     var body: some View {
         ZStack {
             Color("onboardingBackground")
@@ -26,7 +41,7 @@ struct OnboardingFourthView: View {
                         .font(.custom("CaveatBrush-Regular", size: 38))
                         .foregroundStyle(.blueNikki)
 
-                    MotivationRoll(motivation: $motivation, isEditing: true)
+                    MotivationRoll(motivation: $motivationString, isEditing: true)
                 }
                 .padding(.top, 32)
 
@@ -54,7 +69,7 @@ struct OnboardingFourthView: View {
                         isSecondHidden: true,
                         onPrimaryTap: {
                             // saves motivation
-                            saveOnboardingMotivation(motivation)
+                            saveOnboardingMotivation(motivationString)
                             // marks onboarding as seen
                             hasSeenOnboarding = true
                         },

@@ -13,7 +13,7 @@ class Motivation {
     var text: String?
     var updatedAt: Date?
 
-    init(text: String = "", updatedAt: Date = Date()) {
+    init(text: String, updatedAt: Date) {
         self.text = text
         self.updatedAt = updatedAt
     }
