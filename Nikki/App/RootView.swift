@@ -14,7 +14,7 @@ struct RootView: View {
     
     // same ScrapService container
     private let dataScrapsContainer = ScrapService.shared.container
-
+    private let dataMotivationContainer = MotivationService.shared.container
     var body: some View {
         Group {
             if hasSeenOnboarding {
@@ -26,5 +26,6 @@ struct RootView: View {
             }
         }
         .modelContainer(dataScrapsContainer)
+        .modelContainer(dataMotivationContainer)
     }
 }

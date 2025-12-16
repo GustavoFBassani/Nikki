@@ -1,5 +1,5 @@
 {
-  "sourceLanguage" : "en",
+  "sourceLanguage" : "pt-BR",
   "strings" : {
     "*Clique no pergaminho para escrever sua motivação\nVocê poderá atualizar quando quiser" : {
       "comment" : "A footnote explaining how to use the motivation text field and that it can be updated later.",

@@ -20,6 +20,7 @@ class SceneViewModel {
     
     //MARK: - SERVICES
     var scrapService = ScrapService.shared
+    var motivationService = MotivationService.shared
     
     //MARK: - CAMERA PROPERTIES
     var lastDragPosition: CGPoint = .zero
@@ -47,6 +48,7 @@ class SceneViewModel {
     var isCameraNotMoving: Bool = true
     var isFocusedOnBandstand = false //Bool pra controlar o foco da camera
     var currentPageControl: Int { pageControlTsuru.currentPageControl }
+    let generator = UIImpactFeedbackGenerator(style: .rigid)
     
     //MARK: - PAGE CONTROL
     var thereIsTsuruAtRight: Bool  {pageControlTsuru.currentPageControl != 0  }
@@ -62,7 +64,7 @@ class SceneViewModel {
     // MARK: - Motivation
     private var currentMotivation: Motivation?
     var motivationText: String = ""
-    var datadamotivacaodosguri: Date = Date()
+    var dateMotivation: Date?
     
     
     //MARK: - Tips
@@ -346,6 +348,9 @@ class SceneViewModel {
     
     func navigateToTsuru(at side: String) {
         pageControlTsuru.navigateToTsuru(at: side, orderedEntities: orderedEntities, selectedPage: &selectedPage, dict: &dict, repositioningCameraToTsuru: repositioningCameraToTsuru(_:))
+            generator.impactOccurred()
+        
+
         Task {
             isCameraNotMoving = false
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -392,14 +397,14 @@ class SceneViewModel {
     
     func loadMotivation() {
         do {
-            if let motivation = try scrapService.fetchMotivation() {
+            if let motivation = try motivationService.fetchMotivation() {
                 currentMotivation = motivation
                 motivationText = motivation.text ?? ""
-                datadamotivacaodosguri = motivation.updatedAt ?? Date()
+                dateMotivation = motivation.updatedAt ?? Date()
             } else {
                 currentMotivation = nil
                 motivationText = ""
-                datadamotivacaodosguri = .now
+                dateMotivation = .now
             }
         } catch {
             print("Erro ao carregar motivação: \(error)")
@@ -411,10 +416,10 @@ class SceneViewModel {
             if let motivation = currentMotivation {
                 motivation.text = motivationText
                 motivation.updatedAt = Date()
-                try scrapService.updateMotivation(motivation)
+                try motivationService.updateMotivation(motivation)
             } else {
-                let newMotivation = Motivation(text: motivationText)
-                try scrapService.saveMotivation(newMotivation)
+                let newMotivation = Motivation(text: motivationText, updatedAt: Date())
+                try motivationService.saveMotivation(newMotivation)
                 currentMotivation = newMotivation
             }
         } catch {

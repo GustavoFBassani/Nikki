@@ -37,11 +37,11 @@ struct SceneView: View {
             .task {
                 if vm.scene == nil {
                     await vm.loadScene()
-                    vm.loadMotivation()
                     try? await Task.sleep(nanoseconds: 200_000_000)
                     vm.repositioningCameraToTree()
-                    
                 }
+                
+                vm.loadMotivation()
                 
                 if DEBUG_SHOULD_DELETE {
                     pages.forEach { page in
@@ -344,6 +344,8 @@ struct SceneView: View {
                     .zIndex(3)
                 }
             }
+            .sensoryFeedback(.impact, trigger: vm.selectedPage)
+
         }
         .navigationBarBackButtonHidden(true)
     }
