@@ -46,8 +46,14 @@ private struct PaperControllerView: UIViewControllerRepresentable {
         controller
     }
 
-    // Atualiza o UIViewController se o SwiftUI mudar algo (aqui não faz nada)
-    func updateUIViewController(_ uiViewController: PaperMarkupViewController, context: Context) { }
+    // Mantem o UIViewController sincronizado caso o estado do editor seja atualizado pelo SwiftUI.
+    func updateUIViewController(_ uiViewController: PaperMarkupViewController, context: Context) {
+        uiViewController.markup = controller.markup
+
+        if uiViewController.contentView !== controller.contentView {
+            uiViewController.contentView = controller.contentView
+        }
+    }
     
     
 }

@@ -14,13 +14,9 @@ class MotivationService {
     let context: ModelContext
     
     private init() {
-        do {
-            // Versão simples e recomendada
-            container = try ModelContainer(for: Motivation.self)
-            context = ModelContext(container)
-        } catch {
-            fatalError("Erro ao criar ModelContainer: \(error)")
-        }
+        let persistence = PersistenceController.shared
+        container = persistence.container
+        context = container.mainContext
     }
     
     // MARK: - CRUD de Motivation

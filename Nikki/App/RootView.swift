@@ -11,10 +11,8 @@ import SwiftData
 
 struct RootView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
-    
-    // same ScrapService container
-    private let dataScrapsContainer = ScrapService.shared.container
-    private let dataMotivationContainer = MotivationService.shared.container
+
+    private let dataContainer = PersistenceController.shared.container
     var body: some View {
         Group {
             if hasSeenOnboarding {
@@ -25,7 +23,6 @@ struct RootView: View {
                 }
             }
         }
-        .modelContainer(dataScrapsContainer)
-        .modelContainer(dataMotivationContainer)
+        .modelContainer(dataContainer)
     }
 }
