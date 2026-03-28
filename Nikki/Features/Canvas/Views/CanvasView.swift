@@ -20,6 +20,7 @@ struct CanvasView: View {
     @State private var showDeleteAlert = false
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
+    @State private var showExportMenu = false
     @Environment(\.dismiss) private var dismiss
     var addNewTsuru: () async -> Void
     var reloadTsurus: () async -> Void
@@ -57,6 +58,11 @@ struct CanvasView: View {
         .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem) /*Photo picker para selecionar imagens da galeria*/
         .onChange(of: viewModel.photoItem) { _, _ in handlePhotoSelection() } /*Observa mudanças na seleção de foto e processa a imagem*/
         .alert("Deletar página?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
+        .overlay(alignment: .center) {
+            if showExportMenu {
+                exportOverlay
+            }
+        }
     }
     
     // MARK: - View Components
@@ -79,6 +85,57 @@ struct CanvasView: View {
                 showMusics: { viewModel.showITunesSearch.toggle() },    // Abre a busca de músicas
                 showStickers: { viewModel.showStickers.toggle() }       // Abre a seleção de stickers
             )
+        }
+    }
+    
+    /// Overlay customizado com opções de export
+    @ViewBuilder
+    private var exportOverlay: some View {
+        ZStack {
+            // Fundo semi-transparente
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    showExportMenu = false
+                }
+            
+            // Card com opções
+            VStack(spacing: 20) {
+                // Header com dismiss
+                HStack {
+                    Button(action: { showExportMenu = false }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.black)
+                    }
+                    Spacer()
+                }
+                .padding(.bottom, 10)
+                
+                // Opções de export
+                Button(action: { handleExportImageOnly() }) {
+                    Text("Only image")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.blueNikki)
+                        .cornerRadius(8)
+                }
+                
+                Button(action: { handleExportWithCanvas() }) {
+                    Text("Canvas")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.blueNikki)
+                        .cornerRadius(8)
+                }
+            }
+            .padding(24)
+            .background(Color.white)
+            .cornerRadius(16)
         }
     }
     
@@ -128,21 +185,28 @@ struct CanvasView: View {
     /// Toolbar superior com ações principais: deletar, desfazer e salvar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                // Botão para deletar a página atual
-                Button(role: .destructive, action: { showDeleteAlert = true }) {
-                    Image(.customGarbage)
-                }
-                
-                // Botão para desfazer última ação (TODO: implementar funcionalidade)
-                Button(action: handleUndo) {
-                    Image(.undo)
-                }
-                
-                // Botão para salvar a página e fechar o canvas
-                Button(action: handleSave) {
-                    Image(.tsuruBird)
-                        .accessibilityIdentifier("canvas_save_button")
+            ToolbarItem(placement: .navigationBarTrailing) {
+                HStack(spacing: 16) {
+                    Button(role: .destructive, action: { showDeleteAlert = true }) {
+                        Image(.customGarbage)
+                    }
+
+                    // Botão para desfazer última ação (TODO: implementar funcionalidade)
+                    Button(action: handleUndo) {
+                        Image(.undo)
+                    }
+
+                    Button(action: { showExportMenu = true }) {
+                        Image("shareCustom")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 25, height: 25)
+                    }
+
+                    Button(action: handleSave) {
+                        Image(.tsuruBird)
+                            .accessibilityIdentifier("canvas_save_button")
+                    }
                 }
             }
             
@@ -193,6 +257,26 @@ struct CanvasView: View {
     /// TODO: Implementar funcionalidade de undo
     private func handleUndo() {
         viewModel.undoAction()
+    }
+    
+    private func handleExportImageOnly() {
+        showExportMenu = false
+        Task {
+            guard let image = await viewModel.exportImageOnly() else {
+                return
+            }
+            viewModel.shareExportedImage(image)
+        }
+    }
+    
+    private func handleExportWithCanvas() {
+        showExportMenu = false
+        Task {
+            guard let image = await viewModel.exportWithCanvas() else {
+                return
+            }
+            viewModel.shareExportedImage(image)
+        }
     }
     
     /// Salva a página atual no SwiftData e fecha a view

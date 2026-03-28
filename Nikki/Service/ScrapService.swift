@@ -2,8 +2,6 @@
 //  SwiftDataManager.swift
 //  POCCanvas
 //
-//  Created by GitHub Copilot on 19/11/25.
-//
 
 import Foundation
 import SwiftData

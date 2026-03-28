@@ -128,22 +128,17 @@ class CanvasViewModel {
     
     // MARK: - Persistence Methods
     
-    /// Salva ou atualiza a página atual
     func savePage() async throws {
-        // Exporta o Data do PaperKit
         let data = await editorData.exportMarkupData()
-        let image = await editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610))) //exportar imagem
+        let image = await editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
         
-        // Converte UIImage para Data (PNG)
         let imageData = image?.pngData()
         
         if let page = currentPage {
-            // Atualiza página existente
             page.markupData = data
-            page.markupImageData = imageData  // Salva como Data
+            page.markupImageData = imageData
             try dataManager.updatePage(page)
         } else {
-            // Cria nova página
             let newPage = Page(title: "Nova Página", markupData: data, paperStyle: paperStyle, markupImageData: imageData)
             try dataManager.savePage(newPage)
             currentPage = newPage
@@ -157,9 +152,61 @@ class CanvasViewModel {
         currentPage = nil
     }
     
-    // MARK: - Photo Handling
+    // MARK: - Export Methods
     
-    /// Processa a foto selecionada e insere no editor
+    /// Export only the image
+    func exportImageOnly() async -> UIImage? {
+        return await editorData.exportAsImage(CGRect(origin: .zero, size: canvasSize))
+    }
+    
+    /// Export the image with the frame
+    func exportWithCanvas() async -> UIImage? {
+        guard let exportedImage = await exportImageOnly() else {
+            return nil
+        }
+        
+        guard let frameAsset = UIImage(named: "exportCanvas") ?? UIImage(named: "canvasExport") else {
+            return exportedImage
+        }
+        
+        let frameSize = frameAsset.size
+        let finalImage = UIGraphicsImageRenderer(size: frameSize).image { context in
+            let imageRect = CGRect(origin: .zero, size: frameSize)
+            
+            exportedImage.draw(in: imageRect)
+            
+            frameAsset.draw(in: CGRect(origin: .zero, size: frameSize))
+        }
+        
+        return finalImage
+    }
+    
+    func shareExportedImage(_ image: UIImage) {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first,
+              let rootViewController = window.rootViewController else {
+            return
+        }
+        
+        let activityViewController = UIActivityViewController(
+            activityItems: [image],
+            applicationActivities: nil
+        )
+        activityViewController.excludedActivityTypes = [
+            .print,
+            .assignToContact,
+            .saveToCameraRoll,
+            .markupAsPDF,
+            .addToReadingList,
+            .collaborationCopyLink,
+            .collaborationInviteWithLink,
+            .mail,
+        ]
+
+        rootViewController.present(activityViewController, animated: true)
+    }
+    
+    // MARK: - Photo Handling
     func handlePhotoSelection() async {
         guard let photoItem = photoItem else { return }
         
