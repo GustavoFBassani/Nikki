@@ -2,8 +2,6 @@
 //  SwiftDataManager.swift
 //  POCCanvas
 //
-//  Created by GitHub Copilot on 19/11/25.
-//
 
 import Foundation
 import SwiftData
@@ -20,13 +18,9 @@ class ScrapService {
     
     // MARK: - Initialization
     private init() {
-        do {
-            // Versão simples e recomendada
-            container = try ModelContainer(for: Page.self)
-            context = ModelContext(container)
-        } catch {
-            fatalError("Erro ao criar ModelContainer: \(error)")
-        }
+        let persistence = PersistenceController.shared
+        container = persistence.container
+        context = container.mainContext
     }
     
     // MARK: - CRUD Operations

@@ -50,8 +50,8 @@ class EditorData {
         // featureSet.remove(.loupes)
         // let controller = PaperMarkupViewController(supportedFeatureSet: featureSet) caso queira escolher as ferramentas igual WWDC
         
-        // Caso usemos delegate tem que descomentar aqui
-        // controller.delegate = self
+        // Mantem o markup sincronizado em tempo real conforme edicoes do usuario.
+        controller.delegate = self
         controller.loadViewIfNeeded()
         
         let canvasBackground = UIColor(named: "canvasBackground")
@@ -276,16 +276,16 @@ extension NSAttributedString {
 }
 
 // Usando delegate (atualmente, quando salvamos, apenas atribuimos o markup da controller com o markup dessa clase, para nao salvar a todo instante com o didChangeMarkup. Questão de esolha apenas. Importante lembrar que tem 2 markups, dessa classe e da controller)
-//extension EditorData: PaperMarkupViewController.Delegate {
-//    func paperMarkupViewControllerDidChangeSelection(_ paperMarkupViewController: PaperMarkupViewController) {}
-//
-//    func paperMarkupViewControllerDidBeginDrawing(_ paperMarkupViewController: PaperMarkupViewController) {}
-//
-//    func paperMarkupViewControllerDidChangeContentVisibleFrame(_ paperMarkupViewController: PaperMarkupViewController) { }
-//
-//    func paperMarkupViewControllerDidChangeMarkup(_ paperMarkupViewController: PaperMarkupViewController) {
-//        self.markup = paperMarkupViewController.markup
-//    }
-//}
+extension EditorData: PaperMarkupViewController.Delegate {
+    func paperMarkupViewControllerDidChangeSelection(_ paperMarkupViewController: PaperMarkupViewController) {}
+
+    func paperMarkupViewControllerDidBeginDrawing(_ paperMarkupViewController: PaperMarkupViewController) {}
+
+    func paperMarkupViewControllerDidChangeContentVisibleFrame(_ paperMarkupViewController: PaperMarkupViewController) { }
+
+    func paperMarkupViewControllerDidChangeMarkup(_ paperMarkupViewController: PaperMarkupViewController) {
+        self.markup = paperMarkupViewController.markup
+    }
+}
 
 // Possivelmente problemas posteriores que teremos estarão respondidos aqui: https://blog.objectivepixel.com/posts/using-paperkit-papermarkerview-in-swiftui/#architecture-overview
