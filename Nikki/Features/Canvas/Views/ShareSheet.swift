@@ -25,7 +25,7 @@ struct ShareSheet: View {
                     Spacer(minLength: 0)
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal)
             .padding(.top, 8)
             .padding(.bottom, 18)
 

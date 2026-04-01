@@ -66,7 +66,7 @@ struct CanvasView: View {
         .sheet(isPresented: $viewModel.showStickers) { stickersSheet } /*Sheet para escolher stickers/carimbos*/
         .sheet(isPresented: $showCustomShare, onDismiss: handleShareSheetDismiss) {
             customShareSheet
-                .presentationDetents([.height(360)])
+                .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
                 .presentationCornerRadius(24)
         }
