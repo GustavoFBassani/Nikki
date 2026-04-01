@@ -68,6 +68,11 @@ class CanvasViewModel {
     func undoAction() {
         editorData.undo()
     }
+
+    /// Stops any active preview audio played from iTunes selection.
+    func stopPreviewAudio() {
+        audioPlayer.stop()
+    }
     
     private func centeredRect(for itemSize: CGSize) -> CGRect {
         let origin = CGPoint(

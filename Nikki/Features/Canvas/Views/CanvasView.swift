@@ -72,6 +72,7 @@ struct CanvasView: View {
         }
         .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem) /*Photo picker para selecionar imagens da galeria*/
         .onChange(of: viewModel.photoItem) { _, _ in handlePhotoSelection() } /*Observa mudanças na seleção de foto e processa a imagem*/
+        .onDisappear { handleCanvasExit() }
         .alert("Delete page?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
         .overlay(alignment: .center) {
             if isPreparingShare {
@@ -358,6 +359,11 @@ struct CanvasView: View {
         Task {
             await viewModel.handlePhotoSelection()
         }
+    }
+
+    /// Called when leaving canvas to avoid audio leaking into previous screens.
+    private func handleCanvasExit() {
+        viewModel.stopPreviewAudio()
     }
 }
 
