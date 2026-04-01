@@ -18,6 +18,7 @@ class CanvasViewModel {
     // MARK: - Services
     private let iTunesService = ITunesService()
     private let dataManager = ScrapService.shared
+    let shareService = ShareService()
     let audioRecorder = AudioRecorder()
     private let audioPlayer = AudioPlayer.shared
     private let canvasSize = CGSize(width: 3610, height: 3610)
@@ -120,7 +121,6 @@ class CanvasViewModel {
           guard let image = UIImage(named: name) else { return }
           
           let size = CGSize(width: 800, height: 800)
-//          let origin = CGPoint(x: 20, y: 20)
           let rect = centeredRect(for: size)
           
           editorData.insertImage(image, rect: rect)
@@ -154,12 +154,12 @@ class CanvasViewModel {
     
     // MARK: - Export Methods
     
-    /// Export only the image
+    /// Exports only the canvas content image, without decorative frame.
     func exportImageOnly() async -> UIImage? {
         return await editorData.exportAsImage(CGRect(origin: .zero, size: canvasSize))
     }
     
-    /// Export the image with the frame
+    /// Exports the canvas merged with the decorative frame used in share flows.
     func exportWithCanvas() async -> UIImage? {
         guard let exportedImage = await exportImageOnly() else {
             return nil
@@ -169,41 +169,61 @@ class CanvasViewModel {
             return exportedImage
         }
         
+        // Merges the asset with the scrap
         let frameSize = frameAsset.size
-        let finalImage = UIGraphicsImageRenderer(size: frameSize).image { context in
-            let imageRect = CGRect(origin: .zero, size: frameSize)
-            
-            exportedImage.draw(in: imageRect)
-            
-            frameAsset.draw(in: CGRect(origin: .zero, size: frameSize))
+        let frameRect = CGRect(origin: .zero, size: frameSize)
+        let contentRect = contentRectForFrame(frameRect)
+        let cornerRadius = cornerRadiusForFrame(frameRect)
+
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = frameAsset.scale
+        format.opaque = false
+
+        let finalImage = UIGraphicsImageRenderer(size: frameSize, format: format).image { context in
+            let canvasRect = aspectFillRect(for: exportedImage.size, in: contentRect)
+
+            context.cgContext.saveGState()
+            UIBezierPath(
+                roundedRect: contentRect,
+                cornerRadius: cornerRadius
+            ).addClip()
+            exportedImage.draw(in: canvasRect)
+            context.cgContext.restoreGState()
+
+            frameAsset.draw(in: frameRect)
         }
         
         return finalImage
     }
-    
-    func shareExportedImage(_ image: UIImage) {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = scene.windows.first,
-              let rootViewController = window.rootViewController else {
-            return
-        }
-        
-        let activityViewController = UIActivityViewController(
-            activityItems: [image],
-            applicationActivities: nil
-        )
-        activityViewController.excludedActivityTypes = [
-            .print,
-            .assignToContact,
-            .saveToCameraRoll,
-            .markupAsPDF,
-            .addToReadingList,
-            .collaborationCopyLink,
-            .collaborationInviteWithLink,
-            .mail,
-        ]
 
-        rootViewController.present(activityViewController, animated: true)
+    private func aspectFillRect(for imageSize: CGSize, in container: CGRect) -> CGRect {
+        guard imageSize.width > 0, imageSize.height > 0 else { return container }
+
+        let widthRatio = container.width / imageSize.width
+        let heightRatio = container.height / imageSize.height
+        let scale = max(widthRatio, heightRatio)
+
+        let fittedSize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
+        let origin = CGPoint(
+            x: container.midX - fittedSize.width / 2,
+            y: container.midY - fittedSize.height / 2
+        )
+
+        return CGRect(origin: origin, size: fittedSize)
+    }
+
+    private func contentRectForFrame(_ frameRect: CGRect) -> CGRect {
+        let insetRatio: CGFloat = 0.064
+        return frameRect.insetBy(
+            dx: frameRect.width * insetRatio,
+            dy: frameRect.height * insetRatio
+        )
+    }
+
+    private func cornerRadiusForFrame(_ frameRect: CGRect) -> CGFloat {
+        let referenceWidth: CGFloat = 768
+        let referenceRadius: CGFloat = 4
+        return (frameRect.width / referenceWidth) * referenceRadius
     }
     
     // MARK: - Photo Handling

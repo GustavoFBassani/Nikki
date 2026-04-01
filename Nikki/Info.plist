@@ -2,6 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>InstagramAppID</key>
+	<string>1156927169939216</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>instagram-stories</string>
+	</array>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Allows the app to save your scraps to the Photo Library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allows you to choose a photo from your library to use in the app.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>CaveatBrush-Regular.ttf</string>

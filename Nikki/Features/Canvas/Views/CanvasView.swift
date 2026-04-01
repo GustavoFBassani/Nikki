@@ -10,17 +10,28 @@ import PaperKit
 import PhotosUI
 import MusicKit
 import AVFoundation
+import UIKit
 
 // MARK: - CanvasView
 /// View principal do canvas que permite ao usuário criar e editar páginas com diferentes tipos de conteúdo
 /// Suporta: desenho com PencilKit, inserção de imagens, stickers, texto e música
 struct CanvasView: View {
+    private enum PendingShareAction {
+        case otherApps(UIImage)
+        case messages(UIImage)
+    }
+
     // MARK: - Properties
     @State private var viewModel: CanvasViewModel
     @State private var showDeleteAlert = false
     @State private var isTabBarHidden = true
     @State private var showCheckMark = false
-    @State private var showExportMenu = false
+    @State private var isPreparingShare = false
+    @State private var showCustomShare = false
+    @State private var pendingShareAction: PendingShareAction?
+    @State private var exportedImageToShare: UIImage?
+    @State private var showShareFeedback = false
+    @State private var shareFeedbackMessage = ""
     @Environment(\.dismiss) private var dismiss
     var addNewTsuru: () async -> Void
     var reloadTsurus: () async -> Void
@@ -45,24 +56,43 @@ struct CanvasView: View {
     
     // MARK: - Body
     var body: some View {
-        NavigationStack {
-            editorContent
-                .toolbar { toolbarContent }
-                .overlay(alignment: .bottom) { tabBarOverlay }
-        }
+        editorContent
+            .toolbar { toolbarContent }
+            .overlay(alignment: .bottom) { tabBarOverlay }
         .preferredColorScheme(.light)
         .toolbarColorScheme(.light, for: .navigationBar)
         .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
         .sheet(isPresented: $viewModel.showAudioPicker) { audioPickerSheet } /*Sheet para escolher áudios gravados*/
         .sheet(isPresented: $viewModel.showStickers) { stickersSheet } /*Sheet para escolher stickers/carimbos*/
+        .sheet(isPresented: $showCustomShare, onDismiss: handleShareSheetDismiss) {
+            customShareSheet
+                .presentationDetents([.height(360)])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(24)
+        }
         .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem) /*Photo picker para selecionar imagens da galeria*/
         .onChange(of: viewModel.photoItem) { _, _ in handlePhotoSelection() } /*Observa mudanças na seleção de foto e processa a imagem*/
         .alert("Delete page?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
         .overlay(alignment: .center) {
-            if showExportMenu {
-                exportOverlay
+            if isPreparingShare {
+                ZStack {
+                    Color.black.opacity(0.25)
+                        .ignoresSafeArea()
+
+                    ProgressView("Preparing share...")
+                        .padding(16)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             }
         }
+        .alert("Share", isPresented: $showShareFeedback) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(shareFeedbackMessage)
+        }
+        // Disables swipe back to dismiss screen. If it wasnt disabled some draws with the pencil tools might dismiss the screen
+        .background(DisableCanvasBackSwipe())
     }
     
     // MARK: - View Components
@@ -87,56 +117,15 @@ struct CanvasView: View {
             )
         }
     }
-    
-    /// Overlay customizado com opções de export
+
     @ViewBuilder
-    private var exportOverlay: some View {
-        ZStack {
-            // Fundo semi-transparente
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    showExportMenu = false
-                }
-            
-            // Card com opções
-            VStack(spacing: 20) {
-                // Header com dismiss
-                HStack {
-                    Button(action: { showExportMenu = false }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.black)
-                    }
-                    Spacer()
-                }
-                .padding(.bottom, 10)
-                
-                // Opções de export
-                Button(action: { handleExportImageOnly() }) {
-                    Text("Only image")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.blueNikki)
-                        .cornerRadius(8)
-                }
-                
-                Button(action: { handleExportWithCanvas() }) {
-                    Text("Canvas")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.blueNikki)
-                        .cornerRadius(8)
-                }
-            }
-            .padding(24)
-            .background(Color.white)
-            .cornerRadius(16)
-        }
+    private var customShareSheet: some View {
+        ShareSheet(
+            onStories: { handleShareToStories() },
+            onMessages: { handleShareToMessages() },
+            onSaveImage: { handleSaveImage() },
+            onShareOtherApps: { handleShareWithOtherApps() }
+        )
     }
     
     /// Sheet de busca do iTunes para adicionar músicas ao canvas
@@ -196,7 +185,7 @@ struct CanvasView: View {
                         Image(.undo)
                     }
 
-                    Button(action: { showExportMenu = true }) {
+                    Button(action: { handleShareButtonTap() }) {
                         Image("shareCustom")
                             .resizable()
                             .scaledToFit()
@@ -259,23 +248,77 @@ struct CanvasView: View {
         viewModel.undoAction()
     }
     
-    private func handleExportImageOnly() {
-        showExportMenu = false
+    private func handleShareButtonTap() {
+        guard !isPreparingShare else { return }
+        isPreparingShare = true
+
         Task {
-            guard let image = await viewModel.exportImageOnly() else {
+            defer { isPreparingShare = false }
+
+            guard let image = await viewModel.exportWithCanvas() else {
+                shareFeedbackMessage = "It was not possible to export the scrap."
+                showShareFeedback = true
                 return
             }
-            viewModel.shareExportedImage(image)
+
+            presentShareMenu(with: image)
         }
     }
-    
-    private func handleExportWithCanvas() {
-        showExportMenu = false
-        Task {
-            guard let image = await viewModel.exportWithCanvas() else {
-                return
+
+    private func presentShareMenu(with image: UIImage) {
+        exportedImageToShare = image
+        showCustomShare = true
+    }
+
+    private func handleSaveImage() {
+        guard let image = exportedImageToShare else { return }
+
+        viewModel.shareService.saveImageToLibrary(image) { success in
+            shareFeedbackMessage = success ? "Image saved to Photos" : "Unable to save image. Check Photos permission"
+            showShareFeedback = true
+        }
+    }
+
+    private func handleShareWithOtherApps() {
+        guard let image = exportedImageToShare else { return }
+        showCustomShare = false
+        pendingShareAction = .otherApps(image)
+    }
+
+    private func handleShareToStories() {
+        guard let image = exportedImageToShare else { return }
+        let openedInstagram = viewModel.shareService.shareToInstagramStories(image)
+
+        showCustomShare = false
+
+        if openedInstagram {
+            return
+        }
+
+        shareFeedbackMessage = "It was not possible to open Instagram. Please, try again later."
+        showShareFeedback = true
+    }
+
+    private func handleShareToMessages() {
+        guard let image = exportedImageToShare else { return }
+
+        showCustomShare = false
+        pendingShareAction = .messages(image)
+    }
+
+    private func handleShareSheetDismiss() {
+        guard let pendingShareAction else { return }
+        self.pendingShareAction = nil
+
+        switch pendingShareAction {
+        case .otherApps(let image):
+            viewModel.shareService.shareWithOtherApps(image)
+        case .messages(let image):
+            let openedComposer = viewModel.shareService.shareToMessages(image)
+            if !openedComposer {
+                shareFeedbackMessage = "It was not possible to open Messages. Please, try again later."
+                showShareFeedback = true
             }
-            viewModel.shareExportedImage(image)
         }
     }
     
