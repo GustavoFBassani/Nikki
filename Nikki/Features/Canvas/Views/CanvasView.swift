@@ -363,7 +363,7 @@ struct CanvasView: View {
 
     /// Called when leaving canvas to avoid audio leaking into previous screens.
     private func handleCanvasExit() {
-        viewModel.stopPreviewAudio()
+        viewModel.stopAudio()
     }
 }
 

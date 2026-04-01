@@ -70,7 +70,7 @@ class CanvasViewModel {
     }
 
     /// Stops any active preview audio played from iTunes selection.
-    func stopPreviewAudio() {
+    func stopAudio() {
         audioPlayer.stop()
     }
     
