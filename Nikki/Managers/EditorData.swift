@@ -168,6 +168,9 @@ class EditorData {
         guard let controller else { return }
         toolPicker.addObserver(controller)
         toolPicker.setVisible(isVisible, forFirstResponder: controller.view)
+        toolPicker.colorUserInterfaceStyle = .light
+        toolPicker.overrideUserInterfaceStyle = .light
+        
         if isVisible {
             controller.view.becomeFirstResponder()
         }
