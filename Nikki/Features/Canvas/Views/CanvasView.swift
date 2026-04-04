@@ -35,6 +35,9 @@ struct CanvasView: View {
     @Environment(\.dismiss) private var dismiss
     var addNewTsuru: () async -> Void
     var reloadTsurus: () async -> Void
+    // ENERGY OPTIMIZATION: callbacks para pausar/retomar a cena 3D quando o canvas entra/sai da tela.
+    var onCanvasAppear: (() -> Void)?
+    var onCanvasDisappear: (() -> Void)?
     var isPageNil: Bool = false
     
     // appear and dissapear
@@ -45,13 +48,22 @@ struct CanvasView: View {
     ///   - page: Página existente para edição (opcional)
     ///   - paperStyle: Estilo do papel de fundo (opcional)
     
-    init(page: Page? = nil, paperStyle: String? = nil, addNewTsuru: @escaping () async -> Void, reloadTsurus: @escaping () async -> Void) {
+    init(
+        page: Page? = nil,
+        paperStyle: String? = nil,
+        addNewTsuru: @escaping () async -> Void,
+        reloadTsurus: @escaping () async -> Void,
+        onCanvasAppear: (() -> Void)? = nil,
+        onCanvasDisappear: (() -> Void)? = nil
+    ) {
         if page == nil {
             isPageNil = true
         }
         _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
         self.addNewTsuru = addNewTsuru
         self.reloadTsurus = reloadTsurus
+        self.onCanvasAppear = onCanvasAppear
+        self.onCanvasDisappear = onCanvasDisappear
     }
     
     // MARK: - Body
@@ -72,6 +84,8 @@ struct CanvasView: View {
         }
         .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem) /*Photo picker para selecionar imagens da galeria*/
         .onChange(of: viewModel.photoItem) { _, _ in handlePhotoSelection() } /*Observa mudanças na seleção de foto e processa a imagem*/
+        // ENERGY OPTIMIZATION: pausa a cena 3D quando o canvas aparece.
+        .onAppear { onCanvasAppear?() }
         .onDisappear { handleCanvasExit() }
         .alert("Delete page?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
         .overlay(alignment: .center) {
@@ -98,9 +112,10 @@ struct CanvasView: View {
     
     // MARK: - View Components
     
-    /// View principal do editor PaperKit com tamanho fixo de 3610x3610
+    /// View principal do editor PaperKit com tamanho fixo reduzido para 2304x2304
     private var editorContent: some View {
-        EditorView(size: CGSize(width: 3610, height: 3610), data: viewModel.editorData)
+        // ENERGY OPTIMIZATION: usa tamanho reduzido de canvas para reduzir custo de edição/renderização.
+        EditorView(size: viewModel.editorCanvasSize, data: viewModel.editorData)
             .ignoresSafeArea()
     }
     
@@ -364,6 +379,8 @@ struct CanvasView: View {
     /// Called when leaving canvas to avoid audio leaking into previous screens.
     private func handleCanvasExit() {
         viewModel.stopAudio()
+        // ENERGY OPTIMIZATION: retoma a cena 3D ao sair do canvas.
+        onCanvasDisappear?()
     }
 }
 

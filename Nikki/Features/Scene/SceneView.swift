@@ -26,6 +26,15 @@ struct SceneView: View {
                 RealityView { content in
                     
                 } update: { content in
+                    // ENERGY OPTIMIZATION: pausa real da renderização removendo a cena da RealityView
+                    // enquanto o canvas está aberto (mantém os assets carregados no ViewModel).
+                    if vm.isScenePaused {
+                        let entities = Array(content.entities)
+                        entities.forEach { $0.removeFromParent() }
+                        return
+                    }
+
+                    // ENERGY OPTIMIZATION: ao retomar, recoloca a mesma cena já carregada sem recarregar arquivo 3D.
                     if let scene = vm.scene, content.entities.isEmpty {
                         content.add(scene)
                     }
@@ -112,8 +121,17 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
-            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.parseCanvasDateAndAddNewTsuruAtScene, reloadTsurus: vm.deleteTsurusAtScene)
-                
+            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
+                CanvasView(
+                    page: vm.currentPage,
+                    paperStyle: style,
+                    addNewTsuru: vm.parseCanvasDateAndAddNewTsuruAtScene,
+                    reloadTsurus: vm.deleteTsurusAtScene,
+                    // ENERGY OPTIMIZATION: pausa renderização/entidades da cena 3D enquanto o canvas está ativo.
+                    onCanvasAppear: { vm.setScenePaused(true) },
+                    // ENERGY OPTIMIZATION: retoma cena 3D quando o usuário volta do canvas.
+                    onCanvasDisappear: { vm.setScenePaused(false) }
+                )
             })
             .navigationDestination(isPresented: $vm.showCredits){ CreditsView() }
             .simultaneousGesture(
