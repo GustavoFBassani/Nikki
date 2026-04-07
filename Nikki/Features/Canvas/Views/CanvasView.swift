@@ -387,13 +387,16 @@ struct CanvasView: View {
     /// Deleta a página atual do banco de dados
     /// Chamado após confirmação do usuário no alerta
     private func handleDeletePage() async {
-        do {
-            try viewModel.deleteCurrentPage()
-            await reloadTsurus()
-            dismiss()
-        } catch {
-            print("Failed to delete page: \(error)")
+        guard !isDismissingCanvas else { return }
+
+        guard viewModel.currentPage != nil else {
+            await dismissCanvas(with: nil, prepareScene: false)
+            return
         }
+
+        try? viewModel.deleteCurrentPage()
+        await reloadTsurus()
+        await dismissCanvas(with: nil)
     }
     
     /// Processa a foto selecionada pelo usuário
@@ -411,13 +414,15 @@ struct CanvasView: View {
     }
     
     @MainActor
-    private func dismissCanvas(with message: String?) async {
+    private func dismissCanvas(with message: String?, prepareScene: Bool = true) async {
         guard !isDismissingCanvas else { return }
         
         isDismissingCanvas = true
         dismissLoadingMessage = message
         
-        await onCanvasWillDismiss?()
+        if prepareScene {
+            await onCanvasWillDismiss?()
+        }
         dismiss()
     }
     
