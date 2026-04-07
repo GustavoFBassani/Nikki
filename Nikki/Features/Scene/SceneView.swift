@@ -29,9 +29,6 @@ struct SceneView: View {
                     // Durante o canvas aberto, a cena fica apenas desabilitada no ViewModel.
                     // Nao removemos entidades aqui para evitar tela branca no retorno.
                     if vm.isScenePaused {
-                        if !vm.finishSettingScene {
-                            vm.finishSettingScene = true
-                        }
                         return
                     }
 

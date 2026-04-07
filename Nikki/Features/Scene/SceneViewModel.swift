@@ -61,7 +61,6 @@ class SceneViewModel {
     var tsuru: Entity?
     var newTsuru: Entity?
     var isScenePaused: Bool = false
-    var finishSettingScene: Bool = false
     var finishingResumeScene: Bool = false
     
     // MARK: - Motivation
@@ -242,7 +241,6 @@ class SceneViewModel {
 
     func setScenePaused(_ paused: Bool) {
         isScenePaused = paused
-        finishSettingScene = false
         finishingResumeScene = false
 
         scene?.isEnabled = !paused

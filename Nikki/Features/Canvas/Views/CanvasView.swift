@@ -20,7 +20,7 @@ struct CanvasView: View {
         case otherApps(UIImage)
         case messages(UIImage)
     }
-
+    
     // MARK: - Properties
     @State private var viewModel: CanvasViewModel
     @State private var showDeleteAlert = false
@@ -76,46 +76,46 @@ struct CanvasView: View {
         editorContent
             .toolbar { toolbarContent }
             .overlay(alignment: .bottom) { tabBarOverlay }
-        .navigationBarBackButtonHidden(true)
-        .preferredColorScheme(.light)
-        .toolbarColorScheme(.light, for: .navigationBar)
-        .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
-        .sheet(isPresented: $viewModel.showAudioPicker) { audioPickerSheet } /*Sheet para escolher áudios gravados*/
-        .sheet(isPresented: $viewModel.showStickers) { stickersSheet } /*Sheet para escolher stickers/carimbos*/
-        .sheet(isPresented: $showCustomShare, onDismiss: handleShareSheetDismiss) {
-            customShareSheet
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
-                .presentationCornerRadius(24)
-        }
-        .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem) /*Photo picker para selecionar imagens da galeria*/
-        .onChange(of: viewModel.photoItem) { _, _ in handlePhotoSelection() } /*Observa mudanças na seleção de foto e processa a imagem*/
+            .navigationBarBackButtonHidden(true)
+            .preferredColorScheme(.light)
+            .toolbarColorScheme(.light, for: .navigationBar)
+            .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
+            .sheet(isPresented: $viewModel.showAudioPicker) { audioPickerSheet } /*Sheet para escolher áudios gravados*/
+            .sheet(isPresented: $viewModel.showStickers) { stickersSheet } /*Sheet para escolher stickers/carimbos*/
+            .sheet(isPresented: $showCustomShare, onDismiss: handleShareSheetDismiss) {
+                customShareSheet
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+                    .presentationCornerRadius(24)
+            }
+            .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem) /*Photo picker para selecionar imagens da galeria*/
+            .onChange(of: viewModel.photoItem) { _, _ in handlePhotoSelection() } /*Observa mudanças na seleção de foto e processa a imagem*/
         // Pause 3D scene when canvas appears and resume when dismiss
-        .onAppear { onCanvasAppear?() }
-        .onDisappear { handleCanvasExit() }
-        .alert("Delete page?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
-        .overlay(alignment: .center) {
-            if isPreparingShare {
-                loadingOverlay(message: "Preparing share...")
+            .onAppear { onCanvasAppear?() }
+            .onDisappear { handleCanvasExit() }
+            .alert("Delete page?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
+            .overlay(alignment: .center) {
+                if isPreparingShare {
+                    loadingOverlay(message: "Preparing share...")
+                }
             }
-        }
-        .overlay(alignment: .center) {
-            if isSavingPage {
-                loadingOverlay(message: "Preparing folds")
+            .overlay(alignment: .center) {
+                if isSavingPage {
+                    loadingOverlay(message: "Preparing folds")
+                }
             }
-        }
-        .overlay(alignment: .center) {
-            if isDismissingCanvas {
-                loadingOverlay(message: dismissLoadingMessage)
+            .overlay(alignment: .center) {
+                if isDismissingCanvas {
+                    loadingOverlay(message: dismissLoadingMessage)
+                }
             }
-        }
-        .alert("Share", isPresented: $showShareFeedback) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(shareFeedbackMessage)
-        }
+            .alert("Share", isPresented: $showShareFeedback) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(shareFeedbackMessage)
+            }
         // Disables swipe back to dismiss screen. If it wasnt disabled some draws with the pencil tools might dismiss the screen
-        .background(DisableCanvasBackSwipe())
+            .background(DisableCanvasBackSwipe())
     }
     
     // MARK: - View Components
@@ -140,7 +140,7 @@ struct CanvasView: View {
             )
         }
     }
-
+    
     @ViewBuilder
     private var customShareSheet: some View {
         ShareSheet(
@@ -197,60 +197,52 @@ struct CanvasView: View {
     /// Toolbar superior com ações principais: deletar, desfazer e salvar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: handleBackButtonTap) {
-                    Image("leftChevron")
+        ToolbarItem(placement: .navigationBarLeading) {
+            Button(action: handleBackButtonTap) {
+                Image("leftChevron")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22)
+                    .padding(8)
+            }
+            .disabled(isSavingPage || isDismissingCanvas)
+        }
+        
+        ToolbarItem(placement: .navigationBarTrailing) {
+            HStack(spacing: 16) {
+                Button(role: .destructive, action: { showDeleteAlert = true }) {
+                    Image(.customGarbage)
+                }
+                
+                .padding(8)
+                Button(action: { handleShareButtonTap() }) {
+                    Image("shareCustom")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 20, height: 20)
-                        .padding(8)
-                        .background(
-                            Circle()
-                                .fill(Color.white.opacity(0.85))
-                        )
+                        .frame(width: 25, height: 25)
                 }
-                .disabled(isSavingPage || isDismissingCanvas)
+                
+                Button(action: handleSave) {
+                    Image(.tsuruBird)
+                        .accessibilityIdentifier("canvas_save_button")
+                }
             }
-
+        }
+        
+        // Botão de confirmação que aparece quando a ferramenta de desenho está ativa
+        // Ao clicar, fecha a ferramenta de desenho e mostra a TabBar novamente
+        if showCheckMark {
             ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 16) {
-                    Button(role: .destructive, action: { showDeleteAlert = true }) {
-                        Image(.customGarbage)
-                    }
-
-                    // Botão para desfazer última ação (TODO: implementar funcionalidade)
-                    Button(action: handleUndo) {
-                        Image(.undo)
-                    }
-
-                    Button(action: { handleShareButtonTap() }) {
-                        Image("shareCustom")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 25, height: 25)
-                    }
-
-                    Button(action: handleSave) {
-                        Image(.tsuruBird)
-                            .accessibilityIdentifier("canvas_save_button")
-                    }
+                Button(action: handleCheckMark) {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(.white)
+                        .fontWeight(.semibold)
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(.cyan)
+                .clipShape(Circle())
             }
-            
-            // Botão de confirmação que aparece quando a ferramenta de desenho está ativa
-            // Ao clicar, fecha a ferramenta de desenho e mostra a TabBar novamente
-            if showCheckMark {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: handleCheckMark) {
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(.white)
-                            .fontWeight(.semibold)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.cyan)
-                    .clipShape(Circle())
-                }
-            }
+        }
     }
     
     // MARK: - Actions
@@ -289,65 +281,65 @@ struct CanvasView: View {
     private func handleShareButtonTap() {
         guard !isPreparingShare else { return }
         isPreparingShare = true
-
+        
         Task {
             defer { isPreparingShare = false }
-
+            
             guard let image = await viewModel.exportWithCanvas() else {
                 shareFeedbackMessage = "It was not possible to export the scrap."
                 showShareFeedback = true
                 return
             }
-
+            
             presentShareMenu(with: image)
         }
     }
-
+    
     private func presentShareMenu(with image: UIImage) {
         exportedImageToShare = image
         showCustomShare = true
     }
-
+    
     private func handleSaveImage() {
         guard let image = exportedImageToShare else { return }
-
+        
         viewModel.shareService.saveImageToLibrary(image) { success in
             shareFeedbackMessage = success ? "Image saved to Photos" : "Unable to save image. Check Photos permission"
             showShareFeedback = true
         }
     }
-
+    
     private func handleShareWithOtherApps() {
         guard let image = exportedImageToShare else { return }
         showCustomShare = false
         pendingShareAction = .otherApps(image)
     }
-
+    
     private func handleShareToStories() {
         guard let image = exportedImageToShare else { return }
         let openedInstagram = viewModel.shareService.shareToInstagramStories(image)
-
+        
         showCustomShare = false
-
+        
         if openedInstagram {
             return
         }
-
+        
         shareFeedbackMessage = "It was not possible to open Instagram. Please, try again later."
         showShareFeedback = true
     }
-
+    
     private func handleShareToMessages() {
         guard let image = exportedImageToShare else { return }
-
+        
         showCustomShare = false
         pendingShareAction = .messages(image)
     }
-
+    
     private func handleShareSheetDismiss() {
         guard let pendingShareAction else { return }
         self.pendingShareAction = nil
-
+        
         switch pendingShareAction {
         case .otherApps(let image):
             viewModel.shareService.shareWithOtherApps(image)
@@ -365,7 +357,7 @@ struct CanvasView: View {
     private func handleSave() {
         guard !isSavingPage, !isDismissingCanvas else { return }
         isSavingPage = true
-
+        
         Task {
             do {
                 
@@ -374,7 +366,7 @@ struct CanvasView: View {
                     await addNewTsuru()
                 }
                 await dismissCanvas(with: "Preparing folds")
-            
+                
             } catch {
                 await MainActor.run {
                     isSavingPage = false
@@ -383,10 +375,10 @@ struct CanvasView: View {
             }
         }
     }
-
+    
     private func handleBackButtonTap() {
         guard !isSavingPage, !isDismissingCanvas else { return }
-
+        
         Task {
             await dismissCanvas(with: nil)
         }
@@ -411,37 +403,37 @@ struct CanvasView: View {
             await viewModel.handlePhotoSelection()
         }
     }
-
+    
     /// Called when leaving canvas to avoid audio leaking into previous screens.
     private func handleCanvasExit() {
         viewModel.stopAudio()
         onCanvasDisappear?()
     }
-
+    
     @MainActor
     private func dismissCanvas(with message: String?) async {
         guard !isDismissingCanvas else { return }
-
+        
         isDismissingCanvas = true
         dismissLoadingMessage = message
-
+        
         await onCanvasWillDismiss?()
         dismiss()
     }
-
+    
     @ViewBuilder
     private func loadingOverlay(message: String? = nil) -> some View {
         ZStack {
             Color.black.opacity(0.25)
                 .ignoresSafeArea()
-
+            
             VStack(spacing: 12) {
                 if let message {
                     Text(message)
-                        .font(.custom("CaveatBrush-Regular", size: 17))
+                        .font(.custom("CaveatBrush-Regular", size: 25))
                         .foregroundStyle(.blueNikki)
                 }
-
+                
                 ProgressView()
             }
             .padding(20)
