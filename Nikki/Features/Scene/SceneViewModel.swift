@@ -60,8 +60,9 @@ class SceneViewModel {
     var tree: Entity?
     var tsuru: Entity?
     var newTsuru: Entity?
-    // ENERGY OPTIMIZATION: estado explícito para pausar/retomar a cena enquanto o canvas está aberto.
     var isScenePaused: Bool = false
+    var finishSettingScene: Bool = false
+    var finishingResumeScene: Bool = false
     
     // MARK: - Motivation
     private var currentMotivation: Motivation?
@@ -124,7 +125,6 @@ class SceneViewModel {
                 let newPage = try scrapService.fetchLastPage() //recupera a ultima page salva
                 dict[newTsuru] = newPage //coloca no dicionario
                 try orderedPages = scrapService.fetchAllPages() // atualiza no array de pages todas as paginas
-                // ENERGY OPTIMIZATION: usa somente a imagem de preview armazenada em markupImage para textura 3D.
                 await applyTexture(to: newTsuru, texture: newPage?.markupImage) // aplica textura
                 fixTsuruPos(newTsuru)  //arruma a posicao do tsuru
 
@@ -209,12 +209,9 @@ class SceneViewModel {
                         obj.position = tsuruPositions[i]
                         
                         
-                        // ENERGY OPTIMIZATION: usa somente a imagem de preview armazenada em markupImage para textura 3D.
                         await applyTexture(to: obj, texture: page.markupImage )
                         
                         scene.addChild(obj)
-                        // ENERGY FIX: mantém a animação no load para preservar o estado visual correto do tsuru
-                        // (sem isso o modelo fica com folhas soltas no primeiro carregamento/reload).
                         playTsuruAnimation(tsuruToAnimate: obj)
                         if let newFlapBird = obj.children.first(where: {
                             $0.name == "flappingBird___0PercentFolded"
@@ -243,16 +240,21 @@ class SceneViewModel {
         
     }
 
-    // ENERGY OPTIMIZATION: pausa a cena 3D sem desmontar para retorno rápido ao sair do canvas.
     func setScenePaused(_ paused: Bool) {
         isScenePaused = paused
-        // ENERGY OPTIMIZATION: mantém isEnabled sincronizado com o estado, mas a pausa efetiva é feita
-        // na SceneView removendo/adicionando a cena do content da RealityView.
+        finishSettingScene = false
+        finishingResumeScene = false
+
         scene?.isEnabled = !paused
 
         if !paused {
-            // ENERGY OPTIMIZATION: ao retomar, sincroniza imediatamente a câmera para evitar salto visual.
             updateCamera()
+        }
+    }
+
+    func waitUntilSceneResumed() async {
+        while !finishingResumeScene {
+            await Task.yield()
         }
     }
     

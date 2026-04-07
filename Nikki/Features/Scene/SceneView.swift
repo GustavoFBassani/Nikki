@@ -26,17 +26,22 @@ struct SceneView: View {
                 RealityView { content in
                     
                 } update: { content in
-                    // ENERGY OPTIMIZATION: pausa real da renderização removendo a cena da RealityView
-                    // enquanto o canvas está aberto (mantém os assets carregados no ViewModel).
+                    // Durante o canvas aberto, a cena fica apenas desabilitada no ViewModel.
+                    // Nao removemos entidades aqui para evitar tela branca no retorno.
                     if vm.isScenePaused {
-                        let entities = Array(content.entities)
-                        entities.forEach { $0.removeFromParent() }
+                        if !vm.finishSettingScene {
+                            vm.finishSettingScene = true
+                        }
                         return
                     }
 
-                    // ENERGY OPTIMIZATION: ao retomar, recoloca a mesma cena já carregada sem recarregar arquivo 3D.
+                    // Relocates the scene when the canvas is dismissed
                     if let scene = vm.scene, content.entities.isEmpty {
                         content.add(scene)
+                    }
+
+                    if !vm.finishingResumeScene {
+                        vm.finishingResumeScene = true
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
@@ -127,9 +132,11 @@ struct SceneView: View {
                     paperStyle: style,
                     addNewTsuru: vm.parseCanvasDateAndAddNewTsuruAtScene,
                     reloadTsurus: vm.deleteTsurusAtScene,
-                    // ENERGY OPTIMIZATION: pausa renderização/entidades da cena 3D enquanto o canvas está ativo.
                     onCanvasAppear: { vm.setScenePaused(true) },
-                    // ENERGY OPTIMIZATION: retoma cena 3D quando o usuário volta do canvas.
+                    onCanvasWillDismiss: {
+                        vm.setScenePaused(false)
+                        await vm.waitUntilSceneResumed()
+                    },
                     onCanvasDisappear: { vm.setScenePaused(false) }
                 )
             })

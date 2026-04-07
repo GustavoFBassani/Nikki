@@ -22,22 +22,8 @@ class CanvasViewModel {
     let audioRecorder = AudioRecorder()
     private let audioPlayer = AudioPlayer.shared
 
-    // ENERGY OPTIMIZATION: tamanho fixo (chumbado) da área de edição do canvas.
-    private let canvasSize = CGSize(width: 2304, height: 2304)
-    // ENERGY OPTIMIZATION: mantemos export em alta resolução para share/download sem perder qualidade final.
-    private let fullExportSide: CGFloat = 3610
-    // ENERGY OPTIMIZATION: preview de textura 3D reduzida para aliviar GPU/memória na cena.
-    private let previewExportSide: CGFloat = 1024
-
-    // ENERGY OPTIMIZATION: fator de escala para export em alta resolução a partir da área reduzida de edição.
-    private var fullExportScale: CGFloat {
-        fullExportSide / canvasSize.width
-    }
-
-    // ENERGY OPTIMIZATION: API exposta para a View usar o novo tamanho reduzido do canvas.
-    var editorCanvasSize: CGSize {
-        canvasSize
-    }
+    let canvasSize = CGSize(width: 2304, height: 2304)
+    let previewExport: CGFloat = 256
     
     // MARK: - Editor Data
     var editorData: EditorData
@@ -100,7 +86,6 @@ class CanvasViewModel {
     
     /// Cria um ícone visual para representar áudio
     func createAudioIcon() -> UIImage {
-        // ENERGY OPTIMIZATION: tamanho fixo (chumbado) do ícone de áudio no novo canvas.
         let size = CGSize(width: 40, height: 40)
         return UIGraphicsImageRenderer(size: size).image { ctx in
             let circleRect = CGRect(origin: .zero, size: size)
@@ -127,7 +112,6 @@ class CanvasViewModel {
             let cardImage = iTunesService.createTrackCard(track: track, cover: cover)
             
             // Insere no canvas
-            // ENERGY OPTIMIZATION: tamanho fixo (chumbado) do card de música no novo canvas.
             let size = CGSize(width: 640, height: 320)
             let rect = centeredRect(for: size)
             
@@ -141,27 +125,24 @@ class CanvasViewModel {
     
     //MARK: - Stickers
     func insertSticker(named name: String) {
-          guard let image = UIImage(named: name) else { return }
-          
-                        // ENERGY OPTIMIZATION: tamanho fixo (chumbado) do sticker no novo canvas.
-                        let size = CGSize(width: 512, height: 512)
-          let rect = centeredRect(for: size)
-          
-          editorData.insertImage(image, rect: rect)
-      }
+        guard let image = UIImage(named: name) else { return }
+        
+        let size = CGSize(width: 512, height: 512)
+        let rect = centeredRect(for: size)
+        
+        editorData.insertImage(image, rect: rect)
+    }
     
     // MARK: - Persistence Methods
     
     func savePage() async throws {
         let data = await editorData.exportMarkupData()
-        // ENERGY OPTIMIZATION: export full-res preserva qualidade máxima para share/download (on-demand pelo markup).
         let fullImage = await editorData.exportAsImage(
-            CGRect(origin: .zero, size: canvasSize),
-            scale: fullExportScale
+            CGRect(origin: .zero, size: canvasSize)
         )
 
-        // ENERGY OPTIMIZATION: salvamos apenas preview reduzida na Page para textura 3D do tsuru.
-        let previewImage = fullImage.flatMap { resizeImage($0, maxSide: previewExportSide) }
+        // Reduces image size to use as texture on tsuru
+        let previewImage = fullImage.flatMap { resizeImage($0, maxSide: previewExport) }
         let texturePreviewData = previewImage?.jpegData(compressionQuality: 0.82)
         
         if let page = currentPage {
@@ -191,10 +172,8 @@ class CanvasViewModel {
     
     /// Exports only the canvas content image, without decorative frame.
     func exportImageOnly() async -> UIImage? {
-        // ENERGY OPTIMIZATION: export do share/download continua em alta resolução mesmo com canvas de edição reduzido.
         return await editorData.exportAsImage(
-            CGRect(origin: .zero, size: canvasSize),
-            scale: fullExportScale
+            CGRect(origin: .zero, size: canvasSize)
         )
     }
     
@@ -275,7 +254,6 @@ class CanvasViewModel {
                 return
             }
             
-            // ENERGY OPTIMIZATION: tamanho fixo (chumbado) da foto inserida no novo canvas.
             let size = CGSize(width: 448, height: 448)
             let rect = centeredRect(for: size)
             
@@ -290,7 +268,6 @@ class CanvasViewModel {
     }
     
     func insertDefaultText(_ string: String = "Nikki") {
-        // ENERGY OPTIMIZATION: tamanho fixo (chumbado) de fonte para texto no novo canvas.
         let font = UIFont(name: "CaveatBrush-Regular", size: 72)
 
         let attributes: [NSAttributedString.Key: Any] = [
@@ -299,14 +276,13 @@ class CanvasViewModel {
         
         let attributed = NSAttributedString(string: string, attributes: attributes)
 
-        // ENERGY OPTIMIZATION: tamanho fixo (chumbado) da caixa de texto no novo canvas.
         let size = CGSize(width: 384, height: 80)
         let rect = centeredRect(for: size)
 
         editorData.insertText(attributed, rect: rect)
     }
 
-    // ENERGY OPTIMIZATION: downscale controlado para gerar preview leve de textura 3D.
+    // Downscale of canvas image
     private func resizeImage(_ image: UIImage, maxSide: CGFloat) -> UIImage {
         let longestSide = max(image.size.width, image.size.height)
         guard longestSide > maxSide else { return image }

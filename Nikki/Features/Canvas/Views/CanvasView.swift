@@ -32,11 +32,14 @@ struct CanvasView: View {
     @State private var exportedImageToShare: UIImage?
     @State private var showShareFeedback = false
     @State private var shareFeedbackMessage = ""
+    @State private var isSavingPage = false
+    @State private var isDismissingCanvas = false
+    @State private var dismissLoadingMessage: String?
     @Environment(\.dismiss) private var dismiss
     var addNewTsuru: () async -> Void
     var reloadTsurus: () async -> Void
-    // ENERGY OPTIMIZATION: callbacks para pausar/retomar a cena 3D quando o canvas entra/sai da tela.
     var onCanvasAppear: (() -> Void)?
+    var onCanvasWillDismiss: (() async -> Void)?
     var onCanvasDisappear: (() -> Void)?
     var isPageNil: Bool = false
     
@@ -54,6 +57,7 @@ struct CanvasView: View {
         addNewTsuru: @escaping () async -> Void,
         reloadTsurus: @escaping () async -> Void,
         onCanvasAppear: (() -> Void)? = nil,
+        onCanvasWillDismiss: (() async -> Void)? = nil,
         onCanvasDisappear: (() -> Void)? = nil
     ) {
         if page == nil {
@@ -63,6 +67,7 @@ struct CanvasView: View {
         self.addNewTsuru = addNewTsuru
         self.reloadTsurus = reloadTsurus
         self.onCanvasAppear = onCanvasAppear
+        self.onCanvasWillDismiss = onCanvasWillDismiss
         self.onCanvasDisappear = onCanvasDisappear
     }
     
@@ -71,6 +76,7 @@ struct CanvasView: View {
         editorContent
             .toolbar { toolbarContent }
             .overlay(alignment: .bottom) { tabBarOverlay }
+        .navigationBarBackButtonHidden(true)
         .preferredColorScheme(.light)
         .toolbarColorScheme(.light, for: .navigationBar)
         .sheet(isPresented: $viewModel.showITunesSearch) { itunesSearchSheet } /*Sheet para buscar músicas no iTunes*/
@@ -84,21 +90,23 @@ struct CanvasView: View {
         }
         .photosPicker(isPresented: $viewModel.showImagePicker, selection: $viewModel.photoItem) /*Photo picker para selecionar imagens da galeria*/
         .onChange(of: viewModel.photoItem) { _, _ in handlePhotoSelection() } /*Observa mudanças na seleção de foto e processa a imagem*/
-        // ENERGY OPTIMIZATION: pausa a cena 3D quando o canvas aparece.
+        // Pause 3D scene when canvas appears and resume when dismiss
         .onAppear { onCanvasAppear?() }
         .onDisappear { handleCanvasExit() }
         .alert("Delete page?", isPresented: $showDeleteAlert) { deleteAlertButtons } message: { deleteAlertMessage } /*Alerta de confirmação para deletar página*/
         .overlay(alignment: .center) {
             if isPreparingShare {
-                ZStack {
-                    Color.black.opacity(0.25)
-                        .ignoresSafeArea()
-
-                    ProgressView("Preparing share...")
-                        .padding(16)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
+                loadingOverlay(message: "Preparing share...")
+            }
+        }
+        .overlay(alignment: .center) {
+            if isSavingPage {
+                loadingOverlay(message: "Preparing folds")
+            }
+        }
+        .overlay(alignment: .center) {
+            if isDismissingCanvas {
+                loadingOverlay(message: dismissLoadingMessage)
             }
         }
         .alert("Share", isPresented: $showShareFeedback) {
@@ -114,8 +122,7 @@ struct CanvasView: View {
     
     /// View principal do editor PaperKit com tamanho fixo reduzido para 2304x2304
     private var editorContent: some View {
-        // ENERGY OPTIMIZATION: usa tamanho reduzido de canvas para reduzir custo de edição/renderização.
-        EditorView(size: viewModel.editorCanvasSize, data: viewModel.editorData)
+        EditorView(size: viewModel.canvasSize, data: viewModel.editorData)
             .ignoresSafeArea()
     }
     
@@ -190,6 +197,21 @@ struct CanvasView: View {
     /// Toolbar superior com ações principais: deletar, desfazer e salvar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: handleBackButtonTap) {
+                    Image("leftChevron")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .padding(8)
+                        .background(
+                            Circle()
+                                .fill(Color.white.opacity(0.85))
+                        )
+                }
+                .disabled(isSavingPage || isDismissingCanvas)
+            }
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
                     Button(role: .destructive, action: { showDeleteAlert = true }) {
@@ -341,6 +363,9 @@ struct CanvasView: View {
     /// Salva a página atual no SwiftData e fecha a view
     /// Executa de forma assíncrona e trata possíveis erros
     private func handleSave() {
+        guard !isSavingPage, !isDismissingCanvas else { return }
+        isSavingPage = true
+
         Task {
             do {
                 
@@ -348,11 +373,22 @@ struct CanvasView: View {
                 if isPageNil {
                     await addNewTsuru()
                 }
-                dismiss()
+                await dismissCanvas(with: "Preparing folds")
             
             } catch {
+                await MainActor.run {
+                    isSavingPage = false
+                }
                 print("Error saving page: \(error)")
             }
+        }
+    }
+
+    private func handleBackButtonTap() {
+        guard !isSavingPage, !isDismissingCanvas else { return }
+
+        Task {
+            await dismissCanvas(with: nil)
         }
     }
     
@@ -379,8 +415,39 @@ struct CanvasView: View {
     /// Called when leaving canvas to avoid audio leaking into previous screens.
     private func handleCanvasExit() {
         viewModel.stopAudio()
-        // ENERGY OPTIMIZATION: retoma a cena 3D ao sair do canvas.
         onCanvasDisappear?()
+    }
+
+    @MainActor
+    private func dismissCanvas(with message: String?) async {
+        guard !isDismissingCanvas else { return }
+
+        isDismissingCanvas = true
+        dismissLoadingMessage = message
+
+        await onCanvasWillDismiss?()
+        dismiss()
+    }
+
+    @ViewBuilder
+    private func loadingOverlay(message: String? = nil) -> some View {
+        ZStack {
+            Color.black.opacity(0.25)
+                .ignoresSafeArea()
+
+            VStack(spacing: 12) {
+                if let message {
+                    Text(message)
+                        .font(.custom("CaveatBrush-Regular", size: 17))
+                        .foregroundStyle(.blueNikki)
+                }
+
+                ProgressView()
+            }
+            .padding(20)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
     }
 }
 
