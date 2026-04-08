@@ -26,8 +26,19 @@ struct SceneView: View {
                 RealityView { content in
                     
                 } update: { content in
+                    // Durante o canvas aberto, a cena fica apenas desabilitada no ViewModel.
+                    // Nao removemos entidades aqui para evitar tela branca no retorno.
+                    if vm.isScenePaused {
+                        return
+                    }
+
+                    // Relocates the scene when the canvas is dismissed
                     if let scene = vm.scene, content.entities.isEmpty {
                         content.add(scene)
+                    }
+
+                    if !vm.finishingResumeScene {
+                        vm.finishingResumeScene = true
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
@@ -112,8 +123,19 @@ struct SceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
-            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in CanvasView(page: vm.currentPage, paperStyle: style, addNewTsuru: vm.parseCanvasDateAndAddNewTsuruAtScene, reloadTsurus: vm.deleteTsurusAtScene)
-                
+            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
+                CanvasView(
+                    page: vm.currentPage,
+                    paperStyle: style,
+                    addNewTsuru: vm.parseCanvasDateAndAddNewTsuruAtScene,
+                    reloadTsurus: vm.deleteTsurusAtScene,
+                    onCanvasAppear: { vm.setScenePaused(true) },
+                    onCanvasWillDismiss: {
+                        vm.setScenePaused(false)
+                        await vm.waitUntilSceneResumed()
+                    },
+                    onCanvasDisappear: { vm.setScenePaused(false) }
+                )
             })
             .navigationDestination(isPresented: $vm.showCredits){ CreditsView() }
             .simultaneousGesture(

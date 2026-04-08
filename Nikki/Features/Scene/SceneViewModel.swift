@@ -60,6 +60,8 @@ class SceneViewModel {
     var tree: Entity?
     var tsuru: Entity?
     var newTsuru: Entity?
+    var isScenePaused: Bool = false
+    var finishingResumeScene: Bool = false
     
     // MARK: - Motivation
     private var currentMotivation: Motivation?
@@ -167,8 +169,8 @@ class SceneViewModel {
         // 5. Recarrega os tsurus na cena
         await loadTsurusAtScene()
         
-        // 6. Reseta a câmera para a árvore
-        repositioningCameraToTree()
+        // 6. Reseta a câmera para a árvore sem animação para evitar estado intermediário
+        repositioningCameraToTree(animated: false)
         
     }
     
@@ -235,6 +237,23 @@ class SceneViewModel {
             )
         }
         
+    }
+
+    func setScenePaused(_ paused: Bool) {
+        isScenePaused = paused
+        finishingResumeScene = false
+
+        scene?.isEnabled = !paused
+
+        if !paused {
+            updateCamera()
+        }
+    }
+
+    func waitUntilSceneResumed() async {
+        while !finishingResumeScene {
+            await Task.yield()
+        }
     }
     
     func fixTsuruPos(_ e: Entity) {
@@ -382,8 +401,8 @@ class SceneViewModel {
         isFocusedOnTsuru = true
     }
     
-    func repositioningCameraToTree() {
-        cameraManager.repositioningCameraToTree(tree: tree)
+    func repositioningCameraToTree(animated: Bool = true) {
+        cameraManager.repositioningCameraToTree(animated: animated, tree: tree)
         isFocusedOnTsuru = false
         resetPageControl()
         currentPage = nil

@@ -81,7 +81,7 @@ class EditorData {
             self.controller = controller
             self.controller?.markup = markup
             // Define o limite de zoom permitido na interface
-            self.controller?.zoomRange = 0.1...3.5
+            self.controller?.zoomRange = 0.1...2.5
         }
         
         //TODO: ENTENDER COMO ESSE CONTENT PODE IR COMO IMAGEM DE FUNDO.

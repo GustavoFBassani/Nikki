@@ -21,7 +21,9 @@ class CanvasViewModel {
     let shareService = ShareService()
     let audioRecorder = AudioRecorder()
     private let audioPlayer = AudioPlayer.shared
-    private let canvasSize = CGSize(width: 3610, height: 3610)
+
+    let canvasSize = CGSize(width: 2304, height: 2304)
+    let previewExport: CGFloat = 256
     
     // MARK: - Editor Data
     var editorData: EditorData
@@ -84,16 +86,16 @@ class CanvasViewModel {
     
     /// Cria um ícone visual para representar áudio
     func createAudioIcon() -> UIImage {
-        let size = CGSize(width: 60, height: 60)
+        let size = CGSize(width: 40, height: 40)
         return UIGraphicsImageRenderer(size: size).image { ctx in
             let circleRect = CGRect(origin: .zero, size: size)
             ctx.cgContext.setFillColor(UIColor.systemBlue.cgColor)
             ctx.cgContext.fillEllipse(in: circleRect)
             
-            let config = UIImage.SymbolConfiguration(pointSize: 28, weight: .medium)
+            let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
             let mic = UIImage(systemName: "mic.fill", withConfiguration: config)?
                 .withTintColor(.white, renderingMode: .alwaysOriginal)
-            mic?.draw(in: CGRect(x: 16, y: 16, width: 28, height: 28))
+            mic?.draw(in: CGRect(x: 11, y: 11, width: 18, height: 18))
         }
     }
     
@@ -110,7 +112,7 @@ class CanvasViewModel {
             let cardImage = iTunesService.createTrackCard(track: track, cover: cover)
             
             // Insere no canvas
-            let size = CGSize(width: 1000, height: 500)
+            let size = CGSize(width: 640, height: 320)
             let rect = centeredRect(for: size)
             
 //            let origin = CGPoint(x: 50, y: 70)
@@ -123,28 +125,37 @@ class CanvasViewModel {
     
     //MARK: - Stickers
     func insertSticker(named name: String) {
-          guard let image = UIImage(named: name) else { return }
-          
-          let size = CGSize(width: 800, height: 800)
-          let rect = centeredRect(for: size)
-          
-          editorData.insertImage(image, rect: rect)
-      }
+        guard let image = UIImage(named: name) else { return }
+        
+        let size = CGSize(width: 512, height: 512)
+        let rect = centeredRect(for: size)
+        
+        editorData.insertImage(image, rect: rect)
+    }
     
     // MARK: - Persistence Methods
     
     func savePage() async throws {
         let data = await editorData.exportMarkupData()
-        let image = await editorData.exportAsImage(CGRect(origin: .zero, size: CGSize(width: 3610, height: 3610)))
-        
-        let imageData = image?.pngData()
+        let fullImage = await editorData.exportAsImage(
+            CGRect(origin: .zero, size: canvasSize)
+        )
+
+        // Reduces image size to use as texture on tsuru
+        let previewImage = fullImage.flatMap { resizeImage($0, maxSide: previewExport) }
+        let texturePreviewData = previewImage?.jpegData(compressionQuality: 0.82)
         
         if let page = currentPage {
             page.markupData = data
-            page.markupImageData = imageData
+            page.markupImageData = texturePreviewData
             try dataManager.updatePage(page)
         } else {
-            let newPage = Page(title: "Nova Página", markupData: data, paperStyle: paperStyle, markupImageData: imageData)
+            let newPage = Page(
+                title: "Nova Página",
+                markupData: data,
+                paperStyle: paperStyle,
+                markupImageData: texturePreviewData
+            )
             try dataManager.savePage(newPage)
             currentPage = newPage
         }
@@ -161,7 +172,9 @@ class CanvasViewModel {
     
     /// Exports only the canvas content image, without decorative frame.
     func exportImageOnly() async -> UIImage? {
-        return await editorData.exportAsImage(CGRect(origin: .zero, size: canvasSize))
+        return await editorData.exportAsImage(
+            CGRect(origin: .zero, size: canvasSize)
+        )
     }
     
     /// Exports the canvas merged with the decorative frame used in share flows.
@@ -241,7 +254,7 @@ class CanvasViewModel {
                 return
             }
             
-            let size = CGSize(width: 700, height: 700)
+            let size = CGSize(width: 448, height: 448)
             let rect = centeredRect(for: size)
             
             editorData.insertImage(
@@ -255,17 +268,34 @@ class CanvasViewModel {
     }
     
     func insertDefaultText(_ string: String = "Nikki") {
-        let font = UIFont(name: "CaveatBrush-Regular", size: 112)
+        let font = UIFont(name: "CaveatBrush-Regular", size: 72)
 
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: font ?? UIFont.systemFont(ofSize: 112, weight: .medium)
+            .font: font ?? UIFont.systemFont(ofSize: 72, weight: .medium)
         ]
         
         let attributed = NSAttributedString(string: string, attributes: attributes)
 
-        let size = CGSize(width: 600, height: 120)
+        let size = CGSize(width: 384, height: 80)
         let rect = centeredRect(for: size)
 
         editorData.insertText(attributed, rect: rect)
+    }
+
+    // Downscale of canvas image
+    private func resizeImage(_ image: UIImage, maxSide: CGFloat) -> UIImage {
+        let longestSide = max(image.size.width, image.size.height)
+        guard longestSide > maxSide else { return image }
+
+        let ratio = maxSide / longestSide
+        let targetSize = CGSize(width: image.size.width * ratio, height: image.size.height * ratio)
+
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
     }
 }
