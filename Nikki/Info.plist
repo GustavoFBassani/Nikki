@@ -8,10 +8,6 @@
 	<array>
 		<string>instagram-stories</string>
 	</array>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Allows the app to save your scraps to the Photo Library.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Allows you to choose a photo from your library to use in the app.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>CaveatBrush-Regular.ttf</string>
