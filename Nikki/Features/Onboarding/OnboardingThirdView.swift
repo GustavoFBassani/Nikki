@@ -22,9 +22,11 @@ struct OnboardingThirdView: View {
 
             VStack(spacing: 0) {
 
-                Text("Colecione origamis")
+                Text(StringCatalog.collectOrigamis)
                     .font(.custom("CaveatBrush-Regular", size: 38))
                     .foregroundStyle(.blueNikki)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
                     .padding(.top, 32)
 
                 AnimatedImage(name: "tsuruanimation.gif")
@@ -34,11 +36,13 @@ struct OnboardingThirdView: View {
                     .padding(.top, 63)
                     .padding(.bottom, 34)
 
-                Text("Seus scraps se transformam em origamis, simbolizando suas memórias")
+                Text(StringCatalog.yourScrapsTransformIntoMemories)
                     .font(.custom("CaveatBrush-Regular", size: 32))
                     .foregroundStyle(.blueNikki)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 315)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(2)
+                    .padding(.horizontal, 32)
 
                 Spacer()
 
@@ -46,8 +50,8 @@ struct OnboardingThirdView: View {
                     OnboardingPageControl(totalPages: 4, currentPage: 2)
 
                     OnboardingButtons(
-                        primaryTitle: String(localized: "Próximo"),
-                        secondaryTitle: String(localized: "Pular"),
+                        primaryTitle: StringCatalog.next,
+                        secondaryTitle: StringCatalog.jump,
                         isSecondHidden: false,
                         onPrimaryTap: {
                             goToNext = true

@@ -189,7 +189,7 @@ struct CanvasView: View {
     
     /// Mensagem do alerta de confirmação de exclusão
     private var deleteAlertMessage: some View {
-        Text("This action cannot be undone. Are you sure you want to delete this page?")
+        Text(StringCatalog.deleteAlertMessage)
     }
     
     // MARK: - Toolbar
@@ -214,7 +214,13 @@ struct CanvasView: View {
                     Image(.customGarbage)
                 }
                 
-                .padding(8)
+                Button(action: { handleUndo() }) {
+                    Image("undo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 25, height: 25)
+                }
+                
                 Button(action: { handleShareButtonTap() }) {
                     Image("shareCustom")
                         .resizable()

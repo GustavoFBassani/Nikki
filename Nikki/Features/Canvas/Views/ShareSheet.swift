@@ -16,7 +16,7 @@ struct ShareSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Share")
+                Text(StringCatalog.share)
                     .font(Fonts.Title2)
 
                 HStack(spacing: 8) {
@@ -77,7 +77,7 @@ struct ShareSheet: View {
                             .frame(width: 37, height: 37)
                     }
 
-                Text("Stories")
+                Text(StringCatalog.stories)
                     .font(.custom("CaveatBrush-Regular", size: 20))
 
                     .foregroundStyle(.secondary)
@@ -99,7 +99,7 @@ struct ShareSheet: View {
                             .foregroundStyle(.white)
                     }
 
-                Text("Messages")
+                Text(StringCatalog.messages)
                     .font(.custom("CaveatBrush-Regular", size: 20))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)

@@ -28,8 +28,8 @@ struct ITunesSearchView: View {
                 .padding()
             }
             .preferredColorScheme(.light)
-            .navigationTitle("Buscar música")
-            .searchable(text: $viewModel.searchText, prompt: "Buscar música")
+            .navigationTitle(StringCatalog.searchMusic)
+            .searchable(text: $viewModel.searchText, prompt: StringCatalog.searchMusic)
             .overlay {
                 if viewModel.isLoading {
                     ProgressView()
@@ -48,7 +48,7 @@ struct ITunesSearchView: View {
                     }
                 }
                 ToolbarItem(placement: .principal) {
-                    Text("Música")
+                    Text(StringCatalog.music)
                         .font(Fonts.Title2)
                         .foregroundStyle(.blueNikki)
                 }
