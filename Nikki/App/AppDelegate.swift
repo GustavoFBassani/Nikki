@@ -10,7 +10,6 @@ import SwiftUI
 import SwiftData
 import TipKit
 
-@main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
@@ -44,4 +43,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidEnterBackground(_ application: UIApplication) { }
     func applicationWillEnterForeground(_ application: UIApplication) { }
     func applicationDidBecomeActive(_ application: UIApplication) { }
+}
+
+@main
+struct NikkiApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    private let dataContainer = PersistenceController.shared.container
+    
+    var body: some Scene {
+        #if os(visionOS)
+        // O ImmersiveSpace PRECISA ser a raiz do app (Scene) e não uma View comum.
+        ImmersiveSpace(id: "TreeView") {
+            RootView()
+        }
+        .modelContainer(dataContainer)
+        .immersionStyle(selection: .constant(.full), in: .mixed, .full)
+        #else
+        WindowGroup {
+            RootView()
+        }
+        .modelContainer(dataContainer)
+        #endif
+    }
 }
