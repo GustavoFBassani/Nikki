@@ -21,7 +21,7 @@ struct MotivationRoll: View {
 
             VStack(spacing: 7) {
                 VStack(spacing: 0) {
-                    Text("Minha intenção")
+                    Text(StringCatalog.myIntention)
                         .font(Fonts.Subheadline)
                         .foregroundColor(.blueNikki)
 

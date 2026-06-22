@@ -21,11 +21,11 @@ struct OnboardingFirstView: View {
             VStack(spacing: 0) {
 
                 VStack(spacing: 0) {
-                    Text("Nikki")
+                    Text(StringCatalog.nikki)
                         .font(.custom("CaveatBrush-Regular", size: 77))
                         .foregroundStyle(.blueNikki)
 
-                    Text("Seu jardim de memórias")
+                    Text(StringCatalog.gardenOfMemories)
                         .font(.custom("CaveatBrush-Regular", size: 30))
                         .foregroundStyle(.blueNikki)
                 }
@@ -38,10 +38,12 @@ struct OnboardingFirstView: View {
                     .padding(.top, 45)
                     .padding(.bottom, 22)
 
-                Text("Um novo jeito de praticar journaling")
+                Text(StringCatalog.newWayOfJournaling)
                     .font(.custom("CaveatBrush-Regular", size: 32))
                     .foregroundStyle(.blueNikki)
                     .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(2)
                     .padding(.horizontal, 32)
 
                 Spacer()
@@ -50,8 +52,8 @@ struct OnboardingFirstView: View {
                     OnboardingPageControl(totalPages: 4, currentPage: 0)
 
                     OnboardingButtons(
-                        primaryTitle: String(localized: "Próximo"),
-                        secondaryTitle: String(localized: "Pular"),
+                        primaryTitle: StringCatalog.next,
+                        secondaryTitle: StringCatalog.jump,
                         isSecondHidden: false,
                         onPrimaryTap: {
                             goToNext = true

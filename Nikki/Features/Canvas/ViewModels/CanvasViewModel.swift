@@ -115,7 +115,6 @@ class CanvasViewModel {
             let size = CGSize(width: 640, height: 320)
             let rect = centeredRect(for: size)
             
-//            let origin = CGPoint(x: 50, y: 70)
             editorData.insertImage(cardImage, rect: rect)
             
             // Toca o preview
