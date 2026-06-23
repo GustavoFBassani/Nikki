@@ -49,20 +49,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 struct NikkiApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     private let dataContainer = PersistenceController.shared.container
+    @State private var sceneVM = SceneViewModel()
     
     var body: some Scene {
-        #if os(visionOS)
-        // O ImmersiveSpace PRECISA ser a raiz do app (Scene) e não uma View comum.
-        ImmersiveSpace(id: "TreeView") {
+        WindowGroup {
             RootView()
+                .environment(sceneVM)
+        }
+        .modelContainer(dataContainer)
+        
+        #if os(visionOS)
+        WindowGroup(id: "CanvasWindow", for: String.self) { $style in
+            if let style = style {
+                CanvasWindowWrapper(style: style)
+                    .environment(sceneVM)
+            }
+        }
+        .modelContainer(dataContainer)
+        
+        ImmersiveSpace(id: "TreeView") {
+            SceneView()
+                .environment(sceneVM)
         }
         .modelContainer(dataContainer)
         .immersionStyle(selection: .constant(.full), in: .mixed, .full)
-        #else
-        WindowGroup {
-            RootView()
-        }
-        .modelContainer(dataContainer)
         #endif
     }
 }

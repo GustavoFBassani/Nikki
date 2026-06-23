@@ -11,8 +11,20 @@ import SwiftUI
 import TipKit
 
 struct SceneView: View {
+    @Environment(SceneViewModel.self) var vm
     
-    @State var vm = SceneViewModel()
+    var body: some View {
+        #if os(visionOS)
+        VisionOSImmersiveSceneView()
+        #else
+        NormalSceneView()
+        #endif
+    }
+}
+
+struct NormalSceneView: View {
+    
+    @Environment(SceneViewModel.self) var vm
     @State private var showMotivationRoll = false
     @State private var isEditingMotivation = false
     @Environment(\.modelContext) var context
@@ -20,6 +32,7 @@ struct SceneView: View {
     var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
+        @Bindable var vm = vm
         NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
@@ -372,7 +385,62 @@ struct SceneView: View {
         .navigationBarBackButtonHidden(true)
     }
 }
+
+#if os(visionOS)
+struct VisionOSImmersiveSceneView: View {
+    @Environment(SceneViewModel.self) var vm
+    @Environment(\.openWindow) private var openWindow
     
-    #Preview {
-        SceneView(vm: SceneViewModel())
+    var body: some View {
+        RealityView { content in
+            if let scene = vm.scene {
+                content.add(scene)
+            }
+        } update: { content in
+            if let scene = vm.scene, content.entities.isEmpty {
+                content.add(scene)
+            }
+        }
+        .task {
+            if vm.scene == nil {
+                await vm.loadScene()
+                vm.repositioningCameraToTree(animated: false)
+            }
+            vm.loadMotivation()
+        }
+        .gesture(
+            TapGesture()
+                .targetedToAnyEntity()
+                .onEnded { value in
+                    vm.handleTap(on: value.entity)
+                }
+        )
+        // Adicionando o botão flutuante
+        .ornament(attachmentAnchor: .scene(.bottom)) {
+            Menu {
+                ForEach(PaperStyles.allCases, id: \.self) { style in
+                    Button {
+                        vm.openCanvasWithStyle = style.name
+                        openWindow(id: "CanvasWindow", value: style.name)
+                    } label: {
+                        Text(style.title)
+                    }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "plus")
+                    Text("Adicionar Scrap")
+                }
+                .padding()
+                .glassBackgroundEffect()
+            }
+            .padding(.bottom, 50)
+        }
     }
+}
+#endif
+    
+#Preview {
+    SceneView()
+        .environment(SceneViewModel())
+}

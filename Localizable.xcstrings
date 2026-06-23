@@ -43,6 +43,9 @@
         }
       }
     },
+    "Adicionar Scrap" : {
+
+    },
     "Após finalizar ele irá se transformar em um origami no cenário" : {
       "localizations" : {
         "en" : {
@@ -108,6 +111,9 @@
           }
         }
       }
+    },
+    "Carregando ambiente..." : {
+      "comment" : "Loading Scene"
     },
     "Colecione origamis" : {
       "comment" : "A title displayed in the onboarding flow.",
