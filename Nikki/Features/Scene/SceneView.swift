@@ -32,7 +32,11 @@ struct NormalSceneView: View {
     var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
+        // [iOS 17+ e visionOS] Como estamos usando o @Environment para pegar o ViewModel,
+        // ele perde o suporte automático a "Bindings" (variáveis com o cifrão $).
+        // Usar @Bindable aqui dentro diz pro SwiftUI recriar os $ necessários pra essa tela.
         @Bindable var vm = vm
+        
         NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
@@ -387,13 +391,24 @@ struct NormalSceneView: View {
 }
 
 #if os(visionOS)
+// ---------------------------------------------------------
+// TELA TOTALMENTE IMERSIVA PARA VISIONOS
+// ---------------------------------------------------------
+// Essa tela roda dentro do `ImmersiveSpace` que vimos lá no AppDelegate.
+// Ao contrário de uma tela normal, ela não tem NavigationStack, nem fundo, nem barra de navegação.
+// Tudo que colocarmos aqui vai aparecer misturado no mundo real do usuário.
 struct VisionOSImmersiveSceneView: View {
+    // Pegando o mesmo SceneViewModel global lá do AppDelegate
     @Environment(SceneViewModel.self) var vm
+    
+    // Variável nativa para comandar a abertura de janelas 2D secundárias
     @Environment(\.openWindow) private var openWindow
     
     var body: some View {
+        // O RealityView é o componente do visionOS capaz de renderizar e mostrar modelos 3D (.usdz, cenas)
         RealityView { content in
             if let scene = vm.scene {
+                // Coloca a árvore no espaço da sala
                 content.add(scene)
             }
         } update: { content in
@@ -402,6 +417,8 @@ struct VisionOSImmersiveSceneView: View {
             }
         }
         .task {
+            // Quando a tela imersiva aparecer na frente do usuário, carregamos a cena inicial.
+            // Repare que passamos 'animated: false' porque no visionOS o usuário vai focar andando e olhando
             if vm.scene == nil {
                 await vm.loadScene()
                 vm.repositioningCameraToTree(animated: false)
@@ -412,15 +429,23 @@ struct VisionOSImmersiveSceneView: View {
             TapGesture()
                 .targetedToAnyEntity()
                 .onEnded { value in
+                    // Permite tocar fisicamente nos objetos (tsuru, árvore) com as mãos
                     vm.handleTap(on: value.entity)
                 }
         )
-        // Adicionando o botão flutuante
+        // ---------------------------------------------------------
+        // O ORNAMENT: O MENU DE VIDRO FLUTUANTE
+        // ---------------------------------------------------------
+        // Ornaments são painéis anexados fora da janela principal (ou em um ponto específico da cena 3D).
+        // Aqui estamos ancorando esse menu de vidro na parte inferior central (.scene(.bottom)).
         .ornament(attachmentAnchor: .scene(.bottom)) {
             Menu {
                 ForEach(PaperStyles.allCases, id: \.self) { style in
                     Button {
                         vm.openCanvasWithStyle = style.name
+                        
+                        // É AQUI que disparamos a abertura do segundo WindowGroup (o CanvasWindow),
+                        // avisando qual foi o estilo de papel escolhido.
                         openWindow(id: "CanvasWindow", value: style.name)
                     } label: {
                         Text(style.title)
@@ -432,7 +457,7 @@ struct VisionOSImmersiveSceneView: View {
                     Text("Adicionar Scrap")
                 }
                 .padding()
-                .glassBackgroundEffect()
+                .glassBackgroundEffect() // Dá o efeito de vidro embaçado padrão da Apple
             }
             .padding(.bottom, 50)
         }
