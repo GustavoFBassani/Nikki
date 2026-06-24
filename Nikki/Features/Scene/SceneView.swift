@@ -406,15 +406,51 @@ struct VisionOSImmersiveSceneView: View {
     
     var body: some View {
         // O RealityView é o componente do visionOS capaz de renderizar e mostrar modelos 3D (.usdz, cenas)
-        RealityView { content in
+        RealityView { content, attachments in
             if let scene = vm.scene {
-                // Coloca a árvore no espaço da sala
                 content.add(scene)
             }
-        } update: { content in
-            if let scene = vm.scene, content.entities.isEmpty {
+            
+            if let menuAttachment = attachments.entity(for: "customPlus") {
+                let headAnchor = AnchorEntity(.head)
+                menuAttachment.position = [0.3, 0.3, -1.0]
+                headAnchor.addChild(menuAttachment)
+                content.add(headAnchor)
+            }
+
+        } update: { content, attachments in
+            // Mudamos a verificação! Em vez de olhar se o 'content' está vazio 
+            // (o que não está, pois o botão já está lá), verificamos se a cena em si 
+            // já foi adicionada a algum lugar.
+            if let scene = vm.scene, scene.parent == nil {
                 content.add(scene)
             }
+            
+        } attachments: {
+            
+            Attachment(id: "customPlus") {
+                Menu {
+                    ForEach(PaperStyles.allCases, id: \.self) { style in
+                        Button {
+                            vm.openCanvasWithStyle = style.name
+                        } label: {
+                            Text(style.title)
+                                .font(.custom("CaveatBrush-Regular", size: 5))
+                        }
+                    }
+                    
+                } label: {
+                    Image("customPlus")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                }
+
+            }
+            
         }
         .task {
             // Quando a tela imersiva aparecer na frente do usuário, carregamos a cena inicial.
@@ -425,42 +461,8 @@ struct VisionOSImmersiveSceneView: View {
             }
             vm.loadMotivation()
         }
-        .gesture(
-            TapGesture()
-                .targetedToAnyEntity()
-                .onEnded { value in
-                    // Permite tocar fisicamente nos objetos (tsuru, árvore) com as mãos
-                    vm.handleTap(on: value.entity)
-                }
-        )
-        // ---------------------------------------------------------
-        // O ORNAMENT: O MENU DE VIDRO FLUTUANTE
-        // ---------------------------------------------------------
-        // Ornaments são painéis anexados fora da janela principal (ou em um ponto específico da cena 3D).
-        // Aqui estamos ancorando esse menu de vidro na parte inferior central (.scene(.bottom)).
-        .ornament(attachmentAnchor: .scene(.bottom)) {
-            Menu {
-                ForEach(PaperStyles.allCases, id: \.self) { style in
-                    Button {
-                        vm.openCanvasWithStyle = style.name
-                        
-                        // É AQUI que disparamos a abertura do segundo WindowGroup (o CanvasWindow),
-                        // avisando qual foi o estilo de papel escolhido.
-                        openWindow(id: "CanvasWindow", value: style.name)
-                    } label: {
-                        Text(style.title)
-                    }
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "plus")
-                    Text("Adicionar Scrap")
-                }
-                .padding()
-                .glassBackgroundEffect() // Dá o efeito de vidro embaçado padrão da Apple
-            }
-            .padding(.bottom, 50)
-        }
+        
+
     }
 }
 #endif

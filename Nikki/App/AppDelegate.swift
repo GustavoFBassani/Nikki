@@ -111,7 +111,7 @@ struct NikkiApp: App {
         // Ao colocar (.constant(.full), in: .mixed, .full), estamos dizendo pro sistema quais
         // estilos nós damos suporte, permitindo que a Coroa Digital (Digital Crown) do óculos
         // controle o quanto o usuário quer mergulhar na experiência.
-        .immersionStyle(selection: .constant(.full), in: .mixed, .full)
+        .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
         #endif
     }
 }
