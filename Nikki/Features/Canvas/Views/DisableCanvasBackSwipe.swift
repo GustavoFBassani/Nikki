@@ -18,8 +18,10 @@ struct DisableCanvasBackSwipe: UIViewControllerRepresentable {
     final class Controller: UIViewController {
         private let blockerDelegate = PopGestureBlockerDelegate()
         private weak var previousDelegate: UIGestureRecognizerDelegate?
+        #if !os(visionOS)
         private var previousEdgePanStates: [ObjectIdentifier: Bool] = [:]
         private var edgePans: [UIScreenEdgePanGestureRecognizer] = []
+        #endif
 
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
@@ -67,6 +69,7 @@ struct DisableCanvasBackSwipe: UIViewControllerRepresentable {
         }
 
         private func disableLeftEdgePansIfNeeded() {
+            #if !os(visionOS)
             guard let gestures = navigationController?.view.gestureRecognizers else {
                 return
             }
@@ -85,9 +88,11 @@ struct DisableCanvasBackSwipe: UIViewControllerRepresentable {
 
                 edgePan.isEnabled = false
             }
+            #endif
         }
 
         private func restoreLeftEdgePans() {
+            #if !os(visionOS)
             for edgePan in edgePans {
                 let id = ObjectIdentifier(edgePan)
                 if let previous = previousEdgePanStates[id] {
@@ -97,6 +102,7 @@ struct DisableCanvasBackSwipe: UIViewControllerRepresentable {
 
             previousEdgePanStates.removeAll()
             edgePans.removeAll()
+            #endif
         }
     }
 

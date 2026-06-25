@@ -11,8 +11,20 @@ import SwiftUI
 import TipKit
 
 struct SceneView: View {
+    @Environment(SceneViewModel.self) var vm
     
-    @State var vm = SceneViewModel()
+    var body: some View {
+        #if os(visionOS)
+        VisionOSImmersiveSceneView()
+        #else
+        NormalSceneView()
+        #endif
+    }
+}
+
+struct NormalSceneView: View {
+    
+    @Environment(SceneViewModel.self) var vm
     @State private var showMotivationRoll = false
     @State private var isEditingMotivation = false
     @Environment(\.modelContext) var context
@@ -20,6 +32,11 @@ struct SceneView: View {
     var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
+        // [iOS 17+ e visionOS] Como estamos usando o @Environment para pegar o ViewModel,
+        // ele perde o suporte automático a "Bindings" (variáveis com o cifrão $).
+        // Usar @Bindable aqui dentro diz pro SwiftUI recriar os $ necessários pra essa tela.
+        @Bindable var vm = vm
+        
         NavigationStack {
             ZStack {
                 // RealityView para o conteúdo 3D
@@ -372,7 +389,84 @@ struct SceneView: View {
         .navigationBarBackButtonHidden(true)
     }
 }
+
+#if os(visionOS)
+// ---------------------------------------------------------
+// TELA TOTALMENTE IMERSIVA PARA VISIONOS
+// ---------------------------------------------------------
+// Essa tela roda dentro do `ImmersiveSpace` que vimos lá no AppDelegate.
+// Ao contrário de uma tela normal, ela não tem NavigationStack, nem fundo, nem barra de navegação.
+// Tudo que colocarmos aqui vai aparecer misturado no mundo real do usuário.
+struct VisionOSImmersiveSceneView: View {
+    // Pegando o mesmo SceneViewModel global lá do AppDelegate
+    @Environment(SceneViewModel.self) var vm
     
-    #Preview {
-        SceneView(vm: SceneViewModel())
+    // Variável nativa para comandar a abertura de janelas 2D secundárias
+    @Environment(\.openWindow) private var openWindow
+    
+    var body: some View {
+        // O RealityView é o componente do visionOS capaz de renderizar e mostrar modelos 3D (.usdz, cenas)
+        RealityView { content, attachments in
+            if let scene = vm.scene {
+                content.add(scene)
+            }
+            
+            if let menuAttachment = attachments.entity(for: "customPlus") {
+                let headAnchor = AnchorEntity(.head)
+                menuAttachment.position = [0, -0.3, -0.8]
+
+                headAnchor.addChild(menuAttachment)
+                content.add(headAnchor)
+            }
+
+        } update: { content, attachments in
+
+            if let scene = vm.scene, scene.parent == nil {
+                content.add(scene)
+            }
+            
+        } attachments: {
+            
+            Attachment(id: "customPlus") {
+                Menu {
+                    ForEach(PaperStyles.allCases, id: \.self) { style in
+                        Button {
+                            vm.openCanvasWithStyle = style.name
+                        } label: {
+                            Text(style.title)
+                                .font(.custom("CaveatBrush-Regular", size: 5))
+                        }
+                    }
+                    
+                } label: {
+                    Image("customPlus")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                }
+
+            }
+            
+        }
+        .task {
+            // Quando a tela imersiva aparecer na frente do usuário, carregamos a cena inicial.
+            // Repare que passamos 'animated: false' porque no visionOS o usuário vai focar andando e olhando
+            if vm.scene == nil {
+                await vm.loadScene()
+                vm.repositioningCameraToTree(animated: false)
+            }
+            vm.loadMotivation()
+        }
+        
+
     }
+}
+#endif
+    
+#Preview {
+    SceneView()
+        .environment(SceneViewModel())
+}
