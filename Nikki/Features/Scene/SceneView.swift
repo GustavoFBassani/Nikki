@@ -414,6 +414,7 @@ struct VisionOSImmersiveSceneView: View {
             if let menuAttachment = attachments.entity(for: "customPlus") {
                 let headAnchor = AnchorEntity(.head)
                 menuAttachment.position = [0, -0.3, -0.8]
+
                 headAnchor.addChild(menuAttachment)
                 content.add(headAnchor)
             }
