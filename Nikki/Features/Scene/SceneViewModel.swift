@@ -9,6 +9,7 @@ import NikkiProject
 import RealityKit
 import SwiftUI
 import TipKit
+import UIKit
 
 @MainActor
 @Observable
@@ -17,6 +18,7 @@ class SceneViewModel {
     //MARK: - MANAGER
     var cameraManager = CameraManager()
     var pageControlTsuru = PageControlTsurus()
+    var weatherAudioManager = WeatherAudioManager.shared
     
     //MARK: - SERVICES
     var scrapService = ScrapService.shared
@@ -60,6 +62,7 @@ class SceneViewModel {
     var tree: Entity?
     var tsuru: Entity?
     var newTsuru: Entity?
+    var skyDome: Entity?
     var isScenePaused: Bool = false
     var finishingResumeScene: Bool = false
     
@@ -85,6 +88,7 @@ class SceneViewModel {
             let camera = PerspectiveCamera()
             tree = scene.findEntity(named: "Cherry_Tree_2")
             tsuru = scene.findEntity(named: "tsuru")
+            skyDome = scene.findEntity(named: "SkyDome")
             
             if let bandstand = scene.findEntity(named: "Japan_HW") {
                 bandstand.generateCollisionShapes(recursive: true)
@@ -108,6 +112,19 @@ class SceneViewModel {
             lastAdded = orderedPages.count
             
             updateCamera()
+            weatherAudioManager.start()
+
+            Task {
+                var lastTrack: AmbientTrack? = nil
+                while !Task.isCancelled {
+                    let current = weatherAudioManager.currentTrack
+                    if current != lastTrack {
+                        lastTrack = current
+                        await updateSkyDome(for: current)
+                    }
+                    try? await Task.sleep(for: .seconds(1))
+                }
+            }
         } catch {
             print("Erro ao carregar cena: \(error)")
         }
@@ -247,6 +264,9 @@ class SceneViewModel {
 
         if !paused {
             updateCamera()
+            weatherAudioManager.start()
+        } else {
+            weatherAudioManager.stop()
         }
     }
 
@@ -463,6 +483,40 @@ class SceneViewModel {
         UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
     }
     
+    // MARK: - SkyDome
+
+    func updateSkyDome(for track: AmbientTrack) async {
+        guard let skyDome else { return }
+
+        let (resourceName, bundle): (String, Bundle) = track == .nature
+            ? ("artefinalfundo_upscaled", nikkiProjectBundle)
+            : ("Discovery of Brazil", Bundle.main)
+
+        guard let url = bundle.url(forResource: resourceName, withExtension: "png") else {
+            print("SceneViewModel: skybox image not found — \(resourceName).png")
+            return
+        }
+
+        do {
+            let texture = try await TextureResource(contentsOf: url, options: .init(semantic: .color))
+            var material = UnlitMaterial()
+            material.color = .init(tint: .white, texture: .init(texture))
+            applyMaterial(material, to: skyDome)
+        } catch {
+            print("SceneViewModel: skybox texture error — \(error)")
+        }
+    }
+
+    private func applyMaterial(_ material: any RealityKit.Material, to entity: Entity) {
+        if var model = entity.components[ModelComponent.self] {
+            model.materials = [material]
+            entity.components[ModelComponent.self] = model
+        }
+        for child in entity.children {
+            applyMaterial(material, to: child)
+        }
+    }
+
     //MARK: - DEBUG FUNCTIONS
     
     func debugTsuruComponents(_ obj: Entity) {

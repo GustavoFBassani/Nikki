@@ -16,5 +16,7 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Nikki usa sua localização para tocar sons ambientes que combinam com o clima lá fora.</string>
 </dict>
 </plist>
