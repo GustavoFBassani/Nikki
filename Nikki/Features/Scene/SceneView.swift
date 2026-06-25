@@ -32,9 +32,6 @@ struct NormalSceneView: View {
     var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
-        // [iOS 17+ e visionOS] Como estamos usando o @Environment para pegar o ViewModel,
-        // ele perde o suporte automático a "Bindings" (variáveis com o cifrão $).
-        // Usar @Bindable aqui dentro diz pro SwiftUI recriar os $ necessários pra essa tela.
         @Bindable var vm = vm
         
         NavigationStack {
@@ -411,13 +408,23 @@ struct VisionOSImmersiveSceneView: View {
                 content.add(scene)
             }
             
-            if let menuAttachment = attachments.entity(for: "customPlus") {
+            if let buttonPlus = attachments.entity(for: "customPlus") {
                 let headAnchor = AnchorEntity(.head)
-                menuAttachment.position = [0, -0.3, -0.8]
+                buttonPlus.position = [0.5, -0.3, -0.8]
 
-                headAnchor.addChild(menuAttachment)
+                headAnchor.addChild(buttonPlus)
                 content.add(headAnchor)
             }
+            
+            if let buttonPlus = attachments.entity(for: "customMinus") {
+                let headAnchor = AnchorEntity(.head)
+                buttonPlus.position = [-0.5, -0.3, -0.8]
+
+                headAnchor.addChild(buttonPlus)
+                content.add(headAnchor)
+            }
+            
+            
 
         } update: { content, attachments in
 
@@ -428,15 +435,17 @@ struct VisionOSImmersiveSceneView: View {
         } attachments: {
             
             Attachment(id: "customPlus") {
-                Menu {
-                    ForEach(PaperStyles.allCases, id: \.self) { style in
-                        Button {
-                            vm.openCanvasWithStyle = style.name
-                        } label: {
-                            Text(style.title)
-                                .font(.custom("CaveatBrush-Regular", size: 5))
-                        }
+                Button {
+                    if !vm.orderedPages.isEmpty {
+                        vm.repositioningCameraToTsuru(vm.pickLastTsuru())
                     }
+                    
+                    Task {
+                        vm.isCameraNotMoving = false
+                        try? await Task.sleep(nanoseconds: 700_000_000)
+                        vm.isCameraNotMoving = true
+                    }
+                    
                     
                 } label: {
                     Image("customPlus")
@@ -450,13 +459,30 @@ struct VisionOSImmersiveSceneView: View {
 
             }
             
+            Attachment(id: "customMinus") {
+                Button {
+                    vm.repositioningCameraToTree()
+                    vm.isFocusedOnBandstand = false
+                    vm.saveMotivation()
+                    
+                } label: {
+                    Image("xmark.fill")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                }
+
+            }
         }
         .task {
             // Quando a tela imersiva aparecer na frente do usuário, carregamos a cena inicial.
             // Repare que passamos 'animated: false' porque no visionOS o usuário vai focar andando e olhando
             if vm.scene == nil {
                 await vm.loadScene()
-                vm.repositioningCameraToTree(animated: false)
+                vm.repositioningCameraToTree(animated: true)
             }
             vm.loadMotivation()
         }
