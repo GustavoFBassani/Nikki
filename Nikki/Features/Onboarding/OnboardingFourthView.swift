@@ -37,21 +37,24 @@ struct OnboardingFourthView: View {
             VStack(spacing: 0) {
 
                 VStack(spacing: 114) {
-                    Text("Intenção do journal")
+                    Text(StringCatalog.journalIntention)
                         .font(.custom("CaveatBrush-Regular", size: 38))
                         .foregroundStyle(.blueNikki)
+                        .padding(.horizontal, 32)
 
                     MotivationRoll(motivation: $motivationString, isEditing: true)
                 }
                 .padding(.top, 32)
 
                 VStack(spacing: 17) {
-                    Text("Ela guia seu processo de journaling e ajuda a lembrar porque começou a prática")
+                    Text(StringCatalog.itGuidesYourProccess)
                         .font(.custom("CaveatBrush-Regular", size: 32))
                         .foregroundStyle(.blueNikki)
                         .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(3)
 
-                    Text("*Clique no pergaminho para escrever sua motivação\nVocê poderá atualizar quando quiser")
+                    Text(StringCatalog.clickOnTheParchment)
                         .font(Fonts.Footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -64,7 +67,7 @@ struct OnboardingFourthView: View {
                     OnboardingPageControl(totalPages: 4, currentPage: 3)
 
                     OnboardingButtons(
-                        primaryTitle: String(localized: "Próximo"),
+                        primaryTitle: StringCatalog.next,
                         secondaryTitle: "",
                         isSecondHidden: true,
                         onPrimaryTap: {

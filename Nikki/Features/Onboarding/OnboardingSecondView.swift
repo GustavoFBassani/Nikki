@@ -21,9 +21,11 @@ struct OnboardingSecondView: View {
             VStack(spacing: 0) {
 
                 VStack(spacing: 64) {
-                    Text("Registre seus momentos")
+                    Text(StringCatalog.registerYourMoments)
                         .font(.custom("CaveatBrush-Regular", size: 38))
                         .foregroundStyle(.blueNikki)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
 
                     Image("scrapExample")
                         .resizable()
@@ -32,10 +34,12 @@ struct OnboardingSecondView: View {
                 }
                 .padding(.top, 32)
 
-                Text("Transforme seus momentos \n em registros personalizados")
+                Text(StringCatalog.transformYourMoments)
                     .font(.custom("CaveatBrush-Regular", size: 32))
                     .foregroundStyle(.blueNikki)
                     .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(2)
                     .padding(.horizontal, 32)
                     .padding(.top, 18)
 
@@ -45,8 +49,8 @@ struct OnboardingSecondView: View {
                     OnboardingPageControl(totalPages: 4, currentPage: 1)
 
                     OnboardingButtons(
-                        primaryTitle: String(localized: "Próximo"),
-                        secondaryTitle: String(localized: "Pular"),
+                        primaryTitle: StringCatalog.next,
+                        secondaryTitle: StringCatalog.jump,
                         isSecondHidden: false,
                         onPrimaryTap: {
                             goToNext = true

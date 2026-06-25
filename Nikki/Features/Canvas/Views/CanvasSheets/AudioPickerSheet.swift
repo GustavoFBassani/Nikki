@@ -19,12 +19,12 @@ struct AudioPickerSheet: View {
                     }) {
                         HStack {
                             Image(systemName: "waveform")
-                            Text("Áudio \(recording.sequence + 1)")
+                            Text(String(format: StringCatalog.audioSequence, recording.sequence + 1))
                         }
                     }
                 }
             }
-            .navigationTitle("Escolher Áudio")
+            .navigationTitle(StringCatalog.pickAudio)
         }
     }
 }

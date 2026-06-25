@@ -27,7 +27,7 @@ struct CreditsView: View {
                     Spacer()
                 }
                 .overlay(
-                    Text("Creditos")
+                    Text(StringCatalog.credits)
                         .font(.custom("CaveatBrush-Regular", size: 24))
                         .foregroundStyle(Color(.black))
                 )
@@ -35,7 +35,7 @@ struct CreditsView: View {
 
                 VStack(spacing: 20){
                     VStack(spacing: 8){
-                        Text("Tree")
+                        Text(StringCatalog.tree)
                             .foregroundStyle(Color(.blueNikki))
                             .font(.custom("CaveatBrush-Regular", size: 22))
                             .frame(width: 361, alignment: .leading)
@@ -48,7 +48,7 @@ struct CreditsView: View {
                     .padding(.horizontal)
 
                     VStack(spacing: 8){
-                        Text("Scenery")
+                        Text(StringCatalog.scenery)
                             .foregroundStyle(Color(.blueNikki))
                             .font(.custom("CaveatBrush-Regular", size: 22))
                             .frame(width: 361, alignment: .leading)
@@ -61,7 +61,7 @@ struct CreditsView: View {
                     .padding(.horizontal)
 
                     VStack(spacing: 8){
-                        Text("Gate")
+                        Text(StringCatalog.gate)
                             .foregroundStyle(Color(.blueNikki))
                             .font(.custom("CaveatBrush-Regular", size: 22))
                             .frame(width: 361, alignment: .leading)
@@ -74,7 +74,7 @@ struct CreditsView: View {
                     .padding(.horizontal)
 
                     VStack(spacing: 8){
-                        Text("Bandstand")
+                        Text(StringCatalog.bandstand)
                             .foregroundStyle(Color(.blueNikki))
                             .font(.custom("CaveatBrush-Regular", size: 22))
                             .frame(width: 361, alignment: .leading)
@@ -87,7 +87,7 @@ struct CreditsView: View {
                     .padding(.horizontal)
 
                     VStack(spacing: 8){
-                        Text("Lamp")
+                        Text(StringCatalog.lamp)
                             .foregroundStyle(Color(.blueNikki))
                             .font(.custom("CaveatBrush-Regular", size: 22))
                             .frame(width: 361, alignment: .leading)

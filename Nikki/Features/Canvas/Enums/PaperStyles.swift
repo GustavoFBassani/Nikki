@@ -18,9 +18,9 @@ enum PaperStyles: String, CaseIterable {
     
     var title: String {
         switch self {
-        case .dotted:   return String(localized: "Pontilhado")
-        case .lantern:  return String(localized: "Lanternas Orientais")
-        case .fan:  return String(localized: "Leques Floridos")
+        case .dotted:   return StringCatalog.dottedPaper
+        case .lantern:  return StringCatalog.lanterns
+        case .fan:  return StringCatalog.fan
         }
     }
 }

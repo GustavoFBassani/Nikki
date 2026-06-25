@@ -9,9 +9,9 @@ import SwiftUI
 import TipKit
 
 struct NewPageTip: Tip {
-    var title: Text { Text("Crie seu scrap") }
+    var title: Text { Text(StringCatalog.createYourScrap) }
     var message: Text? {
-        Text("Após finalizar ele irá se transformar em um origami no cenário")
+        Text(StringCatalog.afterFinishItWillTransform)
             .foregroundStyle(.tipMessage)
     }
 
@@ -20,11 +20,11 @@ struct NewPageTip: Tip {
 
 struct FocusTsuruTip: Tip {
     var title: Text {
-        Text("Localize seus origamis")
+        Text(StringCatalog.localizeYourOrigamis)
     }
     
     var message: Text? {
-        Text("Encontre suas colagens facilmente")
+        Text(StringCatalog.findYourCollages)
             .foregroundStyle(.tipMessage)
     }
 }
