@@ -2,10 +2,7 @@
 //  SceneViewModel+POCTsuru.swift
 //  Nikki
 //
-//  POC: tsuru atravessando um portal e (opcionalmente) pousando na mão.
-//  Mantido separado do código de produção para facilitar o debug e a remoção.
-//  O estado observável (`pocFlightRequest`) fica no próprio SceneViewModel para
-//  ser observado pela TsuruPortalView; aqui só vive o enum da POC.
+//  Created by Alex Fraga on 30/06/26.
 //
 
 import Foundation

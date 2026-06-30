@@ -2,9 +2,7 @@
 //  HandTrackingManager.swift
 //  Nikki
 //
-//  Wrapper sobre ARKit/RealityKit hand tracking para a POC do tsuru.
-//  Em device, fornece a posição mundial de uma das mãos para o tsuru pousar.
-//  No Simulador (sem mãos), `start()` apenas loga e retorna `false` — nada anima.
+//  Created by Alex Fraga on 30/06/26.
 //
 
 #if os(visionOS)

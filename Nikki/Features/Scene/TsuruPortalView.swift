@@ -2,13 +2,7 @@
 //  TsuruPortalView.swift
 //  Nikki
 //
-//  POC: view imersiva onde um tsuru emerge de um portal/plano simples, voa até
-//  o usuário e (na variação com hand tracking) pousa na mão antes de sumir.
-//  Disparada pelos botões da VisionOSLauncherView via `vm.pocFlightRequest`.
-//
-//  O tsuru é carregado DIRETO do asset `tsuru` (tsuru.usdc) — NÃO clonamos a
-//  cena da árvore. É uma única entidade, sem duplicação. Ao terminar o voo, o
-//  space se fecha e a janela de botões (Launcher) reabre.
+//  Created by Alex Fraga on 30/06/26.
 //
 
 #if os(visionOS)
@@ -75,8 +69,8 @@ struct TsuruPortalView: View {
             mesh: .generatePlane(width: 1.0, height: 1.2, cornerRadius: 0.05),
             materials: [material]
         )
-        // À frente do rosto, um pouco acima da linha dos olhos.
-        portal.position = [0, spawnHeight, portalDistance]
+        // À frente do rosto (-z), um pouco acima da linha dos olhos.
+        portal.position = [0, spawnHeight, -portalDistance]
         return portal
     }
 
@@ -157,6 +151,52 @@ struct TsuruPortalView: View {
         entity.move(to: transform, relativeTo: worldRoot, duration: duration, timingFunction: .easeInOut)
     }
 
+    /// Voa do ponto atual até `target` de forma "tremulada", como um objeto real:
+    /// o trajeto é quebrado em vários segmentos curtos, cada um com um pequeno
+    /// desvio aleatório de altura e lateral (jitter). Em cada segmento o tsuru é
+    /// reorientado para encarar o próximo ponto, dando a sensação de voo errático.
+    ///
+    /// - Parameters:
+    ///   - target: destino final no espaço do mundo.
+    ///   - totalDuration: tempo total aproximado do trajeto.
+    ///   - segments: em quantos pedaços o caminho é dividido (mais = mais tremido).
+    ///   - wobble: amplitude máxima (em metros) do desvio lateral/vertical.
+    private func flyWobbly(
+        _ entity: Entity,
+        to target: SIMD3<Float>,
+        totalDuration: TimeInterval,
+        segments: Int = 6,
+        wobble: Float = 0.18
+    ) async {
+        let start = entity.position(relativeTo: nil)
+        let segDuration = totalDuration / TimeInterval(segments)
+
+        // Vetor "direita" relativo à direção do voo, para desviar lateralmente.
+        let forward = simd_normalize(target - start)
+        let worldUp = SIMD3<Float>(0, 1, 0)
+        let right = simd_length(simd_cross(forward, worldUp)) > 0.001
+            ? simd_normalize(simd_cross(forward, worldUp))
+            : SIMD3<Float>(1, 0, 0)
+
+        for i in 1...segments {
+            let t = Float(i) / Float(segments)
+            // Ponto base interpolado linearmente em direção ao alvo.
+            let base = simd_mix(start, target, SIMD3<Float>(repeating: t))
+
+            // Desvio aleatório, que diminui conforme chega perto do alvo (chega suave).
+            let damping = 1.0 - t
+            let lateral = Float.random(in: -wobble...wobble) * damping
+            let vertical = Float.random(in: -wobble...wobble) * damping
+
+            let waypoint = (i == segments)
+                ? target  // último segmento aterrissa exatamente no alvo
+                : base + right * lateral + worldUp * vertical
+
+            fly(entity, to: waypoint, duration: segDuration)
+            try? await Task.sleep(for: .seconds(segDuration))
+        }
+    }
+
     /// Finaliza o voo: esconde o tsuru e o remove da cena.
     private func retireTsuru(_ entity: Entity) {
         entity.stopAllAnimations()
@@ -169,18 +209,34 @@ struct TsuruPortalView: View {
     private func runSimpleFlight() async {
         guard let tsuru = await prepareTsuru() else { return }
 
-        // Portal -> frente do rosto.
-        fly(tsuru, to: hoverWorldPosition(), duration: 2.0)
-        try? await Task.sleep(for: .seconds(2.0))
+        // Portal -> frente do rosto, voando de forma tremulada (não em linha reta).
+        await flyWobbly(tsuru, to: hoverWorldPosition(), totalDuration: 3.5)
 
-        // Paira por alguns segundos.
-        try? await Task.sleep(for: .seconds(3.0))
+        // Paira por alguns segundos, com um leve flutuar no lugar.
+        await hoverInPlace(tsuru, around: hoverWorldPosition(), seconds: 3.0)
 
-        // Voa para longe (-z, bem à frente) e some.
-        let away = headAnchor.convert(position: SIMD3<Float>(0, 0.3, -8), to: nil)
-        fly(tsuru, to: away, duration: 2.0)
-        try? await Task.sleep(for: .seconds(2.0))
+        // Voa para longe (-z, bem à frente) e some — também tremulado.
+        let away = headAnchor.convert(position: SIMD3<Float>(0, 0.6, -8), to: nil)
+        await flyWobbly(tsuru, to: away, totalDuration: 3.0, wobble: 0.25)
         retireTsuru(tsuru)
+    }
+
+    /// Mantém o tsuru "pairando" em torno de `center` com pequenas oscilações,
+    /// para não ficar congelado no ar enquanto espera.
+    private func hoverInPlace(_ entity: Entity, around center: SIMD3<Float>, seconds: TimeInterval) async {
+        let steps = max(1, Int(seconds / 0.6))
+        for _ in 0..<steps {
+            let jitter = SIMD3<Float>(
+                Float.random(in: -0.05...0.05),
+                Float.random(in: -0.04...0.04),
+                Float.random(in: -0.05...0.05)
+            )
+            // Só translada (mantém a orientação atual) para não girar enquanto paira.
+            var transform = entity.transform
+            transform.translation = center + jitter
+            entity.move(to: transform, relativeTo: worldRoot, duration: 0.6, timingFunction: .easeInOut)
+            try? await Task.sleep(for: .seconds(0.6))
+        }
     }
 
     // MARK: - Variação 2: pouso na mão (hand tracking)
