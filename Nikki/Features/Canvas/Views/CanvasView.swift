@@ -4,12 +4,23 @@
 //
 //  Created by Alex Fraga on 06/11/25.
 //
+
 import SwiftUI
 import PaperKit
 import PhotosUI
 import MusicKit
 import AVFoundation
 import UIKit
+
+#if os(visionOS)
+private enum VisionCanvasToolbarItem {
+    case text
+    case pencil
+    case images
+    case music
+    case stickers
+}
+#endif
 
 // MARK: - CanvasView
 
@@ -35,6 +46,10 @@ struct CanvasView: View {
     @State private var isDismissingCanvas = false
     @State private var dismissLoadingMessage: String?
 
+#if os(visionOS)
+    @State private var selectedVisionToolbarItem: VisionCanvasToolbarItem?
+#endif
+
     @Environment(\.dismiss) private var dismiss
 
     var addNewTsuru: () async -> Void
@@ -59,7 +74,13 @@ struct CanvasView: View {
             isPageNil = true
         }
 
-        _viewModel = State(initialValue: CanvasViewModel(page: page, paperStyle: paperStyle))
+        _viewModel = State(
+            initialValue: CanvasViewModel(
+                page: page,
+                paperStyle: paperStyle
+            )
+        )
+
         self.addNewTsuru = addNewTsuru
         self.reloadTsurus = reloadTsurus
         self.onCanvasAppear = onCanvasAppear
@@ -70,12 +91,20 @@ struct CanvasView: View {
     // MARK: - Body
 
     var body: some View {
+        canvasWithDismissHelpers
+    }
+
+    private var canvasBase: some View {
         editorContent
             .overlay(alignment: .top) {
                 topControlsOverlay
             }
+    }
 
+    @ViewBuilder
+    private var canvasWithToolbar: some View {
 #if os(visionOS)
+        canvasBase
             .ornament(
                 attachmentAnchor: .scene(.bottom),
                 contentAlignment: .center
@@ -83,11 +112,15 @@ struct CanvasView: View {
                 tabBarOverlay
             }
 #else
+        canvasBase
             .overlay(alignment: .bottom) {
                 tabBarOverlay
             }
 #endif
+    }
 
+    private var canvasWithSheets: some View {
+        canvasWithToolbar
             .preferredColorScheme(.light)
             .sheet(isPresented: $viewModel.showITunesSearch) {
                 itunesSearchSheet
@@ -108,8 +141,21 @@ struct CanvasView: View {
                 isPresented: $viewModel.showImagePicker,
                 selection: $viewModel.photoItem
             )
+    }
+
+    private var canvasWithLifecycle: some View {
+        canvasWithSheets
             .onChange(of: viewModel.photoItem) { _, _ in
                 handlePhotoSelection()
+            }
+            .onChange(of: viewModel.showITunesSearch) { _, isPresented in
+                resetMusicToolbarSelectionIfNeeded(isPresented)
+            }
+            .onChange(of: viewModel.showStickers) { _, isPresented in
+                resetStickersToolbarSelectionIfNeeded(isPresented)
+            }
+            .onChange(of: viewModel.showImagePicker) { _, isPresented in
+                resetImagesToolbarSelectionIfNeeded(isPresented)
             }
             .onAppear {
                 onCanvasAppear?()
@@ -117,6 +163,10 @@ struct CanvasView: View {
             .onDisappear {
                 handleCanvasExit()
             }
+    }
+
+    private var canvasWithAlertsAndOverlays: some View {
+        canvasWithLifecycle
             .alert("Delete page?", isPresented: $showDeleteAlert) {
                 deleteAlertButtons
             } message: {
@@ -142,6 +192,11 @@ struct CanvasView: View {
             } message: {
                 Text(shareFeedbackMessage)
             }
+    }
+
+    private var canvasWithDismissHelpers: some View {
+        canvasWithAlertsAndOverlays
+            .background(KeyboardDismissOnOutsideTap())
             .background(DisableCanvasBackSwipe())
     }
 
@@ -187,7 +242,9 @@ struct CanvasView: View {
                 HStack(spacing: 12) {
                     CanvasFloatingButton(
                         isDisabled: isSavingPage || isDismissingCanvas,
-                        action: { showDeleteAlert = true }
+                        action: {
+                            showDeleteAlert = true
+                        }
                     ) {
                         Image(.customGarbage)
                     }
@@ -232,9 +289,6 @@ struct CanvasView: View {
         if isTabBarHidden {
 #if os(visionOS)
             tabBarButtons
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .glassBackgroundEffect(in: Capsule())
                 .padding(.bottom, 8)
 #else
             tabBarButtons
@@ -244,6 +298,32 @@ struct CanvasView: View {
     }
 
     private var tabBarButtons: some View {
+#if os(visionOS)
+        VisionTabBarToolKit(
+            selectedItem: selectedVisionToolbarItem,
+            showTextEditor: {
+                selectedVisionToolbarItem = .text
+                handleTextEditor()
+                selectedVisionToolbarItem = nil
+            },
+            showPencilTool: {
+                selectedVisionToolbarItem = .pencil
+                handlePencilTool()
+            },
+            showImages: {
+                selectedVisionToolbarItem = .images
+                viewModel.showImagePicker = true
+            },
+            showMusics: {
+                selectedVisionToolbarItem = .music
+                viewModel.showITunesSearch = true
+            },
+            showStickers: {
+                selectedVisionToolbarItem = .stickers
+                viewModel.showStickers = true
+            }
+        )
+#else
         TabBarToolKit(
             showTextEditor: handleTextEditor,
             showPencilTool: handlePencilTool,
@@ -257,6 +337,7 @@ struct CanvasView: View {
                 viewModel.showStickers.toggle()
             }
         )
+#endif
     }
 
     @ViewBuilder
@@ -303,7 +384,7 @@ struct CanvasView: View {
     private var deleteAlertButtons: some View {
         Button("Cancel", role: .cancel) {}
 
-        Button("Delete") {
+        Button("Delete", role: .destructive) {
             Task {
                 await handleDeletePage()
             }
@@ -315,6 +396,30 @@ struct CanvasView: View {
     }
 
     // MARK: - Actions
+
+    private func resetMusicToolbarSelectionIfNeeded(_ isPresented: Bool) {
+#if os(visionOS)
+        if !isPresented, selectedVisionToolbarItem == .music {
+            selectedVisionToolbarItem = nil
+        }
+#endif
+    }
+
+    private func resetStickersToolbarSelectionIfNeeded(_ isPresented: Bool) {
+#if os(visionOS)
+        if !isPresented, selectedVisionToolbarItem == .stickers {
+            selectedVisionToolbarItem = nil
+        }
+#endif
+    }
+
+    private func resetImagesToolbarSelectionIfNeeded(_ isPresented: Bool) {
+#if os(visionOS)
+        if !isPresented, selectedVisionToolbarItem == .images {
+            selectedVisionToolbarItem = nil
+        }
+#endif
+    }
 
     private func handleTextEditor() {
         viewModel.insertDefaultText()
@@ -338,9 +443,9 @@ struct CanvasView: View {
         showCheckMark = false
         isTabBarHidden = true
 
-        Task {
-            await dismissCanvas(with: nil)
-        }
+#if os(visionOS)
+        selectedVisionToolbarItem = nil
+#endif
     }
 
     private func handleUndo() {
@@ -489,7 +594,10 @@ struct CanvasView: View {
     }
 
     @MainActor
-    private func dismissCanvas(with message: String?, prepareScene: Bool = true) async {
+    private func dismissCanvas(
+        with message: String?,
+        prepareScene: Bool = true
+    ) async {
         guard !isDismissingCanvas else { return }
 
         isDismissingCanvas = true
@@ -558,8 +666,232 @@ private struct CanvasFloatingButton<Content: View>: View {
     }
 }
 
-// MARK: - Preview
+#if os(visionOS)
+// MARK: - Vision Tab Bar ToolKit
 
+private struct VisionTabBarToolKit: View {
+    var selectedItem: VisionCanvasToolbarItem?
+
+    var showTextEditor: () -> Void
+    var showPencilTool: () -> Void
+    var showImages: () -> Void
+    var showMusics: () -> Void
+    var showStickers: () -> Void
+
+    var body: some View {
+        HStack(spacing: 16) {
+            VisionToolbarButton(
+                imageName: "folhaVision",
+                accessibilityLabel: "Text",
+                isSelected: selectedItem == .text,
+                action: showTextEditor
+            )
+            
+            VisionToolbarButton(
+                imageName: "canetaVision",
+                accessibilityLabel: "Draw",
+                isSelected: selectedItem == .pencil,
+                action: showPencilTool
+            )
+
+            VisionToolbarButton(
+                imageName: "imagemVision",
+                accessibilityLabel: "Images",
+                isSelected: selectedItem == .images,
+                action: showImages
+            )
+
+            VisionToolbarButton(
+                imageName: "musicaVision",
+                accessibilityLabel: "Music",
+                isSelected: selectedItem == .music,
+                action: showMusics
+            )
+
+            VisionToolbarButton(
+                imageName: "carimboVision",
+                accessibilityLabel: "Stickers",
+                isSelected: selectedItem == .stickers,
+                action: showStickers
+            )
+        }
+        .padding(.horizontal, 18)
+        .frame(height: 68)
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 35, style: .continuous))
+        .glassBackgroundEffect(
+            in: RoundedRectangle(cornerRadius: 35, style: .continuous)
+        )
+    }
+}
+
+private struct VisionToolbarButton: View {
+    let imageName: String
+    let accessibilityLabel: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    private var backgroundColor: Color {
+        if isSelected {
+            return Color.white.opacity(0.2)
+        }
+
+        if isHovered {
+            return Color.white.opacity(0.6)
+        }
+
+        return Color.clear
+    }
+
+    private var scale: CGFloat {
+        isHovered ? 1.08 : 1.0
+    }
+
+    private var accessibilityTraits: AccessibilityTraits {
+        isSelected ? [.isButton, .isSelected] : .isButton
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 44, height: 44)
+                .background {
+                    Circle()
+                        .fill(backgroundColor)
+                }
+                .scaleEffect(scale)
+                .animation(.easeInOut(duration: 0.16), value: isHovered)
+                .animation(.easeInOut(duration: 0.16), value: isSelected)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .hoverEffect(.highlight)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(accessibilityTraits)
+    }
+}
+#endif
+
+// MARK: - Keyboard Dismiss
+
+private struct KeyboardDismissOnOutsideTap: UIViewRepresentable {
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> HostingView {
+        let view = HostingView()
+        view.backgroundColor = .clear
+        view.isUserInteractionEnabled = false
+        view.coordinator = context.coordinator
+        return view
+    }
+
+    func updateUIView(_ uiView: HostingView, context: Context) {
+        uiView.coordinator = context.coordinator
+        context.coordinator.attach(to: uiView.window)
+    }
+
+    static func dismantleUIView(_ uiView: HostingView, coordinator: Coordinator) {
+        coordinator.detach()
+    }
+
+    final class HostingView: UIView {
+        weak var coordinator: Coordinator?
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            coordinator?.attach(to: window)
+        }
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        private weak var window: UIWindow?
+        private var tapGesture: UITapGestureRecognizer?
+
+        func attach(to window: UIWindow?) {
+            guard let window else { return }
+
+            if self.window === window, tapGesture?.view === window {
+                return
+            }
+
+            detach()
+
+            let gesture = UITapGestureRecognizer(
+                target: self,
+                action: #selector(handleTapOutside)
+            )
+
+            gesture.name = "CanvasKeyboardDismissOnOutsideTap"
+            gesture.cancelsTouchesInView = false
+            gesture.delegate = self
+
+            window.addGestureRecognizer(gesture)
+
+            self.window = window
+            self.tapGesture = gesture
+        }
+
+        func detach() {
+            if let tapGesture, let view = tapGesture.view {
+                view.removeGestureRecognizer(tapGesture)
+            }
+
+            tapGesture = nil
+            window = nil
+        }
+
+        @objc
+        private func handleTapOutside(_ gesture: UITapGestureRecognizer) {
+            guard gesture.state == .ended else { return }
+
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil,
+                from: nil,
+                for: nil
+            )
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldReceive touch: UITouch
+        ) -> Bool {
+            guard let touchedView = touch.view else {
+                return true
+            }
+
+            return !touchedView.isInsideTextInput
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            true
+        }
+    }
+}
+
+private extension UIView {
+    var isInsideTextInput: Bool {
+        if (self as? any UITextInput) != nil {
+            return true
+        }
+
+        return superview?.isInsideTextInput ?? false
+    }
+}
+
+// MARK: - Preview
 
 #Preview {
     Text("Delete")

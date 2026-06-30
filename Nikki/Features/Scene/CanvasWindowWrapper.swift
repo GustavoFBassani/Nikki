@@ -17,14 +17,13 @@ struct CanvasWindowWrapper: View {
             addNewTsuru: vm.parseCanvasDateAndAddNewTsuruAtScene,
             reloadTsurus: vm.deleteTsurusAtScene,
             onCanvasAppear: {
-                vm.setScenePaused(true)
+                vm.setCanvasPresented(true)
             },
             onCanvasWillDismiss: {
-                vm.setScenePaused(false)
-                await vm.waitUntilSceneResumed()
+                vm.setCanvasPresented(false)
             },
             onCanvasDisappear: {
-                vm.setScenePaused(false)
+                vm.setCanvasPresented(false)
             }
         )
     }

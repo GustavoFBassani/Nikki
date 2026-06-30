@@ -394,38 +394,31 @@ struct NormalSceneView: View {
 // ---------------------------------------------------------
 // TELA TOTALMENTE IMERSIVA PARA VISIONOS
 // ---------------------------------------------------------
-// Essa tela roda dentro do `ImmersiveSpace` que vimos lá no AppDelegate.
-// Ao contrário de uma tela normal, ela não tem NavigationStack, nem fundo, nem barra de navegação.
-// Tudo que colocarmos aqui vai aparecer misturado no mundo real do usuário.
 struct VisionOSImmersiveSceneView: View {
-    // Pegando o mesmo SceneViewModel global lá do AppDelegate
     @Environment(SceneViewModel.self) var vm
-    
-    // Variável nativa para comandar a abertura de janelas 2D secundárias
     @Environment(\.openWindow) private var openWindow
+
     @State private var isPaperMenuOpen = false
-    
+
     var body: some View {
-        // O RealityView é o componente do visionOS capaz de renderizar e mostrar modelos 3D (.usdz, cenas)
         RealityView { content, attachments in
             if let scene = vm.scene {
                 content.add(scene)
             }
-            
+
             if let menuAttachment = attachments.entity(for: "customPlus") {
                 let headAnchor = AnchorEntity(.head)
                 menuAttachment.position = [0, -0.3, -0.8]
-                
+
                 headAnchor.addChild(menuAttachment)
                 content.add(headAnchor)
             }
-            
+
         } update: { content, attachments in
-            
             if let scene = vm.scene, scene.parent == nil {
                 content.add(scene)
             }
-            
+
         } attachments: {
             Attachment(id: "customPlus") {
                 HStack(spacing: 10) {
@@ -442,13 +435,19 @@ struct VisionOSImmersiveSceneView: View {
                                     .fill(Color.white.opacity(0.85))
                             )
                     }
-                    
+
                     if isPaperMenuOpen {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(PaperStyles.allCases, id: \.self) { style in
                                 Button {
                                     isPaperMenuOpen = false
-                                    openWindow(id: "CanvasWindow", value: style.name)
+
+                                    // Abre a window direto.
+                                    // Não seta isCanvasPresented aqui.
+                                    openWindow(
+                                        id: "CanvasWindow",
+                                        value: style.name
+                                    )
                                 } label: {
                                     Text(style.title)
                                         .font(.custom("CaveatBrush-Regular", size: 18))
@@ -472,13 +471,13 @@ struct VisionOSImmersiveSceneView: View {
             }
         }
         .task {
-            // Quando a tela imersiva aparecer na frente do usuário, carregamos a cena inicial.
-            // Repare que passamos 'animated: false' porque no visionOS o usuário vai focar andando e olhando
             if vm.scene == nil {
                 await vm.loadScene()
                 vm.repositioningCameraToTree(animated: false)
             }
+
             vm.loadMotivation()
+            vm.evaluateTipsVisibility()
         }
     }
 }
