@@ -15,17 +15,22 @@ struct RootView: View {
     private let dataContainer = PersistenceController.shared.container
     var body: some View {
         Group {
-            if hasSeenOnboarding {
+//            if hasSeenOnboarding {
+//                #if os(visionOS)
+//                VisionOSLauncherView()
+//                #else
+//                SceneView()
+//                #endif
+//            } else {
+//                NavigationStack {
+//                    OnboardingFirstView()
+//                }
+//            }
                 #if os(visionOS)
                 VisionOSLauncherView()
                 #else
                 SceneView()
                 #endif
-            } else {
-                NavigationStack {
-                    OnboardingFirstView()
-                }
-            }
         }
         .modelContainer(dataContainer)
     }
@@ -46,20 +51,45 @@ struct VisionOSLauncherView: View {
     // Variáveis de ambiente nativas para controlar janelas e espaços
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @Environment(\.dismissWindow) private var dismissWindow
+    // ViewModel global (injetado no WindowGroup do AppDelegate). Usado para
+    // sinalizar qual animação da POC do tsuru deve rodar.
+    @Environment(SceneViewModel.self) private var sceneVM
 
     var body: some View {
         VStack {
-            ProgressView("Carregando ambiente...")
-        }
-        .onAppear {
-            Task {
-                // Assim que essa tela invisível aparece, ela instantaneamente diz pro sistema:
-                // "Por favor, abra o ImmersiveSpace com o ID 'TreeView' que está lá no AppDelegate"
-                await openImmersiveSpace(id: "TreeView")
-                
-                // Depois que o espaço imersivo abrir com sucesso, nós mandamos fechar ESSA
-                // janela 2D onde o ProgressView estava, deixando o usuário livre na sala com a árvore!
-                dismissWindow()
+            Button("Volume"){
+
+            }
+            Button{
+                Task {
+                    // Assim que essa tela invisível aparece, ela instantaneamente diz pro sistema:
+                    // "Por favor, abra o ImmersiveSpace com o ID 'TreeView' que está lá no AppDelegate"
+                    await openImmersiveSpace(id: "TreeView")
+
+                    // Depois que o espaço imersivo abrir com sucesso, nós mandamos fechar ESSA
+                    // janela 2D onde o ProgressView estava, deixando o usuário livre na sala com a árvore!
+                    dismissWindow()
+                }
+            } label: {
+                Text("ImmersiveSpace")
+            }
+
+            // MARK: - POC Tsuru
+            // Dois botões para debugar as variações da animação do tsuru.
+            // Abrem o ImmersiveSpace dedicado "TsuruPOC" e sinalizam qual animação rodar.
+            Button("Tsuru: voo simples") {
+                Task {
+                    await openImmersiveSpace(id: "TsuruPOC")
+                    sceneVM.pocFlightRequest = .simpleFlight
+                    dismissWindow()
+                }
+            }
+            Button("Tsuru: pousa na mão") {
+                Task {
+                    await openImmersiveSpace(id: "TsuruPOC")
+                    sceneVM.pocFlightRequest = .handLanding
+                    dismissWindow()
+                }
             }
         }
     }

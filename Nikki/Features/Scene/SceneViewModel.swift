@@ -64,6 +64,11 @@ class SceneViewModel {
     var newTsuru: Entity?
     var isScenePaused: Bool = false
     var finishingResumeScene: Bool = false
+
+    //MARK: - POC Tsuru Flight
+    /// Sinaliza para a `TsuruPortalView` qual animação da POC deve rodar.
+    /// Os botões da `VisionOSLauncherView` setam isso após abrir o space "TsuruPOC".
+    var pocFlightRequest: TsuruFlightKind?
     
     // MARK: - Motivation
     private var currentMotivation: Motivation?

@@ -62,7 +62,7 @@ struct NikkiApp: App {
         // No visionOS, ele representa uma janela 2D de vidro que flutua no espaço.
         // Como não passamos nenhum 'id' pra ele, ele é considerado a "Janela Principal e Padrão" do app.
         // É a primeira coisa que o sistema tenta abrir quando você clica no ícone do aplicativo.
-        WindowGroup {
+        WindowGroup(id: "Launcher") {
             RootView() // A tela que vai aparecer dentro dessa janela
                 .environment(sceneVM) // Passando nosso ViewModel para todas as telas filhas
         }
@@ -111,6 +111,18 @@ struct NikkiApp: App {
         // Ao colocar (.constant(.full), in: .mixed, .full), estamos dizendo pro sistema quais
         // estilos nós damos suporte, permitindo que a Coroa Digital (Digital Crown) do óculos
         // controle o quanto o usuário quer mergulhar na experiência.
+        .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
+
+        // ---------------------------------------------------------
+        // 4. POC: PORTAL DO TSURU (ImmersiveSpace dedicado)
+        // ---------------------------------------------------------
+        // Space separado da árvore só para debugar as duas animações do tsuru
+        // (voo simples e pouso na mão). A view observa `sceneVM.pocFlightRequest`
+        // para saber qual animação rodar quando o space aparece.
+        ImmersiveSpace(id: "TsuruPOC") {
+            TsuruPortalView()
+                .environment(sceneVM)
+        }
         .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
         #endif
     }
