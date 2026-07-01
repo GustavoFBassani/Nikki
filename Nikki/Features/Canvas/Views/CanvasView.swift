@@ -209,6 +209,15 @@ struct CanvasView: View {
 
     @ViewBuilder
     private var topControlsOverlay: some View {
+#if os(visionOS)
+        visionTopControlsOverlay
+#else
+        defaultTopControlsOverlay
+#endif
+    }
+
+    @ViewBuilder
+    private var defaultTopControlsOverlay: some View {
         HStack {
             if !showCheckMark {
                 CanvasFloatingButton(
@@ -283,6 +292,102 @@ struct CanvasView: View {
         .padding(.top, 12)
         .zIndex(10)
     }
+
+#if os(visionOS)
+    @ViewBuilder
+    private var visionTopControlsOverlay: some View {
+        HStack {
+            if !showCheckMark {
+                VisionTopControlButton(
+                    accessibilityLabel: "Back",
+                    isDisabled: isSavingPage || isDismissingCanvas,
+                    isSelected: false,
+                    action: handleBackButtonTap
+                ) {
+                    Image(.leftVision)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                }
+            }
+
+            Spacer()
+
+            if showCheckMark {
+                VisionTopControlButton(
+                    accessibilityLabel: "Done",
+                    isDisabled: isSavingPage || isDismissingCanvas,
+                    isSelected: false,
+                    defaultBackgroundColor: .cyan.opacity(0.9),
+                    action: handleCheckMark
+                ) {
+                    Image(.checkVision)
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                }
+            } else {
+                HStack(spacing: 16) {
+                    VisionTopControlButton(
+                        accessibilityLabel: "Delete",
+                        isDisabled: isSavingPage || isDismissingCanvas,
+                        isSelected: false,
+                        action: {
+                            showDeleteAlert = true
+                        }
+                    ) {
+                        Image(.trashVision)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                    }
+
+                    VisionTopControlButton(
+                        accessibilityLabel: "Undo",
+                        isDisabled: isSavingPage || isDismissingCanvas,
+                        isSelected: false,
+                        action: handleUndo
+                    ) {
+                        Image(.backVision)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                    }
+
+                    let isShareSelected = showCustomShare || isPreparingShare
+
+                    VisionTopControlButton(
+                        accessibilityLabel: "Share",
+                        isDisabled: isSavingPage || isDismissingCanvas || isPreparingShare,
+                        isSelected: isShareSelected,
+                        selectedBackgroundColor: Color.white.opacity(0.22),
+                        action: handleShareButtonTap
+                    ) {
+                        Image(isShareSelected ? "shareSelected" : "shareVision")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                    }
+
+                    VisionTopControlButton(
+                        accessibilityLabel: "Save",
+                        isDisabled: isSavingPage || isDismissingCanvas,
+                        isSelected: false,
+                        action: handleSave
+                    ) {
+                        Image(.origamiVision)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                            .accessibilityIdentifier("canvas_save_button")
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 24)
+        .zIndex(10)
+    }
+#endif
 
     @ViewBuilder
     private var tabBarOverlay: some View {
@@ -667,6 +772,107 @@ private struct CanvasFloatingButton<Content: View>: View {
 }
 
 #if os(visionOS)
+// MARK: - Vision Top Control Button
+
+private struct VisionTopControlButton<Content: View>: View {
+    let accessibilityLabel: String
+    let isDisabled: Bool
+    let isSelected: Bool
+    let defaultBackgroundColor: Color
+    let selectedBackgroundColor: Color
+    let hoverColor: Color
+    let action: () -> Void
+    let content: Content
+
+    @State private var isHovered = false
+
+    init(
+        accessibilityLabel: String,
+        isDisabled: Bool = false,
+        isSelected: Bool = false,
+        defaultBackgroundColor: Color = Color.white.opacity(0.12),
+        selectedBackgroundColor: Color = Color.white.opacity(0.22),
+        hoverColor: Color = Color.black.opacity(0.32),
+        action: @escaping () -> Void,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.accessibilityLabel = accessibilityLabel
+        self.isDisabled = isDisabled
+        self.isSelected = isSelected
+        self.defaultBackgroundColor = defaultBackgroundColor
+        self.selectedBackgroundColor = selectedBackgroundColor
+        self.hoverColor = hoverColor
+        self.action = action
+        self.content = content()
+    }
+
+    private var backgroundColor: Color {
+        if isHovered {
+            return hoverColor
+        }
+
+        if isSelected {
+            return selectedBackgroundColor
+        }
+
+        return defaultBackgroundColor
+    }
+
+    private var borderColor: Color {
+        if isSelected {
+            return Color.white.opacity(0.75)
+        }
+
+        if isHovered {
+            return Color.black.opacity(0.45)
+        }
+
+        return Color.clear
+    }
+
+    private var scale: CGFloat {
+        isHovered ? 1.08 : 1.0
+    }
+
+    private var accessibilityTraits: AccessibilityTraits {
+        isSelected ? [.isButton, .isSelected] : .isButton
+    }
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(.regularMaterial)
+
+                Circle()
+                    .fill(backgroundColor)
+
+                content
+            }
+            .frame(width: 50, height: 50)
+            .overlay {
+                Circle()
+                    .strokeBorder(borderColor, lineWidth: 1)
+            }
+            .scaleEffect(scale)
+            .animation(.easeInOut(duration: 0.16), value: isHovered)
+            .animation(.easeInOut(duration: 0.16), value: isSelected)
+            .contentShape(Circle())
+        }
+        .frame(width: 56, height: 56)
+        .contentShape(Rectangle())
+        .buttonStyle(.plain)
+        .hoverEffect(.highlight)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .disabled(isDisabled)
+        .opacity(isDisabled ? 0.45 : 1)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(accessibilityTraits)
+    }
+}
+
 // MARK: - Vision Tab Bar ToolKit
 
 private struct VisionTabBarToolKit: View {
@@ -686,7 +892,7 @@ private struct VisionTabBarToolKit: View {
                 isSelected: selectedItem == .text,
                 action: showTextEditor
             )
-            
+
             VisionToolbarButton(
                 imageName: "canetaVision",
                 accessibilityLabel: "Draw",
