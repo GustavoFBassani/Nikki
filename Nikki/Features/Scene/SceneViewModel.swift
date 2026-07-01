@@ -270,10 +270,18 @@ class SceneViewModel {
 
         lastAdded += 1
 
+        #if os(visionOS)
+        cameraManager.repositioningCameraNewToTsuru(
+            animated: false,
+            tsuruToFocus: newTsuru?.children.first
+        )
+        #else
         cameraManager.repositioningCameraNewToTsuru(
             animated: false,
             tsuruToFocus: newTsuru
         )
+
+        #endif
 
         playTsuruAnimation(tsuruToAnimate: newTsuru)
 
