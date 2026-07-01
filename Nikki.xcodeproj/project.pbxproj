@@ -564,7 +564,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = br.academy.Nikki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Nikki2026PP;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = NikkiProPro;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -611,7 +611,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = br.academy.Nikki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Nikki2026PP;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = NikkiProPro;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;

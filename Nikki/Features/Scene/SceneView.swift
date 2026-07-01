@@ -391,18 +391,13 @@ struct NormalSceneView: View {
 // ---------------------------------------------------------
 // TELA TOTALMENTE IMERSIVA PARA VISIONOS
 // ---------------------------------------------------------
-// Essa tela roda dentro do `ImmersiveSpace` que vimos lá no AppDelegate.
-// Ao contrário de uma tela normal, ela não tem NavigationStack, nem fundo, nem barra de navegação.
-// Tudo que colocarmos aqui vai aparecer misturado no mundo real do usuário.
 struct VisionOSImmersiveSceneView: View {
-    // Pegando o mesmo SceneViewModel global lá do AppDelegate
     @Environment(SceneViewModel.self) var vm
-    
-    // Variável nativa para comandar a abertura de janelas 2D secundárias
     @Environment(\.openWindow) private var openWindow
-    
+
+    @State private var isPaperMenuOpen = false
+
     var body: some View {
-        // O RealityView é o componente do visionOS capaz de renderizar e mostrar modelos 3D (.usdz, cenas)
         RealityView { content, attachments in
             if let scene = vm.scene {
                 content.add(scene)
@@ -410,13 +405,22 @@ struct VisionOSImmersiveSceneView: View {
             
             if let buttonPlus = attachments.entity(for: "customPlus") {
                 let headAnchor = AnchorEntity(.head)
-                buttonPlus.position = [0.5, -0.3, -0.8]
+                buttonPlus.position = [0, -0.3, -0.8]
 
                 headAnchor.addChild(buttonPlus)
                 content.add(headAnchor)
             }
             
-            if let buttonMinus = attachments.entity(for: "customMinus") {
+            if let buttonPlus = attachments.entity(for: "focusOnTsuru") {
+                let headAnchor = AnchorEntity(.head)
+                buttonPlus.position = [0.5, -0.3, -0.8]
+
+                headAnchor.addChild(buttonPlus)
+                content.add(headAnchor)
+            }
+
+            
+            if let buttonMinus = attachments.entity(for: "removeFocusOnTsuru") {
                 let headAnchor = AnchorEntity(.head)
                 buttonMinus.position = [-0.5, -0.3, -0.8]
 
@@ -461,7 +465,7 @@ struct VisionOSImmersiveSceneView: View {
             
         } attachments: {
             
-            Attachment(id: "customPlus") {
+            Attachment(id: "focusOnTsuru") {
                 Button {
                     if !vm.orderedPages.isEmpty {
                         vm.repositioningCameraToTsuru(vm.pickLastTsuru())
@@ -484,9 +488,59 @@ struct VisionOSImmersiveSceneView: View {
                         )
                 }
 
+        }
+            
+            Attachment(id: "customPlus") {
+                HStack(spacing: 10) {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isPaperMenuOpen.toggle()
+                        }
+                    } label: {
+                        Image("customPlus")
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 22)
+                                    .fill(Color.white.opacity(0.85))
+                            )
+                    }
+
+                    if isPaperMenuOpen {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(PaperStyles.allCases, id: \.self) { style in
+                                Button {
+                                    isPaperMenuOpen = false
+
+                                    // Abre a window direto.
+                                    // Não seta isCanvasPresented aqui.
+                                    openWindow(
+                                        id: "CanvasWindow",
+                                        value: style.name
+                                    )
+                                } label: {
+                                    Text(style.title)
+                                        .font(.custom("CaveatBrush-Regular", size: 18))
+                                        .foregroundStyle(.white)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .frame(width: 150)
+                        .padding(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.black.opacity(0.55))
+                        )
+                        .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
+                }
             }
             
-            Attachment(id: "customMinus") {
+            Attachment(id: "removeFocusOnTsuru") {
                 Button {
                     vm.repositioningCameraToTree()
                     vm.isFocusedOnBandstand = false
@@ -536,18 +590,17 @@ struct VisionOSImmersiveSceneView: View {
                 }
 
             }
+
         }
         .task {
-            // Quando a tela imersiva aparecer na frente do usuário, carregamos a cena inicial.
-            // Repare que passamos 'animated: false' porque no visionOS o usuário vai focar andando e olhando
             if vm.scene == nil {
                 await vm.loadScene()
                 vm.repositioningCameraToTree(animated: true)
             }
-            vm.loadMotivation()
-        }
-        
 
+            vm.loadMotivation()
+            vm.evaluateTipsVisibility()
+        }
     }
 }
 #endif
