@@ -2,13 +2,13 @@
   "sourceLanguage" : "pt-BR",
   "strings" : {
     "3D Model “Japanese garden” — created by Katydid. License: Sketchfab Free Standard (https://sketchfab.com/licenses/free-standard).  Modified by Martina Adegas. Available in: https://sketchfab.com/3d-models/japanese-garden-3083a8ae73bd47c68e655713915787f5" : {
+
     },
     "3D Model: “Cherry Tree” Created by: local.yany Available in: https://sketchfab.com/3d-models/cherry-tree-5f6d9059b971429999343e0f398bf487  License: Creative Commons Attribution 4.0 (CC BY 4.0) https://creativecommons.org/licenses/by/4.0/" : {
 
     },
     "app.name" : {
       "comment" : "The name of the app.",
-
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -23,6 +23,12 @@
           }
         }
       }
+    },
+    "Botão 1" : {
+
+    },
+    "Botão 2" : {
+
     },
     "Cancel" : {
 

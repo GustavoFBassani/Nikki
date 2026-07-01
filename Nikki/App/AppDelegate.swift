@@ -69,8 +69,16 @@ struct NikkiApp: App {
         // O .modelContainer conecta o banco de dados (SwiftData) a essa janela,
         // para que qualquer @Query lá dentro consiga ler e salvar dados.
         .modelContainer(dataContainer)
-        
+
         // As linhas abaixo só serão compiladas e existirão se o app estiver rodando no visionOS.
+        #if os(visionOS)
+        // .plain remove o vidro padrão do sistema, para que a própria view controle o
+        // vidro colorido via .background(Color...opacity) + .glassBackgroundEffect().
+        // .defaultSize define o tamanho inicial da janela 2D flutuante.
+        .windowStyle(.plain)
+        .defaultSize(width: 1280, height: 720)
+        #endif
+
         #if os(visionOS)
         
         // ---------------------------------------------------------
