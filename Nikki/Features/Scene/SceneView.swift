@@ -394,23 +394,18 @@ struct NormalSceneView: View {
 // ---------------------------------------------------------
 // TELA TOTALMENTE IMERSIVA PARA VISIONOS
 // ---------------------------------------------------------
-// Essa tela roda dentro do `ImmersiveSpace` que vimos lá no AppDelegate.
-// Ao contrário de uma tela normal, ela não tem NavigationStack, nem fundo, nem barra de navegação.
-// Tudo que colocarmos aqui vai aparecer misturado no mundo real do usuário.
 struct VisionOSImmersiveSceneView: View {
-    // Pegando o mesmo SceneViewModel global lá do AppDelegate
     @Environment(SceneViewModel.self) var vm
-    
-    // Variável nativa para comandar a abertura de janelas 2D secundárias
     @Environment(\.openWindow) private var openWindow
-    
+
+    @State private var isPaperMenuOpen = false
+
     var body: some View {
-        // O RealityView é o componente do visionOS capaz de renderizar e mostrar modelos 3D (.usdz, cenas)
         RealityView { content, attachments in
             if let scene = vm.scene {
                 content.add(scene)
             }
-            
+
             if let menuAttachment = attachments.entity(for: "customPlus") {
                 let headAnchor = AnchorEntity(.head)
                 menuAttachment.position = [0, -0.3, -0.8]
@@ -420,48 +415,70 @@ struct VisionOSImmersiveSceneView: View {
             }
 
         } update: { content, attachments in
-
             if let scene = vm.scene, scene.parent == nil {
                 content.add(scene)
             }
-            
-        } attachments: {
-            
-            Attachment(id: "customPlus") {
-                Menu {
-                    ForEach(PaperStyles.allCases, id: \.self) { style in
-                        Button {
-                            vm.openCanvasWithStyle = style.name
-                        } label: {
-                            Text(style.title)
-                                .font(.custom("CaveatBrush-Regular", size: 5))
-                        }
-                    }
-                    
-                } label: {
-                    Image("customPlus")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
-                }
 
+        } attachments: {
+            Attachment(id: "customPlus") {
+                HStack(spacing: 10) {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isPaperMenuOpen.toggle()
+                        }
+                    } label: {
+                        Image("customPlus")
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: 22)
+                                    .fill(Color.white.opacity(0.85))
+                            )
+                    }
+
+                    if isPaperMenuOpen {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(PaperStyles.allCases, id: \.self) { style in
+                                Button {
+                                    isPaperMenuOpen = false
+
+                                    // Abre a window direto.
+                                    // Não seta isCanvasPresented aqui.
+                                    openWindow(
+                                        id: "CanvasWindow",
+                                        value: style.name
+                                    )
+                                } label: {
+                                    Text(style.title)
+                                        .font(.custom("CaveatBrush-Regular", size: 18))
+                                        .foregroundStyle(.white)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .frame(width: 150)
+                        .padding(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.black.opacity(0.55))
+                        )
+                        .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
+                }
             }
-            
         }
         .task {
-            // Quando a tela imersiva aparecer na frente do usuário, carregamos a cena inicial.
-            // Repare que passamos 'animated: false' porque no visionOS o usuário vai focar andando e olhando
             if vm.scene == nil {
                 await vm.loadScene()
                 vm.repositioningCameraToTree(animated: false)
             }
-            vm.loadMotivation()
-        }
-        
 
+            vm.loadMotivation()
+            vm.evaluateTipsVisibility()
+        }
     }
 }
 #endif
