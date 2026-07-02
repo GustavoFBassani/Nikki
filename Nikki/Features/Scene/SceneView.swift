@@ -409,7 +409,7 @@ struct VisionOSImmersiveSceneView: View {
 
                 headAnchor.addChild(buttonPlus)
                 content.add(headAnchor)
-            }
+            } // substitui pelo do alex
             
             if let buttonPlus = attachments.entity(for: "focusOnTsuru") {
                 let headAnchor = AnchorEntity(.head)
@@ -417,28 +417,27 @@ struct VisionOSImmersiveSceneView: View {
 
                 headAnchor.addChild(buttonPlus)
                 content.add(headAnchor)
-            }
+            } // substitui pelo do alex
 
-            
             if let buttonMinus = attachments.entity(for: "removeFocusOnTsuru") {
                 let headAnchor = AnchorEntity(.head)
                 buttonMinus.position = [-0.5, -0.3, -0.8]
 
                 headAnchor.addChild(buttonMinus)
                 content.add(headAnchor)
-            }
+            } // isso aqui vai mudar
             
             if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
                 buttonNextTsuru.position = [-2, 0, 6.4]
                 buttonNextTsuru.isEnabled = false
                 content.add(buttonNextTsuru)
-            }
+            } // isso aqui já é oficial
             
             if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
                 buttonPreviousTsuru.position = [-1, 0, 6.4]
                 buttonPreviousTsuru.isEnabled = false
                 content.add(buttonPreviousTsuru)
-            }
+            } // isso aqui já é oficial
 
         } update: { content, attachments in
             
@@ -450,86 +449,87 @@ struct VisionOSImmersiveSceneView: View {
             }
             
             if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
-                buttonNextTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft
+                buttonNextTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft && !vm.isCanvasPresented
             }
             
             if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
-                buttonPreviousTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight
+                buttonPreviousTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight && !vm.isCanvasPresented
             }
             
         } attachments: {
             
-            Attachment(id: "focusOnTsuru") {
-                Button {
-                    if !vm.orderedPages.isEmpty {
-                        vm.repositioningCameraToTsuru(vm.pickLastTsuru())
-                    }
-                    
-                    Task {
-                        vm.isCameraNotMoving = false
-                        try? await Task.sleep(nanoseconds: 700_000_000)
-                        vm.isCameraNotMoving = true
-                    }
-                    
-                    
-                } label: {
-                    Image("customPlus")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
-                }
-
-        }
+//            Attachment(id: "focusOnTsuru") {
+//                Button {
+//                    if !vm.orderedPages.isEmpty {
+//                        vm.repositioningCameraToTsuru(vm.pickLastTsuru())
+//                    }
+//                    
+//                    Task {
+//                        vm.isCameraNotMoving = false
+//                        try? await Task.sleep(nanoseconds: 700_000_000)
+//                        vm.isCameraNotMoving = true
+//                    }
+//                    
+//                    
+//                } label: {
+//                    Image("customPlus")
+//                        .scaledToFit()
+//                        .frame(width: 44, height: 44)
+//                        .background(
+//                            RoundedRectangle(cornerRadius: 22)
+//                                .fill(Color.white.opacity(0.85))
+//                        )
+//                }
+//
+//        } // substitui pelo do alex
             
-            Attachment(id: "customPlus") {
-                HStack(spacing: 10) {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            isPaperMenuOpen.toggle()
-                        }
-                    } label: {
-                        Image("customPlus")
-                            .scaledToFit()
-                            .frame(width: 44, height: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 22)
-                                    .fill(Color.white.opacity(0.85))
-                            )
-                    }
+//            Attachment(id: "customPlus") {
+//                HStack(spacing: 10) {
+//                    Button {
+//                        withAnimation(.easeInOut(duration: 0.2)) {
+//                            isPaperMenuOpen.toggle()
+//                        }
+//                    } label: {
+//                        Image("customPlus")
+//                            .scaledToFit()
+//                            .frame(width: 44, height: 44)
+//                            .background(
+//                                RoundedRectangle(cornerRadius: 22)
+//                                    .fill(Color.white.opacity(0.85))
+//                            )
+//                    }
+//
+//                    if isPaperMenuOpen {
+//                        VStack(alignment: .leading, spacing: 8) {
+//                            ForEach(PaperStyles.allCases, id: \.self) { style in
+//                                Button {
+//                                    isPaperMenuOpen = false
+//                                    openWindow(
+//                                        id: "CanvasWindow",
+//                                        value: style.name
+//                                    )
+//                                } label: {
+//                                    Text(style.title)
+//                                        .font(.custom("CaveatBrush-Regular", size: 18))
+//                                        .foregroundStyle(.white)
+//                                        .frame(maxWidth: .infinity, alignment: .leading)
+//                                        .padding(.horizontal, 14)
+//                                        .padding(.vertical, 8)
+//                                }
+//                                .buttonStyle(.plain)
+//                            }
+//                        }
+//                        .frame(width: 150)
+//                        .padding(10)
+//                        .background(
+//                            RoundedRectangle(cornerRadius: 18)
+//                                .fill(Color.black.opacity(0.55))
+//                        )
+//                        .transition(.move(edge: .leading).combined(with: .opacity))
+//                    }
+//                }
+//            } // Esse aqui some e substitui pelo do ALEX
 
-                    if isPaperMenuOpen {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(PaperStyles.allCases, id: \.self) { style in
-                                Button {
-                                    isPaperMenuOpen = false
-                                    openWindow(
-                                        id: "CanvasWindow",
-                                        value: style.name
-                                    )
-                                } label: {
-                                    Text(style.title)
-                                        .font(.custom("CaveatBrush-Regular", size: 18))
-                                        .foregroundStyle(.white)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding(.horizontal, 14)
-                                        .padding(.vertical, 8)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        .frame(width: 150)
-                        .padding(10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(Color.black.opacity(0.55))
-                        )
-                        .transition(.move(edge: .leading).combined(with: .opacity))
-                    }
-                }
-            }
             
             Attachment(id: "removeFocusOnTsuru") {
                 Button {
@@ -548,7 +548,7 @@ struct VisionOSImmersiveSceneView: View {
                         .foregroundStyle(.black)
                 }
 
-            }
+            } //ISSO AQUI AINDA VAI MUDAR
             
             Attachment(id: "moveToLeftTsuru") {
                 Button {
@@ -560,7 +560,7 @@ struct VisionOSImmersiveSceneView: View {
                 }
                 .buttonStyle(.plain)
                 .padding(16)
-            }
+            } // ESSE AQUI JA TEM O DESIGN OFICIAL
             
             Attachment(id: "moveToRightTsuru") {
                 Button {
@@ -572,9 +572,33 @@ struct VisionOSImmersiveSceneView: View {
                 }
                 .buttonStyle(.plain)
                 .padding(16)
-            }
+            } // ESSE AQUI JA TEM O DESIGN OFICIAL
 
         }
+        .gesture(
+            SpatialTapGesture()
+                .targetedToAnyEntity()
+                .onEnded { value in
+                    let clickedEntity = value.entity
+                    
+                    // O dicionário normalmente salva a malha (newFlapBird). 
+                    // Mas caso o usuário clique na caixa do pai, tentamos achar a página de 3 formas:
+                    let page = vm.dict[clickedEntity] ?? 
+                               vm.dict.first(where: { $0.key.parent == clickedEntity })?.value ??
+                               (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
+                    
+                    if let page {
+                        print("Clicado no tsuru da página: \(page.title ?? "Sem Título")")
+                        
+                        // Define a página atual no ViewModel
+                        vm.currentPage = page
+                        
+                        // Desembrulha o paperStyle, pois openWindow exige String, não String?
+                        let style = page.paperStyle ?? "Papel em Branco"
+                        openWindow(id: "CanvasWindow", value: style)
+                    }
+                }
+        )
         .task {
             if vm.scene == nil {
                 await vm.loadScene()

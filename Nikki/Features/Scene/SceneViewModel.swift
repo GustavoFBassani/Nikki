@@ -183,6 +183,13 @@ class SceneViewModel {
     func setCanvasPresented(_ isPresented: Bool) {
         isCanvasPresented = isPresented
 
+        // Esconde ou mostra o tsuru atual
+        if let page = currentPage,
+           let entity = dict.first(where: { $0.value.id == page.id })?.key {
+            // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
+            // Escondemos o pai para sumir com o pássaro por completo (incluindo possíveis sombras/efeitos).
+            entity.parent?.isEnabled = !isPresented
+        }
 
         scene?.isEnabled = true
 
@@ -386,6 +393,7 @@ class SceneViewModel {
 
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
+        newFlapBird.components.set(CollisionComponent(shapes: [.generateBox(size: [0.2, 0.2, 0.2])]))
     }
 
     func applyTexture(to tsuru: Entity?, texture scrapImage: UIImage?) async {
