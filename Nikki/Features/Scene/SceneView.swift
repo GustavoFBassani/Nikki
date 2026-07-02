@@ -429,21 +429,15 @@ struct VisionOSImmersiveSceneView: View {
             }
             
             if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
-                let headAnchor = AnchorEntity(.head)
-                buttonNextTsuru.position = [-0.5, -0.1, -0.8]
+                buttonNextTsuru.position = [-2, 0, 6.4]
                 buttonNextTsuru.isEnabled = false
-
-                headAnchor.addChild(buttonNextTsuru)
-                content.add(headAnchor)
+                content.add(buttonNextTsuru)
             }
             
             if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
-                let headAnchor = AnchorEntity(.head)
-                buttonPreviousTsuru.position = [0.5, -0.1, -0.8]
+                buttonPreviousTsuru.position = [-1, 0, 6.4]
                 buttonPreviousTsuru.isEnabled = false
-
-                headAnchor.addChild(buttonPreviousTsuru)
-                content.add(headAnchor)
+                content.add(buttonPreviousTsuru)
             }
 
         } update: { content, attachments in
@@ -511,9 +505,6 @@ struct VisionOSImmersiveSceneView: View {
                             ForEach(PaperStyles.allCases, id: \.self) { style in
                                 Button {
                                     isPaperMenuOpen = false
-
-                                    // Abre a window direto.
-                                    // Não seta isCanvasPresented aqui.
                                     openWindow(
                                         id: "CanvasWindow",
                                         value: style.name
@@ -564,31 +555,23 @@ struct VisionOSImmersiveSceneView: View {
                     vm.navigateToTsuru(at: "left")
                 } label: {
                     Image(systemName: "chevron.left")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
-                        .foregroundStyle(.black)
+                        .frame(width: 52, height: 52)
+                        .background(.thinMaterial, in: Circle())
                 }
+                .buttonStyle(.plain)
+                .padding(16)
             }
             
             Attachment(id: "moveToRightTsuru") {
                 Button {
                     vm.navigateToTsuru(at: "right")
-                    
                 } label: {
                     Image(systemName: "chevron.right")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
-                        .foregroundStyle(.black)
+                        .frame(width: 52, height: 52)
+                        .background(.thinMaterial, in: Circle())
                 }
-
+                .buttonStyle(.plain)
+                .padding(16)
             }
 
         }
