@@ -32,9 +32,6 @@ struct NormalSceneView: View {
     var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
-        // [iOS 17+ e visionOS] Como estamos usando o @Environment para pegar o ViewModel,
-        // ele perde o suporte automático a "Bindings" (variáveis com o cifrão $).
-        // Usar @Bindable aqui dentro diz pro SwiftUI recriar os $ necessários pra essa tela.
         @Bindable var vm = vm
         
         NavigationStack {
@@ -405,21 +402,94 @@ struct VisionOSImmersiveSceneView: View {
             if let scene = vm.scene {
                 content.add(scene)
             }
-
-            if let menuAttachment = attachments.entity(for: "customPlus") {
+            
+            if let buttonPlus = attachments.entity(for: "customPlus") {
                 let headAnchor = AnchorEntity(.head)
-                menuAttachment.position = [0, -0.3, -0.8]
+                buttonPlus.position = [0, -0.3, -0.8]
 
-                headAnchor.addChild(menuAttachment)
+                headAnchor.addChild(buttonPlus)
+                content.add(headAnchor)
+            }
+            
+            if let buttonPlus = attachments.entity(for: "focusOnTsuru") {
+                let headAnchor = AnchorEntity(.head)
+                buttonPlus.position = [0.5, -0.3, -0.8]
+
+                headAnchor.addChild(buttonPlus)
+                content.add(headAnchor)
+            }
+
+            
+            if let buttonMinus = attachments.entity(for: "removeFocusOnTsuru") {
+                let headAnchor = AnchorEntity(.head)
+                buttonMinus.position = [-0.5, -0.3, -0.8]
+
+                headAnchor.addChild(buttonMinus)
+                content.add(headAnchor)
+            }
+            
+            if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
+                let headAnchor = AnchorEntity(.head)
+                buttonNextTsuru.position = [-0.5, -0.1, -0.8]
+                buttonNextTsuru.isEnabled = false
+
+                headAnchor.addChild(buttonNextTsuru)
+                content.add(headAnchor)
+            }
+            
+            if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
+                let headAnchor = AnchorEntity(.head)
+                buttonPreviousTsuru.position = [0.5, -0.1, -0.8]
+                buttonPreviousTsuru.isEnabled = false
+
+                headAnchor.addChild(buttonPreviousTsuru)
                 content.add(headAnchor)
             }
 
         } update: { content, attachments in
+            
+            // Dummy read: força o bloco update a rodar quando o tsuru muda
+            _ = vm.selectedPage
+
             if let scene = vm.scene, scene.parent == nil {
                 content.add(scene)
             }
-
+            
+            if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
+                buttonNextTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft
+            }
+            
+            if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
+                buttonPreviousTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight
+            }
+            
         } attachments: {
+            
+            Attachment(id: "focusOnTsuru") {
+                Button {
+                    if !vm.orderedPages.isEmpty {
+                        vm.repositioningCameraToTsuru(vm.pickLastTsuru())
+                    }
+                    
+                    Task {
+                        vm.isCameraNotMoving = false
+                        try? await Task.sleep(nanoseconds: 700_000_000)
+                        vm.isCameraNotMoving = true
+                    }
+                    
+                    
+                } label: {
+                    Image("customPlus")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                }
+
+        }
+            
             Attachment(id: "customPlus") {
                 HStack(spacing: 10) {
                     Button {
@@ -469,11 +539,63 @@ struct VisionOSImmersiveSceneView: View {
                     }
                 }
             }
+            
+            Attachment(id: "removeFocusOnTsuru") {
+                Button {
+                    vm.repositioningCameraToTree()
+                    vm.isFocusedOnBandstand = false
+                    vm.saveMotivation()
+                    
+                } label: {
+                    Image(systemName: "xmark")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                        .foregroundStyle(.black)
+                }
+
+            }
+            
+            Attachment(id: "moveToLeftTsuru") {
+                Button {
+                    vm.navigateToTsuru(at: "left")
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                        .foregroundStyle(.black)
+                }
+            }
+            
+            Attachment(id: "moveToRightTsuru") {
+                Button {
+                    vm.navigateToTsuru(at: "right")
+                    
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                        .foregroundStyle(.black)
+                }
+
+            }
+
         }
         .task {
             if vm.scene == nil {
                 await vm.loadScene()
-                vm.repositioningCameraToTree(animated: false)
+                vm.repositioningCameraToTree(animated: true)
             }
 
             vm.loadMotivation()
