@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "pt-BR",
   "strings" : {
+    "" : {
+
+    },
     "3D Model “Japanese garden” — created by Katydid. License: Sketchfab Free Standard (https://sketchfab.com/licenses/free-standard).  Modified by Martina Adegas. Available in: https://sketchfab.com/3d-models/japanese-garden-3083a8ae73bd47c68e655713915787f5" : {
 
     },
@@ -23,6 +26,9 @@
           }
         }
       }
+    },
+    "Artist" : {
+
     },
     "Cancel" : {
 
@@ -339,6 +345,9 @@
           }
         }
       }
+    },
+    "Create your scrap" : {
+
     },
     "credits" : {
       "comment" : "The title of the credits view.",
@@ -855,6 +864,12 @@
           }
         }
       }
+    },
+    "Title" : {
+
+    },
+    "Visualize your origamis" : {
+
     }
   },
   "version" : "1.1"

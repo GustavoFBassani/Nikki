@@ -119,7 +119,36 @@ struct CanvasView: View {
 #endif
     }
 
+    @ViewBuilder
     private var canvasWithSheets: some View {
+#if os(visionOS)
+        canvasWithToolbar
+            .preferredColorScheme(.light)
+            .sheet(isPresented: $viewModel.showAudioPicker) {
+                audioPickerSheet
+            }
+            .sheet(isPresented: $viewModel.showStickers) {
+                stickersSheet
+            }
+            .sheet(isPresented: $showCustomShare, onDismiss: handleShareSheetDismiss) {
+                customShareSheet
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+                    .presentationCornerRadius(24)
+            }
+            .photosPicker(
+                isPresented: $viewModel.showImagePicker,
+                selection: $viewModel.photoItem
+            )
+            .overlay(alignment: .bottom) {
+                if viewModel.showITunesSearch {
+                    itunesSearchSheet
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                        .zIndex(0)
+                        .padding(.bottom, 0)
+                }
+            }
+#else
         canvasWithToolbar
             .preferredColorScheme(.light)
             .sheet(isPresented: $viewModel.showITunesSearch) {
@@ -141,6 +170,7 @@ struct CanvasView: View {
                 isPresented: $viewModel.showImagePicker,
                 selection: $viewModel.photoItem
             )
+#endif
     }
 
     private var canvasWithLifecycle: some View {
@@ -322,11 +352,13 @@ struct CanvasView: View {
                     action: handleCheckMark
                 ) {
                     Image(.checkVision)
-                        .foregroundStyle(.white)
+                        .resizable()
+                        .scaledToFit()
                         .frame(width: 44, height: 44)
+                        
                 }
             } else {
-                HStack(spacing: 16) {
+                HStack(spacing: 12) {
                     VisionTopControlButton(
                         accessibilityLabel: "Delete",
                         isDisabled: isSavingPage || isDismissingCanvas,
@@ -383,8 +415,8 @@ struct CanvasView: View {
                 }
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 24)
+        .padding(.horizontal, 18)
+        .padding(.top, 14)
         .zIndex(10)
     }
 #endif
@@ -395,6 +427,7 @@ struct CanvasView: View {
 #if os(visionOS)
             tabBarButtons
                 .padding(.bottom, 8)
+                .zIndex(100)
 #else
             tabBarButtons
                 .padding(.bottom, 16)
@@ -463,11 +496,23 @@ struct CanvasView: View {
         )
     }
 
+    @ViewBuilder
     private var itunesSearchSheet: some View {
+#if os(visionOS)
+        ITunesSearchView(
+            onSelect: { track in
+                viewModel.handleITunesTrackSelection(track)
+            },
+            onClose: {
+                viewModel.showITunesSearch = false
+            }
+        )
+#else
         ITunesSearchView { track in
             viewModel.handleITunesTrackSelection(track)
         }
         .presentationDetents([.medium])
+#endif
     }
 
     private var audioPickerSheet: some View {
