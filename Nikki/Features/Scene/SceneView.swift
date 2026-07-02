@@ -699,21 +699,21 @@ private struct VisionScrapMenu: View {
                 if isPaperMenuOpen {
                     VStack(alignment: .leading, spacing: 26) {
                         PaperOptionButton(
-                            imageName: "dotted",
+                            imageName: "dottedVision",
                             title: "Dotted"
                         ) {
                             openStyle(at: 0)
                         }
 
                         PaperOptionButton(
-                            imageName: "lantern",
+                            imageName: "lanternVision",
                             title: "Oriental Lanterns"
                         ) {
                             openStyle(at: 1)
                         }
 
                         PaperOptionButton(
-                            imageName: "fan",
+                            imageName: "fanVision ",
                             title: "Floral Fans"
                         ) {
                             openStyle(at: 2)
