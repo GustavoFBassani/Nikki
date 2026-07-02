@@ -23,10 +23,14 @@ enum SceneImmersiveSpaceState {
 @MainActor
 @Observable
 class SceneViewModel {
+    
+    //MARK: - MANAGER
+    #if os(visionOS)
+    var cameraManager: CameraManaging = VisionCameraManager()
+    #else
+    var cameraManager: CameraManaging = CameraManager()
+    #endif
 
-    // MARK: - MANAGER
-
-    var cameraManager = CameraManager()
     var pageControlTsuru = PageControlTsurus()
 
     // MARK: - SERVICES
@@ -128,6 +132,7 @@ class SceneViewModel {
     func loadScene() async {
         do {
             let scene = try await Entity(named: "Scene", in: nikkiProjectBundle)
+
             self.scene = scene
             scene.isEnabled = true
 
@@ -145,6 +150,19 @@ class SceneViewModel {
                 credits.generateCollisionShapes(recursive: true)
                 credits.components[InputTargetComponent.self] = .init()
             }
+            
+            #if os(visionOS)
+            // No visionOS, ajustamos a posição inicial do mundo ANTES de ele ser adicionado
+            // na view (antes do self.scene = scene), para que o primeiro frame já nasça
+            // no lugar certo e não pule.
+            self.cameraManager.repositioningCameraToTree(animated: false, tree: tree)
+            #endif
+            
+            // Só agora liberamos a cena para a View desenhar!
+            self.scene = scene
+            
+            // Cria uma nova câmera perspectiva
+            // PerspectiveCamera simula visão humana com perspectiva realista
 
             scene.addChild(camera)
             self.cameraManager.camera = camera
@@ -165,8 +183,7 @@ class SceneViewModel {
     func setCanvasPresented(_ isPresented: Bool) {
         isCanvasPresented = isPresented
 
-        // No visionOS, o canvas deve abrir por cima da experiência.
-        // A cena precisa continuar viva e habilitada.
+
         scene?.isEnabled = true
 
         if isPresented {
@@ -253,10 +270,18 @@ class SceneViewModel {
 
         lastAdded += 1
 
+        #if os(visionOS)
+        cameraManager.repositioningCameraNewToTsuru(
+            animated: false,
+            tsuruToFocus: newTsuru?.children.first
+        )
+        #else
         cameraManager.repositioningCameraNewToTsuru(
             animated: false,
             tsuruToFocus: newTsuru
         )
+
+        #endif
 
         playTsuruAnimation(tsuruToAnimate: newTsuru)
 

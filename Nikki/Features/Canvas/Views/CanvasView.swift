@@ -59,6 +59,20 @@ struct CanvasView: View {
     var onCanvasDisappear: (() -> Void)?
     var isPageNil: Bool = false
 
+#if os(visionOS)
+    private var visionCanvasSize: CGSize {
+        CGSize(width: 408, height: 692)
+    }
+#endif
+
+    private var resolvedCanvasSize: CGSize {
+#if os(visionOS)
+        visionCanvasSize
+#else
+        viewModel.canvasSize
+#endif
+    }
+
     // MARK: - Initialization
 
     init(
@@ -92,13 +106,24 @@ struct CanvasView: View {
 
     var body: some View {
         canvasWithDismissHelpers
+            .navigationBarBackButtonHidden()
     }
 
     private var canvasBase: some View {
+#if os(visionOS)
+        ZStack {
+            editorContent
+                .overlay(alignment: .top) {
+                    topControlsOverlay
+                }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+#else
         editorContent
             .overlay(alignment: .top) {
                 topControlsOverlay
             }
+#endif
     }
 
     @ViewBuilder
@@ -119,7 +144,36 @@ struct CanvasView: View {
 #endif
     }
 
+    @ViewBuilder
     private var canvasWithSheets: some View {
+#if os(visionOS)
+        canvasWithToolbar
+            .preferredColorScheme(.light)
+            .sheet(isPresented: $viewModel.showAudioPicker) {
+                audioPickerSheet
+            }
+            .sheet(isPresented: $viewModel.showStickers) {
+                stickersSheet
+            }
+            .sheet(isPresented: $showCustomShare, onDismiss: handleShareSheetDismiss) {
+                customShareSheet
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+                    .presentationCornerRadius(24)
+            }
+            .photosPicker(
+                isPresented: $viewModel.showImagePicker,
+                selection: $viewModel.photoItem
+            )
+            .overlay(alignment: .bottom) {
+                if viewModel.showITunesSearch {
+                    itunesSearchSheet
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                        .zIndex(0)
+                        .padding(.bottom, 0)
+                }
+            }
+#else
         canvasWithToolbar
             .preferredColorScheme(.light)
             .sheet(isPresented: $viewModel.showITunesSearch) {
@@ -141,6 +195,7 @@ struct CanvasView: View {
                 isPresented: $viewModel.showImagePicker,
                 selection: $viewModel.photoItem
             )
+#endif
     }
 
     private var canvasWithLifecycle: some View {
@@ -202,9 +257,18 @@ struct CanvasView: View {
 
     // MARK: - View Components
 
+    @ViewBuilder
     private var editorContent: some View {
-        EditorView(size: viewModel.canvasSize, data: viewModel.editorData)
+#if os(visionOS)
+        EditorView(size: resolvedCanvasSize, data: viewModel.editorData)
+            .frame(
+                width: resolvedCanvasSize.width,
+                height: resolvedCanvasSize.height
+            )
+#else
+        EditorView(size: resolvedCanvasSize, data: viewModel.editorData)
             .ignoresSafeArea()
+#endif
     }
 
     @ViewBuilder
@@ -322,7 +386,8 @@ struct CanvasView: View {
                     action: handleCheckMark
                 ) {
                     Image(.checkVision)
-                        .foregroundStyle(.white)
+                        .resizable()
+                        .scaledToFit()
                         .frame(width: 44, height: 44)
                 }
             } else {
@@ -395,6 +460,7 @@ struct CanvasView: View {
 #if os(visionOS)
             tabBarButtons
                 .padding(.bottom, 8)
+                .zIndex(100)
 #else
             tabBarButtons
                 .padding(.bottom, 16)
@@ -463,11 +529,23 @@ struct CanvasView: View {
         )
     }
 
+    @ViewBuilder
     private var itunesSearchSheet: some View {
+#if os(visionOS)
+        ITunesSearchView(
+            onSelect: { track in
+                viewModel.handleITunesTrackSelection(track)
+            },
+            onClose: {
+                viewModel.showITunesSearch = false
+            }
+        )
+#else
         ITunesSearchView { track in
             viewModel.handleITunesTrackSelection(track)
         }
         .presentationDetents([.medium])
+#endif
     }
 
     private var audioPickerSheet: some View {
