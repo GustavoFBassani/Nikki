@@ -26,4 +26,21 @@ extension View {
             .glassBackgroundEffect()
             .ignoresSafeArea()
     }
+    
+    func buttonEnvSelectionBackground() -> some View {
+        self
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                LinearGradient(
+                    stops: [
+                        .init(color: Color("bottomButtonGradientEnv"), location: 0.0), // #BCA7B1
+                        .init(color: Color("topButtonGradientEnv"), location: 1.0)     // #5589A2
+                    ],
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+            )
+            .glassBackgroundEffect()
+            .ignoresSafeArea()
+    }
 }
