@@ -69,7 +69,7 @@ struct NikkiApp: App {
         }
         .modelContainer(dataContainer)
         .defaultSize(width: 1280, height: 720)
-        .windowResizability(.contentSize)
+        .windowResizability(.automatic)
 
         // MARK: - Immersive Space
 
