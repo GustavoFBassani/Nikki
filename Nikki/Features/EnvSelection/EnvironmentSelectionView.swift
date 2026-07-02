@@ -25,7 +25,7 @@ struct EnvironmentSelectionView: View {
                 action: { /* TODO */ }
             )
         }
-        .padding(.horizontal, 60)
+        .padding(.horizontal, 130)
         .padding(.vertical, 42)
     }
 }

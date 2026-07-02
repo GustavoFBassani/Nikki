@@ -19,11 +19,11 @@ struct EnvironmentCard: View {
             Image(imageName)
                 .resizable()
                 .scaledToFit()
-                .frame(height: 300)
+                .frame(width: 331, height: 264)
                 .padding(.top, 40)
                 .padding(.horizontal, 24)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 8) {
                 Text(title)
                     .font(.custom("CaveatBrush-Regular", size: 48))
                     .foregroundStyle(.white)
@@ -33,25 +33,24 @@ struct EnvironmentCard: View {
                     .font(.custom("CaveatBrush-Regular", size: 28))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
-                    .lineLimit(3)
+                    .frame(maxWidth: 328)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 24)
             .padding(.top, 20)
-
-            Spacer()
 
             Button(action: action) {
                 Text(buttonLabel)
                     .font(.custom("CaveatBrush-Regular", size: 28))
                     .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                    .frame(maxWidth: .infinity, minHeight: 52)
             }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 24)
+            .buttonStyle(.bordered)
+            .tint(.white.opacity(0.4))
+            .padding(.horizontal, 100)
+            .padding(.top, 40)
             .padding(.bottom, 72)
         }
-        .frame(width: 480)
         .buttonEnvSelectionBackground()
         .clipShape(RoundedRectangle(cornerRadius: 32))
     }
