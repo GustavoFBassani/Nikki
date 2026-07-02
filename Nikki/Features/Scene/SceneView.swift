@@ -661,7 +661,7 @@ private struct VisionScrapMenu: View {
                         .scaledToFit()
                         .frame(width: 48, height: 48)
 
-                    Text("Visualize your origamis")
+                    Text(StringCatalog.visualizeOrigamis)
                         .font(.custom("CaveatBrush-Regular", size: 30))
                         .foregroundStyle(.white)
 
@@ -682,7 +682,7 @@ private struct VisionScrapMenu: View {
                             .scaledToFit()
                             .frame(width: 58, height: 58)
 
-                        Text("Create your scrap")
+                        Text(StringCatalog.createYourScrap)
                             .font(.custom("CaveatBrush-Regular", size: 30))
                             .foregroundStyle(.white)
 
@@ -700,21 +700,21 @@ private struct VisionScrapMenu: View {
                     VStack(alignment: .leading, spacing: 26) {
                         PaperOptionButton(
                             imageName: "dottedVision",
-                            title: "Dotted"
+                            title: StringCatalog.dottedPaper
                         ) {
                             openStyle(at: 0)
                         }
 
                         PaperOptionButton(
                             imageName: "lanternVision",
-                            title: "Oriental Lanterns"
+                            title: StringCatalog.lanterns
                         ) {
                             openStyle(at: 1)
                         }
 
                         PaperOptionButton(
-                            imageName: "fanVision ",
-                            title: "Floral Fans"
+                            imageName: "fanVision",
+                            title: StringCatalog.fan
                         ) {
                             openStyle(at: 2)
                         }

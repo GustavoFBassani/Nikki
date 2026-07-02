@@ -346,9 +346,6 @@
         }
       }
     },
-    "Create your scrap" : {
-
-    },
     "credits" : {
       "comment" : "The title of the credits view.",
       "localizations" : {
@@ -686,6 +683,22 @@
         }
       }
     },
+    "scene.vision.visualize.origamis" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Visualize your origamis"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualize seus origamis"
+          }
+        }
+      }
+    },
     "Share" : {
 
     },
@@ -866,9 +879,6 @@
       }
     },
     "Title" : {
-
-    },
-    "Visualize your origamis" : {
 
     }
   },

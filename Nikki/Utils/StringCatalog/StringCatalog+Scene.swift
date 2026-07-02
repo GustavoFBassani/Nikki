@@ -20,4 +20,5 @@ extension StringCatalog {
     static let findYourCollages = String(localized: "scene.origami.find")
     static let openOrigami = String(localized: "scene.origami.open")
     static let gardenOfMemories = String(localized: "onboarding.garden.memories")
+    static let visualizeOrigamis = String(localized: "scene.vision.visualize.origamis")
 }
