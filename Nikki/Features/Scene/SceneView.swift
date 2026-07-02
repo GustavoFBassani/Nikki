@@ -32,9 +32,6 @@ struct NormalSceneView: View {
     var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
-        // [iOS 17+ e visionOS] Como estamos usando o @Environment para pegar o ViewModel,
-        // ele perde o suporte automático a "Bindings" (variáveis com o cifrão $).
-        // Usar @Bindable aqui dentro diz pro SwiftUI recriar os $ necessários pra essa tela.
         @Bindable var vm = vm
         
         NavigationStack {
@@ -400,9 +397,23 @@ struct VisionOSImmersiveSceneView: View {
     @Environment(\.openWindow) private var openWindow
 
     @State private var isPaperMenuOpen = false
-    @State private var isVisionMenuVisible = true
+    @State private var isVisionHUDVisible = true
 
     private let visionMenuAnchorName = "visionMenuAnchor"
+    private let focusOnTsuruAnchorName = "focusOnTsuruAnchor"
+    private let removeFocusOnTsuruAnchorName = "removeFocusOnTsuruAnchor"
+    private let moveToLeftTsuruAnchorName = "moveToLeftTsuruAnchor"
+    private let moveToRightTsuruAnchorName = "moveToRightTsuruAnchor"
+
+    private var visionHUDAnchorNames: [String] {
+        [
+            visionMenuAnchorName,
+            focusOnTsuruAnchorName,
+            removeFocusOnTsuruAnchorName,
+            moveToLeftTsuruAnchorName,
+            moveToRightTsuruAnchorName
+        ]
+    }
 
     var body: some View {
         RealityView { content, attachments in
@@ -410,28 +421,41 @@ struct VisionOSImmersiveSceneView: View {
                 content.add(scene)
             }
 
-            updateVisionMenu(content: content, attachments: attachments)
+            updateVisionHUD(content: content, attachments: attachments)
 
         } update: { content, attachments in
+
+            // Dummy read: força o bloco update a rodar quando o tsuru muda
+            _ = vm.selectedPage
+            _ = vm.isFocusedOnTsuru
+            _ = vm.thereIsTsuruAtLeft
+            _ = vm.thereIsTsuruAtRight
+
             if let scene = vm.scene, scene.parent == nil {
                 content.add(scene)
             }
 
-            updateVisionMenu(content: content, attachments: attachments)
+            updateVisionHUD(content: content, attachments: attachments)
 
         } attachments: {
             Attachment(id: "visionMenu") {
-                if isVisionMenuVisible {
+                if isVisionHUDVisible {
                     VisionScrapMenu(
                         isPaperMenuOpen: $isPaperMenuOpen,
                         onVisualizeOrigamis: {
                             if !vm.orderedPages.isEmpty {
                                 vm.repositioningCameraToTsuru(vm.pickLastTsuru())
                             }
+
+                            Task {
+                                vm.isCameraNotMoving = false
+                                try? await Task.sleep(nanoseconds: 700_000_000)
+                                vm.isCameraNotMoving = true
+                            }
                         },
                         onSelectStyle: { styleName in
                             isPaperMenuOpen = false
-                            isVisionMenuVisible = false
+                            isVisionHUDVisible = false
 
                             openWindow(
                                 id: "CanvasWindow",
@@ -441,11 +465,83 @@ struct VisionOSImmersiveSceneView: View {
                     )
                 }
             }
+
+            Attachment(id: "focusOnTsuru") {
+                Button {
+                    if !vm.orderedPages.isEmpty {
+                        vm.repositioningCameraToTsuru(vm.pickLastTsuru())
+                    }
+
+                    Task {
+                        vm.isCameraNotMoving = false
+                        try? await Task.sleep(nanoseconds: 700_000_000)
+                        vm.isCameraNotMoving = true
+                    }
+
+                } label: {
+                    Image("customPlus")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                }
+            }
+
+            Attachment(id: "removeFocusOnTsuru") {
+                Button {
+                    vm.repositioningCameraToTree()
+                    vm.isFocusedOnBandstand = false
+                    vm.saveMotivation()
+
+                } label: {
+                    Image(systemName: "xmark")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                        .foregroundStyle(.black)
+                }
+            }
+
+            Attachment(id: "moveToLeftTsuru") {
+                Button {
+                    vm.navigateToTsuru(at: "left")
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                        .foregroundStyle(.black)
+                }
+            }
+
+            Attachment(id: "moveToRightTsuru") {
+                Button {
+                    vm.navigateToTsuru(at: "right")
+
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color.white.opacity(0.85))
+                        )
+                        .foregroundStyle(.black)
+                }
+            }
         }
         .task {
             if vm.scene == nil {
                 await vm.loadScene()
-                vm.repositioningCameraToTree(animated: false)
+                vm.repositioningCameraToTree(animated: true)
             }
 
             vm.loadMotivation()
@@ -453,33 +549,94 @@ struct VisionOSImmersiveSceneView: View {
         }
     }
 
-    private func updateVisionMenu(
+    private func updateVisionHUD(
         content: RealityViewContent,
         attachments: RealityViewAttachments
     ) {
-        if !isVisionMenuVisible {
-            if let existingAnchor = content.entities.first(where: { $0.name == visionMenuAnchorName }) {
-                content.remove(existingAnchor)
-            }
+        guard isVisionHUDVisible else {
+            removeVisionHUD(from: content)
             return
         }
 
+        updateHeadAttachment(
+            content: content,
+            attachments: attachments,
+            id: "visionMenu",
+            anchorName: visionMenuAnchorName,
+            position: [0, -0.25, -0.85]
+        )
+
+        updateHeadAttachment(
+            content: content,
+            attachments: attachments,
+            id: "focusOnTsuru",
+            anchorName: focusOnTsuruAnchorName,
+            position: [0.5, -0.3, -0.8]
+        )
+
+        updateHeadAttachment(
+            content: content,
+            attachments: attachments,
+            id: "removeFocusOnTsuru",
+            anchorName: removeFocusOnTsuruAnchorName,
+            position: [-0.5, -0.3, -0.8]
+        )
+
+        updateHeadAttachment(
+            content: content,
+            attachments: attachments,
+            id: "moveToLeftTsuru",
+            anchorName: moveToLeftTsuruAnchorName,
+            position: [-0.5, -0.1, -0.8],
+            isEnabled: vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft
+        )
+
+        updateHeadAttachment(
+            content: content,
+            attachments: attachments,
+            id: "moveToRightTsuru",
+            anchorName: moveToRightTsuruAnchorName,
+            position: [0.5, -0.1, -0.8],
+            isEnabled: vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight
+        )
+    }
+
+    private func updateHeadAttachment(
+        content: RealityViewContent,
+        attachments: RealityViewAttachments,
+        id: String,
+        anchorName: String,
+        position: SIMD3<Float>,
+        isEnabled: Bool? = nil
+    ) {
+        guard let attachment = attachments.entity(for: id) else { return }
+
         let headAnchor: Entity
 
-        if let existingAnchor = content.entities.first(where: { $0.name == visionMenuAnchorName }) {
+        if let existingAnchor = content.entities.first(where: { $0.name == anchorName }) {
             headAnchor = existingAnchor
         } else {
             let newAnchor = AnchorEntity(.head)
-            newAnchor.name = visionMenuAnchorName
+            newAnchor.name = anchorName
             content.add(newAnchor)
             headAnchor = newAnchor
         }
 
-        if let menuAttachment = attachments.entity(for: "visionMenu") {
-            menuAttachment.position = [0, -0.25, -0.85]
+        attachment.position = position
 
-            if menuAttachment.parent == nil {
-                headAnchor.addChild(menuAttachment)
+        if let isEnabled {
+            attachment.isEnabled = isEnabled
+        }
+
+        if attachment.parent == nil {
+            headAnchor.addChild(attachment)
+        }
+    }
+
+    private func removeVisionHUD(from content: RealityViewContent) {
+        for anchorName in visionHUDAnchorNames {
+            if let existingAnchor = content.entities.first(where: { $0.name == anchorName }) {
+                content.remove(existingAnchor)
             }
         }
     }

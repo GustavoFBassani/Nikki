@@ -92,6 +92,7 @@ struct CanvasView: View {
 
     var body: some View {
         canvasWithDismissHelpers
+            .navigationBarBackButtonHidden()
     }
 
     private var canvasBase: some View {
