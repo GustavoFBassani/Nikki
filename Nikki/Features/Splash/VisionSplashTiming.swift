@@ -9,6 +9,7 @@ import Foundation
 
 /// Tempos em segundos de cada etapa da animação da splash screen no visionOS
 enum VisionSplashTiming {
+    static let windowOpen: Double = 3.0  // abertura lateral da janela
     static let initialDelay: Double = 0.4 // espera antes da montanha subir
     static let mountainRise: Double = 1.5 // subida da montanha
     static let sunRise: Double = 1      // subida do sol

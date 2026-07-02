@@ -8,7 +8,7 @@
 /// Enum de etapas da animação da Splash Screen
 extension VisionSplashView {
     enum Phase: Int, Comparable {
-        case idle, mountainUp, sunUp, textIn, fadingOut
+        case idle, windowOpen, mountainUp, sunUp, textIn, fadingOut
         static func < (left: Self, right: Self) -> Bool { left.rawValue < right.rawValue }
     }
 }

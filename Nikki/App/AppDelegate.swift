@@ -77,6 +77,10 @@ struct NikkiApp: App {
         // .defaultSize define o tamanho inicial da janela 2D flutuante.
         .windowStyle(.plain)
         .defaultSize(width: 1280, height: 720)
+        // .contentSize faz a janela física acompanhar o tamanho do conteúdo.
+        // Assim, quando a VisionSplashView anima a largura do frame,
+        // a própria janela do visionOS se abre lateralmente junto.
+        .windowResizability(.contentSize)
         #endif
 
         #if os(visionOS)

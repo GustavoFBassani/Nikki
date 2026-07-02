@@ -25,6 +25,18 @@ struct VisionSplashView: View {
     // Este valor centraliza na janela
     private let mountainRecenterX: CGFloat = 0.1
 
+    // Tamanho final da janela (deve bater com o .defaultSize do AppDelegate)
+    private let windowFullWidth: CGFloat = 1280
+    private let windowHeight: CGFloat = 720
+    // Largura da faixa fina no início da abertura lateral
+    private let windowStartWidth: CGFloat = 0
+
+    // Largura atual do conteúdo. Como o WindowGroup usa .windowResizability(.contentSize),
+    // animar esta largura faz a janela física do visionOS abrir lateralmente.
+    private var contentWidth: CGFloat {
+        phase >= .windowOpen ? windowFullWidth : windowStartWidth
+    }
+
     var body: some View {
         ZStack {
             if showEnvironmentSelection {
@@ -35,6 +47,7 @@ struct VisionSplashView: View {
             }
         }
         .nikkiGradientBackground()
+        .frame(width: contentWidth, height: windowHeight)
         .task {
             await runAnimationsSequence()
             withAnimation(.easeInOut(duration: 0.6)) { showEnvironmentSelection = true }
@@ -82,6 +95,10 @@ struct VisionSplashView: View {
 
     // MARK: - Sequencia de animações
     private func runAnimationsSequence() async {
+        
+        withAnimation(.easeInOut(duration: VisionSplashTiming.windowOpen)) { phase = .windowOpen }
+        try? await Task.sleep(for: .seconds(VisionSplashTiming.windowOpen))
+
         try? await Task.sleep(for: .seconds(VisionSplashTiming.initialDelay))
 
         withAnimation(.easeOut(duration: VisionSplashTiming.mountainRise)) { phase = .mountainUp }
