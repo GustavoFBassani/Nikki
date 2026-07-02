@@ -86,6 +86,10 @@ class SceneViewModel {
 
     var showCredits = false
 
+    #if os(visionOS)
+    var isLookingAtTree: Bool = false
+    #endif
+
     // MARK: - SCENE ENTITIES
 
     var scene: Entity?
@@ -156,6 +160,10 @@ class SceneViewModel {
             // na view (antes do self.scene = scene), para que o primeiro frame já nasça
             // no lugar certo e não pule.
             self.cameraManager.repositioningCameraToTree(animated: false, tree: tree)
+
+            tree?.generateCollisionShapes(recursive: true)
+            tree?.components[InputTargetComponent.self] = .init(allowedInputTypes: .indirect)
+            tree?.components.set(CollisionComponent(shapes: [.generateBox(size: [0.5, 0.5, 0.5])]))
             #endif
             
             // Só agora liberamos a cena para a View desenhar!
@@ -431,6 +439,19 @@ class SceneViewModel {
 
     func handleTap(on entity: Entity) {
         guard canInteractWithImmersiveScene else { return }
+
+        #if os(visionOS)
+        let tappedTree = sequence(first: entity, next: { $0.parent })
+            .contains(where: { $0.name.contains("Cherry_Tree") })
+
+        if tappedTree {
+            isLookingAtTree = true
+            return
+        } else if isLookingAtTree {
+            isLookingAtTree = false
+            return
+        }
+        #endif
 
         var current: Entity? = entity
 

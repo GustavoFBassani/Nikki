@@ -400,7 +400,6 @@ struct VisionOSImmersiveSceneView: View {
     @State private var isVisionHUDVisible = true
 
     private let visionMenuAnchorName = "visionMenuAnchor"
-    private let focusOnTsuruAnchorName = "focusOnTsuruAnchor"
     private let removeFocusOnTsuruAnchorName = "removeFocusOnTsuruAnchor"
     private let moveToLeftTsuruAnchorName = "moveToLeftTsuruAnchor"
     private let moveToRightTsuruAnchorName = "moveToRightTsuruAnchor"
@@ -408,7 +407,6 @@ struct VisionOSImmersiveSceneView: View {
     private var visionHUDAnchorNames: [String] {
         [
             visionMenuAnchorName,
-            focusOnTsuruAnchorName,
             removeFocusOnTsuruAnchorName,
             moveToLeftTsuruAnchorName,
             moveToRightTsuruAnchorName
@@ -430,6 +428,7 @@ struct VisionOSImmersiveSceneView: View {
             _ = vm.isFocusedOnTsuru
             _ = vm.thereIsTsuruAtLeft
             _ = vm.thereIsTsuruAtRight
+            _ = vm.isLookingAtTree
 
             if let scene = vm.scene, scene.parent == nil {
                 content.add(scene)
@@ -439,7 +438,7 @@ struct VisionOSImmersiveSceneView: View {
 
         } attachments: {
             Attachment(id: "visionMenu") {
-                if isVisionHUDVisible {
+                if isVisionHUDVisible && vm.isLookingAtTree {
                     VisionScrapMenu(
                         isPaperMenuOpen: $isPaperMenuOpen,
                         onVisualizeOrigamis: {
@@ -463,29 +462,6 @@ struct VisionOSImmersiveSceneView: View {
                             )
                         }
                     )
-                }
-            }
-
-            Attachment(id: "focusOnTsuru") {
-                Button {
-                    if !vm.orderedPages.isEmpty {
-                        vm.repositioningCameraToTsuru(vm.pickLastTsuru())
-                    }
-
-                    Task {
-                        vm.isCameraNotMoving = false
-                        try? await Task.sleep(nanoseconds: 700_000_000)
-                        vm.isCameraNotMoving = true
-                    }
-
-                } label: {
-                    Image("customPlus")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
                 }
             }
 
@@ -547,6 +523,13 @@ struct VisionOSImmersiveSceneView: View {
             vm.loadMotivation()
             vm.evaluateTipsVisibility()
         }
+        .gesture(
+            SpatialTapGesture()
+                .targetedToAnyEntity()
+                .onEnded { value in
+                    vm.handleTap(on: value.entity)
+                }
+        )
     }
 
     private func updateVisionHUD(
@@ -564,14 +547,6 @@ struct VisionOSImmersiveSceneView: View {
             id: "visionMenu",
             anchorName: visionMenuAnchorName,
             position: [0, -0.25, -0.85]
-        )
-
-        updateHeadAttachment(
-            content: content,
-            attachments: attachments,
-            id: "focusOnTsuru",
-            anchorName: focusOnTsuruAnchorName,
-            position: [0.5, -0.3, -0.8]
         )
 
         updateHeadAttachment(
@@ -674,6 +649,7 @@ private struct VisionScrapMenu: View {
                 Button {
                     withAnimation(.easeInOut(duration: 0.22)) {
                         isPaperMenuOpen.toggle()
+                        print("botao ativando")
                     }
                 } label: {
                     HStack(spacing: 24) {
