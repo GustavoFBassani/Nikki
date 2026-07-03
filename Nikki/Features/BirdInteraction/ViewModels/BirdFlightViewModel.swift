@@ -53,6 +53,8 @@ final class BirdFlightViewModel {
             await runSimpleFlight(model)
         case .handLanding(let model):
             await runHandLanding(model)
+        case .returnToScreen(let model):
+            await runReturnToScreen(model)
         }
 
         isFlying = false
@@ -65,11 +67,11 @@ final class BirdFlightViewModel {
 
     // MARK: - Preparação do pássaro
 
-    private func prepareBird(_ model: FlightModel) async -> Entity? {
+    private func prepareBird(_ model: FlightModel, at spawn: SIMD3<Float>? = nil) async -> Entity? {
         currentForwardFix = BirdFlightConfig.forwardFix(for: model)
         return await birdLoader.prepareBird(
             model,
-            at: headPose.portalWorldPosition(),
+            at: spawn ?? headPose.portalWorldPosition(),
             in: worldRoot
         )
     }
@@ -217,6 +219,46 @@ final class BirdFlightViewModel {
 
         // Voa para longe, subindo, e some.
         await flySmooth(bird, to: headPose.awayWorldPosition(), duration: 3.5, arcHeight: 0.6, lateralArc: 0.4)
+        birdLoader.retireBird(bird)
+        handManager.stop()
+    }
+
+    // MARK: - Variação 3: intro da splash (volta pra tela)
+
+    /// O pássaro sai da "tela" da splash, vem pairar na frente do rosto e VOLTA
+    /// para a tela. Quando `runFlight` retorna, a view sabe que ele chegou de
+    /// volta e dispara a animação da splash.
+    private func runReturnToScreen(_ model: FlightModel) async {
+        // Só a pose da cabeça — não requer permissão do usuário.
+        _ = await handManager.start(hands: false)
+        await headPose.waitForHeadPose()
+
+        // Nasce no plano da tela da splash (não no portal flutuante da POC).
+        let screen = headPose.splashScreenWorldPosition()
+        guard let bird = await prepareBird(model, at: screen) else { return }
+
+        // Tela -> frente do rosto, em curva suave, trackeando o usuário.
+        await flySmooth(
+            bird,
+            to: headPose.hoverWorldPosition(),
+            duration: SplashFlightConfig.approachDuration,
+            trackingTarget: headPose.hoverWorldPosition
+        )
+
+        // Paira brevemente na frente do rosto.
+        await hoverInPlace(bird, seconds: SplashFlightConfig.hoverSeconds)
+
+        // Volta para a tela (destino reavaliado a cada frame, caso a cabeça mexa).
+        await flySmooth(
+            bird,
+            to: headPose.splashScreenWorldPosition(),
+            duration: SplashFlightConfig.returnDuration,
+            arcHeight: 0.15,
+            lateralArc: 0.1,
+            trackingTarget: headPose.splashScreenWorldPosition
+        )
+
+        // Chegou de volta na tela: some e libera o tracking. A view assume daqui.
         birdLoader.retireBird(bird)
         handManager.stop()
     }

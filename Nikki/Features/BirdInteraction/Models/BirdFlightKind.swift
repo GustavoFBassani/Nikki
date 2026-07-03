@@ -24,4 +24,7 @@ enum TsuruFlightKind: Equatable {
     /// O pássaro voa até a mão detectada via hand tracking, pousa e some.
     /// No Simulador (sem mãos) apenas loga e não anima.
     case handLanding(FlightModel)
+    /// Intro da splash: o pássaro sai da "tela", vem pra frente do rosto, paira
+    /// e VOLTA para a tela. Ao voltar, sinaliza o início da splash.
+    case returnToScreen(FlightModel)
 }

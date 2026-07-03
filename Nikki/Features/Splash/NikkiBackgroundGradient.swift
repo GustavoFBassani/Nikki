@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(visionOS)
 /// Gradiente da splash screen
 extension View {
     func nikkiGradientBackground() -> some View {
@@ -44,3 +45,4 @@ extension View {
             .ignoresSafeArea()
     }
 }
+#endif

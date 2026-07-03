@@ -7,7 +7,12 @@
 
 import SwiftUI
 
+#if os(visionOS)
 struct VisionSplashView: View {
+
+    @Environment(SceneViewModel.self) private var sceneVM
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
 
     // Enum de fases da animação para controle das mesmas
     @State private var phase: Phase = .idle
@@ -49,9 +54,32 @@ struct VisionSplashView: View {
         .nikkiGradientBackground()
         .frame(width: contentWidth, height: windowHeight)
         .task {
+            await runIntroFlight()
             await runAnimationsSequence()
             withAnimation(.easeInOut(duration: 0.6)) { showEnvironmentSelection = true }
         }
+    }
+
+    // MARK: - Intro (voo do pássaro antes da splash)
+
+    /// Abre o space do voo, espera o pássaro voltar pra tela e fecha o space.
+    /// A janela fica recolhida (largura 0) durante o voo, então a splash só
+    /// "aparece" (janela abrindo) depois que o pássaro retorna.
+    private func runIntroFlight() async {
+        phase = .flightIntro
+        sceneVM.splashFlightDidReturn = false
+
+        guard await openImmersiveSpace(id: "SplashIntro") == .opened else {
+            // Sem space (ex.: falha ao abrir): segue direto pra splash.
+            return
+        }
+
+        // Espera o sinal da TsuruPortalView de que o pássaro voltou pra tela.
+        while !sceneVM.splashFlightDidReturn {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+
+        await dismissImmersiveSpace()
     }
 
     // MARK: - Splash (a animação)
@@ -116,3 +144,4 @@ struct VisionSplashView: View {
         try? await Task.sleep(for: .seconds(VisionSplashTiming.fadeOut))
     }
 }
+#endif

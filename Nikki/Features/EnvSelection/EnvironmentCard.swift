@@ -51,7 +51,9 @@ struct EnvironmentCard: View {
             .padding(.top, 40)
             .padding(.bottom, 72)
         }
+        #if os(visionOS)
         .buttonEnvSelectionBackground()
+        #endif
         .clipShape(RoundedRectangle(cornerRadius: 32))
     }
 }

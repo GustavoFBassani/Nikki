@@ -136,6 +136,18 @@ struct NikkiApp: App {
                 .environment(sceneVM)
         }
         .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
+
+        // ---------------------------------------------------------
+        // 5. INTRO DA SPLASH: VOO DO PÁSSARO
+        // ---------------------------------------------------------
+        // Space do voo que abre a splash. O pássaro sai da "tela", paira e volta,
+        // e a `VisionSplashView` assume a partir daí. Separado da POC para poder
+        // ter portal do tamanho da tela e disparo automático (isSplashIntro).
+        ImmersiveSpace(id: "SplashIntro") {
+            TsuruPortalView(isSplashIntro: true)
+                .environment(sceneVM)
+        }
+        .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
         #endif
     }
 }

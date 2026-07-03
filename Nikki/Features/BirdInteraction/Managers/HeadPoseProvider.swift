@@ -62,5 +62,13 @@ struct HeadPoseProvider {
         let head = headPose()
         return head.position + head.forward * 8 + SIMD3<Float>(0, 1.5, 0)
     }
+
+    /// Centro da "tela" da splash à frente do usuário — origem e destino do voo
+    /// de intro (o pássaro sai daqui, paira e volta pra cá).
+    func splashScreenWorldPosition() -> SIMD3<Float> {
+        let head = headPose()
+        return head.position + head.forward * SplashFlightConfig.screenDistance
+            + SIMD3<Float>(0, SplashFlightConfig.screenHeightOffset, 0)
+    }
 }
 #endif

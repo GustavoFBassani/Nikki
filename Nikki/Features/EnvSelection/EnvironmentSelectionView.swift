@@ -30,8 +30,9 @@ struct EnvironmentSelectionView: View {
     }
 }
 
-
+#if os(visionOS)
 #Preview {
     EnvironmentSelectionView()
         .nikkiGradientBackground()
 }
+#endif
