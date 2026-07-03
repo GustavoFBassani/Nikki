@@ -86,6 +86,10 @@ class SceneViewModel {
 
     var showCredits = false
 
+    #if os(visionOS)
+    var isLookingAtTree: Bool = false
+    #endif
+
     // MARK: - SCENE ENTITIES
 
     var scene: Entity?
@@ -156,6 +160,10 @@ class SceneViewModel {
             // na view (antes do self.scene = scene), para que o primeiro frame já nasça
             // no lugar certo e não pule.
             self.cameraManager.repositioningCameraToTree(animated: false, tree: tree)
+
+            tree?.generateCollisionShapes(recursive: true)
+            tree?.components[InputTargetComponent.self] = .init(allowedInputTypes: .indirect)
+            tree?.components.set(CollisionComponent(shapes: [.generateBox(size: [0.5, 0.5, 0.5])]))
             #endif
             
             // Só agora liberamos a cena para a View desenhar!
@@ -183,6 +191,13 @@ class SceneViewModel {
     func setCanvasPresented(_ isPresented: Bool) {
         isCanvasPresented = isPresented
 
+        // Esconde ou mostra o tsuru atual
+        if let page = currentPage,
+           let entity = dict.first(where: { $0.value.id == page.id })?.key {
+            // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
+            // Escondemos o pai para sumir com o pássaro por completo (incluindo possíveis sombras/efeitos).
+            entity.parent?.isEnabled = !isPresented
+        }
 
         scene?.isEnabled = true
 
@@ -386,6 +401,7 @@ class SceneViewModel {
 
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
+        newFlapBird.components.set(CollisionComponent(shapes: [.generateBox(size: [0.2, 0.2, 0.2])]))
     }
 
     func applyTexture(to tsuru: Entity?, texture scrapImage: UIImage?) async {

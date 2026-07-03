@@ -108,7 +108,7 @@ struct NormalSceneView: View {
                         
                         // Envia os deltas para o ViewModel atualizar theta e phi
                         vm.rotate(dTheta: dTheta, dPhi: dPhi)
-                        // Atualiza a última posição para o próximo gesto
+                        // Atualiza a última posição para o próximo frame
                     }
                     .onEnded { _ in
                         // Reseta a posição quando o usuário solta o dedo
@@ -151,9 +151,7 @@ struct NormalSceneView: View {
                     onCanvasDisappear: { vm.setScenePaused(false) }
                 )
             })
-            .navigationDestination(isPresented: $vm.showCredits) {
-                CreditsView()
-            }
+            .navigationDestination(isPresented: $vm.showCredits){ CreditsView() }
             .simultaneousGesture(
                 TapGesture()
                     .targetedToAnyEntity()
@@ -244,7 +242,7 @@ struct NormalSceneView: View {
                         }
                         
                     }
-                } else if vm.isFocusedOnTsuru {
+                }  else if vm.isFocusedOnTsuru {
                     Button {
                         vm.openTsuru()
                     } label: {
@@ -361,7 +359,8 @@ struct NormalSceneView: View {
                         
                         Task {
                             vm.isCamerMovingToTree = true
-                            try? await Task.sleep(nanoseconds: 1_200_000_000)
+                            try? await Task.sleep(nanoseconds: 1_200_000_000
+                            )
                             vm.isCamerMovingToTree = false
                         }
                         
@@ -397,104 +396,94 @@ struct VisionOSImmersiveSceneView: View {
     @Environment(\.openWindow) private var openWindow
 
     @State private var isPaperMenuOpen = false
-    @State private var isVisionHUDVisible = true
-
-    private let visionMenuAnchorName = "visionMenuAnchor"
-    private let focusOnTsuruAnchorName = "focusOnTsuruAnchor"
-    private let removeFocusOnTsuruAnchorName = "removeFocusOnTsuruAnchor"
-    private let moveToLeftTsuruAnchorName = "moveToLeftTsuruAnchor"
-    private let moveToRightTsuruAnchorName = "moveToRightTsuruAnchor"
-
-    private var visionHUDAnchorNames: [String] {
-        [
-            visionMenuAnchorName,
-            focusOnTsuruAnchorName,
-            removeFocusOnTsuruAnchorName,
-            moveToLeftTsuruAnchorName,
-            moveToRightTsuruAnchorName
-        ]
-    }
 
     var body: some View {
         RealityView { content, attachments in
             if let scene = vm.scene {
                 content.add(scene)
             }
+            
+            if let buttonMinus = attachments.entity(for: "removeFocusOnTsuru") {
+                let headAnchor = AnchorEntity(.head)
+                buttonMinus.position = [-0.5, -0.3, -0.8]
 
-            updateVisionHUD(content: content, attachments: attachments)
+                headAnchor.addChild(buttonMinus)
+                content.add(headAnchor)
+            } // isso aqui vai mudar, MAS POR enquanto deixa
+            
+            if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
+                buttonNextTsuru.position = [-2, 0, 6.4]
+                buttonNextTsuru.isEnabled = false
+                content.add(buttonNextTsuru)
+            }
+            
+            if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
+                buttonPreviousTsuru.position = [-1, 0, 6.4]
+                buttonPreviousTsuru.isEnabled = false
+                content.add(buttonPreviousTsuru)
+            }
+            
+            if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
+                buttonScrapMenu.position = [-1.3, 0, 6]
+                buttonScrapMenu.isEnabled = vm.isLookingAtTree
+                content.add(buttonScrapMenu)
+                
+            }
 
         } update: { content, attachments in
-
+            
             // Dummy read: força o bloco update a rodar quando o tsuru muda
             _ = vm.selectedPage
-            _ = vm.isFocusedOnTsuru
-            _ = vm.thereIsTsuruAtLeft
-            _ = vm.thereIsTsuruAtRight
 
             if let scene = vm.scene, scene.parent == nil {
                 content.add(scene)
             }
-
-            updateVisionHUD(content: content, attachments: attachments)
-
-        } attachments: {
-            Attachment(id: "visionMenu") {
-                if isVisionHUDVisible {
-                    VisionScrapMenu(
-                        isPaperMenuOpen: $isPaperMenuOpen,
-                        onVisualizeOrigamis: {
-                            if !vm.orderedPages.isEmpty {
-                                vm.repositioningCameraToTsuru(vm.pickLastTsuru())
-                            }
-
-                            Task {
-                                vm.isCameraNotMoving = false
-                                try? await Task.sleep(nanoseconds: 700_000_000)
-                                vm.isCameraNotMoving = true
-                            }
-                        },
-                        onSelectStyle: { styleName in
-                            isPaperMenuOpen = false
-                            isVisionHUDVisible = false
-
-                            openWindow(
-                                id: "CanvasWindow",
-                                value: styleName
-                            )
-                        }
-                    )
-                }
+            
+            if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
+                buttonNextTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft && !vm.isCanvasPresented
             }
-
-            Attachment(id: "focusOnTsuru") {
-                Button {
+            
+            if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
+                buttonPreviousTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight && !vm.isCanvasPresented
+            }
+            
+            if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
+                buttonScrapMenu.isEnabled = vm.isLookingAtTree
+            }
+            
+        } attachments: {
+            
+            Attachment(id: "ScrapMenu") {
+                VisionScrapMenu(isPaperMenuOpen: $isPaperMenuOpen) {
+                    vm.isLookingAtTree = false
                     if !vm.orderedPages.isEmpty {
                         vm.repositioningCameraToTsuru(vm.pickLastTsuru())
                     }
-
+                    
                     Task {
                         vm.isCameraNotMoving = false
                         try? await Task.sleep(nanoseconds: 700_000_000)
                         vm.isCameraNotMoving = true
                     }
+                    
+                } onSelectStyle: { style in
+                    vm.isLookingAtTree = false
+                    isPaperMenuOpen = false
+                    openWindow(
+                        id: "CanvasWindow",
+                        value: style
+                    )
 
-                } label: {
-                    Image("customPlus")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
                 }
-            }
 
+            }
+            
             Attachment(id: "removeFocusOnTsuru") {
                 Button {
                     vm.repositioningCameraToTree()
                     vm.isFocusedOnBandstand = false
                     vm.saveMotivation()
-
+                    
                 } label: {
                     Image(systemName: "xmark")
                         .scaledToFit()
@@ -505,39 +494,68 @@ struct VisionOSImmersiveSceneView: View {
                         )
                         .foregroundStyle(.black)
                 }
-            }
 
+            } //ISSO AQUI AINDA VAI MUDAR
+            
             Attachment(id: "moveToLeftTsuru") {
                 Button {
                     vm.navigateToTsuru(at: "left")
                 } label: {
                     Image(systemName: "chevron.left")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
-                        .foregroundStyle(.black)
+                        .frame(width: 52, height: 52)
+                        .background(.thinMaterial, in: Circle())
                 }
-            }
-
+                .buttonStyle(.plain)
+                .padding(16)
+            } // ESSE AQUI JA TEM O DESIGN OFICIAL
+            
             Attachment(id: "moveToRightTsuru") {
                 Button {
                     vm.navigateToTsuru(at: "right")
-
                 } label: {
                     Image(systemName: "chevron.right")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
-                        .foregroundStyle(.black)
+                        .frame(width: 52, height: 52)
+                        .background(.thinMaterial, in: Circle())
                 }
-            }
+                .buttonStyle(.plain)
+                .padding(16)
+            } // ESSE AQUI JA TEM O DESIGN OFICIAL
+
         }
+        .gesture(
+            SpatialTapGesture()
+                .targetedToAnyEntity()
+                .onEnded { value in
+                    let clickedEntity = value.entity
+                    
+                    
+                    if value.entity.name == "v176CherryTree02_Shape_v176CherryFlower_0" ||
+                        value.entity.name == "v176CherryTree02_Shape_v176CherryBranch01_0" {
+                        vm.isLookingAtTree.toggle()
+                    } else {
+                        let page = vm.dict[clickedEntity] ??
+                                   vm.dict.first(where: { $0.key.parent == clickedEntity })?.value ??
+                                   (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
+                        
+                        if let page {
+                            print("Clicado no tsuru da página: \(page.title ?? "Sem Título")")
+                            
+                            vm.currentPage = page
+                            
+                            let style = page.paperStyle ?? "Papel em Branco"
+                            openWindow(id: "CanvasWindow", value: style)
+                        }
+                    }
+                }
+        )
+        .gesture(
+            SpatialTapGesture()
+                .targetedToAnyEntity()
+                .onEnded { value in
+                    print("nome: \(value.entity.name)")
+                    vm.handleTap(on: value.entity)
+                }
+        )
         .task {
             if vm.scene == nil {
                 await vm.loadScene()
@@ -547,229 +565,7 @@ struct VisionOSImmersiveSceneView: View {
             vm.loadMotivation()
             vm.evaluateTipsVisibility()
         }
-    }
 
-    private func updateVisionHUD(
-        content: RealityViewContent,
-        attachments: RealityViewAttachments
-    ) {
-        guard isVisionHUDVisible else {
-            removeVisionHUD(from: content)
-            return
-        }
-
-        updateHeadAttachment(
-            content: content,
-            attachments: attachments,
-            id: "visionMenu",
-            anchorName: visionMenuAnchorName,
-            position: [0, -0.25, -0.85]
-        )
-
-        updateHeadAttachment(
-            content: content,
-            attachments: attachments,
-            id: "focusOnTsuru",
-            anchorName: focusOnTsuruAnchorName,
-            position: [0.5, -0.3, -0.8]
-        )
-
-        updateHeadAttachment(
-            content: content,
-            attachments: attachments,
-            id: "removeFocusOnTsuru",
-            anchorName: removeFocusOnTsuruAnchorName,
-            position: [-0.5, -0.3, -0.8]
-        )
-
-        updateHeadAttachment(
-            content: content,
-            attachments: attachments,
-            id: "moveToLeftTsuru",
-            anchorName: moveToLeftTsuruAnchorName,
-            position: [-0.5, -0.1, -0.8],
-            isEnabled: vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft
-        )
-
-        updateHeadAttachment(
-            content: content,
-            attachments: attachments,
-            id: "moveToRightTsuru",
-            anchorName: moveToRightTsuruAnchorName,
-            position: [0.5, -0.1, -0.8],
-            isEnabled: vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight
-        )
-    }
-
-    private func updateHeadAttachment(
-        content: RealityViewContent,
-        attachments: RealityViewAttachments,
-        id: String,
-        anchorName: String,
-        position: SIMD3<Float>,
-        isEnabled: Bool? = nil
-    ) {
-        guard let attachment = attachments.entity(for: id) else { return }
-
-        let headAnchor: Entity
-
-        if let existingAnchor = content.entities.first(where: { $0.name == anchorName }) {
-            headAnchor = existingAnchor
-        } else {
-            let newAnchor = AnchorEntity(.head)
-            newAnchor.name = anchorName
-            content.add(newAnchor)
-            headAnchor = newAnchor
-        }
-
-        attachment.position = position
-
-        if let isEnabled {
-            attachment.isEnabled = isEnabled
-        }
-
-        if attachment.parent == nil {
-            headAnchor.addChild(attachment)
-        }
-    }
-
-    private func removeVisionHUD(from content: RealityViewContent) {
-        for anchorName in visionHUDAnchorNames {
-            if let existingAnchor = content.entities.first(where: { $0.name == anchorName }) {
-                content.remove(existingAnchor)
-            }
-        }
-    }
-}
-
-// MARK: - Menu customizado visionOS
-
-private struct VisionScrapMenu: View {
-    @Binding var isPaperMenuOpen: Bool
-
-    let onVisualizeOrigamis: () -> Void
-    let onSelectStyle: (String) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 26) {
-            Button {
-                onVisualizeOrigamis()
-            } label: {
-                HStack(spacing: 24) {
-                    Image("origamiVision")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 48, height: 48)
-
-                    Text(StringCatalog.visualizeOrigamis)
-                        .font(.custom("CaveatBrush-Regular", size: 30))
-                        .foregroundStyle(.white)
-
-                    Spacer()
-                }
-            }
-            .buttonStyle(.plain)
-
-            VStack(alignment: .leading, spacing: 24) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.22)) {
-                        isPaperMenuOpen.toggle()
-                    }
-                } label: {
-                    HStack(spacing: 24) {
-                        Image("plusVision")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 58, height: 58)
-
-                        Text(StringCatalog.createYourScrap)
-                            .font(.custom("CaveatBrush-Regular", size: 30))
-                            .foregroundStyle(.white)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .rotationEffect(.degrees(isPaperMenuOpen ? 90 : 0))
-                    }
-                }
-                .buttonStyle(.plain)
-
-                if isPaperMenuOpen {
-                    VStack(alignment: .leading, spacing: 26) {
-                        PaperOptionButton(
-                            imageName: "dottedVision",
-                            title: StringCatalog.dottedPaper
-                        ) {
-                            openStyle(at: 0)
-                        }
-
-                        PaperOptionButton(
-                            imageName: "lanternVision",
-                            title: StringCatalog.lanterns
-                        ) {
-                            openStyle(at: 1)
-                        }
-
-                        PaperOptionButton(
-                            imageName: "fanVision",
-                            title: StringCatalog.fan
-                        ) {
-                            openStyle(at: 2)
-                        }
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
-            }
-        }
-        .padding(.horizontal, 48)
-        .padding(.vertical, 30)
-        .frame(width: 500, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 48)
-                .fill(Color.gray.opacity(0.7))
-        )
-    }
-
-    private func openStyle(at index: Int) {
-        let styles = Array(PaperStyles.allCases)
-
-        guard styles.indices.contains(index) else { return }
-
-        onSelectStyle(styles[index].name)
-    }
-}
-
-// MARK: - Botão de opção de papel
-
-private struct PaperOptionButton: View {
-    let imageName: String
-    let title: String
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            action()
-        } label: {
-            HStack(spacing: 34) {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 74, height: 74)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color.white)
-                    )
-
-                Text(title)
-                    .font(.custom("CaveatBrush-Regular", size: 30))
-                    .foregroundStyle(.white)
-
-                Spacer()
-            }
-        }
-        .buttonStyle(.plain)
     }
 }
 #endif
@@ -778,3 +574,4 @@ private struct PaperOptionButton: View {
     SceneView()
         .environment(SceneViewModel())
 }
+
