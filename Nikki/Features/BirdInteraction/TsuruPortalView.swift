@@ -16,39 +16,39 @@ struct TsuruPortalView: View {
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @Environment(\.openWindow) private var openWindow
 
-    /// Sessão ARKit: pose da cabeça sempre; hand tracking só em `.handLanding`.
     @State private var handManager = HandTrackingManager()
 
-    /// Âncora na cabeça, usada apenas para o portal visual seguir o usuário.
+    /// Âncora na cabeça, usada apenas para o portal visual seguir o usuário
     /// IMPORTANTE: no visionOS o transform de `AnchorEntity(.head)` é opaco
-    /// para o app (privacidade) — `convert(position:to:)` nela devolve a
-    /// posição como se a cabeça estivesse na origem (no chão!). Toda a
+    /// para privacidade — `convert(position:to:)` nela devolve a
+    /// posição como se a cabeça estivesse na origem (no chão). Toda a
     /// matemática do voo usa a pose real do device via `WorldTrackingProvider`.
     @State private var headAnchor = AnchorEntity(.head)
 
     /// Raiz no espaço do mundo onde o tsuru voando é adicionado.
     @State private var worldRoot = Entity()
 
-    /// Entidades já carregadas, uma por modelo (sem clone), reusadas entre voos.
+    /// Entidades já carregadas, uma por modelo, reusadas entre voos.
     @State private var loadedBirds: [FlightModel: Entity] = [:]
 
-    /// Controller da animação de bater asas do voo atual — usado para pausar
+    /// Controller da animação de bater asas do voo atual, usado para pausar
     /// o flap quando o pássaro pousa na mão e retomar quando levanta voo.
     @State private var flapController: AnimationPlaybackController?
 
     /// Evita disparar a mesma animação duas vezes para um único request.
     @State private var isFlying = false
 
-    /// Correção de "frente" do modelo em voo (setada em `prepareBird`).
+    /// Correção da orietação do modelo em voo (setada em `prepareBird`).
+    /// Necessária, pois as vezes o modelo vem olhando para o lado por padrão
     @State private var currentForwardFix = simd_quatf(angle: 0, axis: [0, 1, 0])
 
-    // Distâncias e alturas (em metros) usadas pela POC, relativas aos olhos.
+    // Distâncias e alturas (em metros), relativas aos olhos.
     private let portalDistance: Float = 2       // portal à frente da cabeça
     private let portalHeightOffset: Float = 0.35 // portal um pouco acima da linha dos olhos
     private let hoverDistance: Float = 0.9      // ponto onde o tsuru paira
     private let hoverHeightOffset: Float = -0.05 // praticamente na linha dos olhos
     private let tsuruScale: Float = 0.5         // tamanho do tsuru
-    private let birdScale: Float = 0.0005         // tamanho do passaro
+    private let birdScale: Float = 0.0005       // tamanho do passaro
 
     // MARK: Se um modelo voar de costas ou de lado, ajuste o ângulo dele (0, .pi, .pi/2, -.pi/2).
     /// Correção do eixo "frente" de cada modelo, para o bico apontar na
@@ -84,7 +84,7 @@ struct TsuruPortalView: View {
 
     // MARK: - Cenário
 
-    /// Plano semitransparente que representa a "tela"/portal de onde o tsuru sai.
+    /// Plano semitransparente que representa a tela/portal de onde o tsuru sai.
     private func makePortal() -> ModelEntity {
         var material = SimpleMaterial()
         material.color = .init(tint: .white.withAlphaComponent(0.25))
@@ -141,7 +141,7 @@ struct TsuruPortalView: View {
         }
     }
 
-    /// Posição mundial do portal (origem do voo), um pouco acima da linha dos olhos.
+    /// Posição no mundo do portal (origem do voo), um pouco acima da linha dos olhos.
     private func portalWorldPosition() -> SIMD3<Float> {
         let head = headPose()
         return head.position + head.forward * portalDistance
@@ -163,10 +163,9 @@ struct TsuruPortalView: View {
 
     // MARK: - Pássaro (tsuru / FlatBird)
 
-    /// Carrega o modelo direto do asset (sem cena da árvore, sem clone),
-    /// reaproveitando a mesma entidade entre voos. O load acontece aqui (dentro do
-    /// Task do voo) e não em `.task`, para não ser cancelado pela transição de
-    /// janela/space — o que causava o `CancellationError`.
+    /// Carrega o modelo direto do asset reaproveitando a mesma entidade entre voos.
+    ///  O load acontece aqui (dentro do Task do voo) e não em `.task`, para não ser cancelado pela transição de
+    /// janela/space.
     private func loadBirdIfNeeded(_ model: FlightModel) async -> Entity? {
         if let cached = loadedBirds[model] { return cached }
         do {
@@ -175,14 +174,14 @@ struct TsuruPortalView: View {
             case .tsuru:
                 entity = try await Entity(named: "tsuru", in: nikkiProjectBundle)
             case .flatBird:
-                // FlatBird.usdz fica em Features/3DModels, no bundle do app.
+                // FlatBird.usdz fica em Features/BirdInteraction/3DModels, no bundle do app.
                 entity = try await Entity(named: "FlatBird")
             }
             entity.isEnabled = false
             loadedBirds[model] = entity
             return entity
         } catch {
-            print("[TsuruPOC] Falha ao carregar o asset de \(model): \(error)")
+            print("Falha ao carregar o asset de \(model): \(error)")
             return nil
         }
     }
@@ -274,12 +273,17 @@ struct TsuruPortalView: View {
     ///   - duration: tempo total do trajeto.
     ///   - arcHeight: quanto a curva sobe no meio do caminho.
     ///   - lateralArc: desvio lateral máximo (sorteado) da curva.
+    ///   - trackingTarget: se informado, o destino é reavaliado a cada frame
+    ///     (ex.: segue a cabeça do usuário enquanto o pássaro se aproxima).
+    ///     O desvio é aplicado com peso crescente, então o início da curva
+    ///     não muda e a chegada acompanha o alvo atual.
     private func flySmooth(
         _ entity: Entity,
         to target: SIMD3<Float>,
         duration: TimeInterval,
         arcHeight: Float = 0.25,
-        lateralArc: Float = 0.2
+        lateralArc: Float = 0.2,
+        trackingTarget: (() -> SIMD3<Float>)? = nil
     ) async {
         let start = entity.position(relativeTo: nil)
         let travel = target - start
@@ -307,6 +311,11 @@ struct TsuruPortalView: View {
             // Balancinho vertical de voo, sumindo perto do destino.
             position.y += sinf(raw * .pi * 4) * 0.02 * (1 - raw)
 
+            // Destino dinâmico: desloca a curva na direção do alvo atual.
+            if let trackingTarget {
+                position += (trackingTarget() - target) * t
+            }
+
             let velocity = bezierTangent(start, c1, c2, target, t)
             let desired = orientationFacing(velocity, fallback: orientation)
             orientation = simd_slerp(orientation, desired, 0.15)
@@ -315,31 +324,35 @@ struct TsuruPortalView: View {
             entity.setOrientation(orientation, relativeTo: nil)
             try? await Task.sleep(for: .seconds(frameDT))
         }
-        entity.setPosition(target, relativeTo: nil)
+        entity.setPosition(trackingTarget?() ?? target, relativeTo: nil)
     }
 
-    /// Mantém o tsuru "pairando" em torno do ponto à frente dos olhos com um
-    /// flutuar suave, sempre encarando o usuário. O centro é recalculado a
-    /// partir da pose da cabeça, então ele acompanha se o usuário se mover.
+    /// Mantém o pássaro "pairando" com um flutuar suave em torno do ponto
+    /// onde ele chegou, FIXO no mundo: depois da chegada ele não segue mais
+    /// o usuário nem fica se reorientando — dá pra andar em volta e olhar o
+    /// origami de qualquer ângulo. Ele encara o usuário uma única vez (na
+    /// chegada) e mantém essa orientação.
     private func hoverInPlace(_ entity: Entity, seconds: TimeInterval) async {
         let frameDT: TimeInterval = 1.0 / 60.0
         let steps = max(1, Int(seconds / frameDT))
         var position = entity.position(relativeTo: nil)
         var orientation = entity.orientation(relativeTo: nil)
 
+        let center = position
+        let facingUser = orientationFacing(
+            headPose().position - center,
+            fallback: orientation
+        )
+
         for i in 0..<steps {
             let time = Float(i) * Float(frameDT)
-            var target = hoverWorldPosition()
+            var target = center
             // Flutuar de "asa parada no ar": sobe/desce e balança de leve.
             target.y += sinf(time * 2.2) * 0.03
             target.x += sinf(time * 1.3) * 0.015
 
             position = simd_mix(position, target, SIMD3<Float>(repeating: 0.06))
-
-            // Encara o usuário enquanto paira.
-            let head = headPose()
-            let desired = orientationFacing(head.position - position, fallback: orientation)
-            orientation = simd_slerp(orientation, desired, 0.08)
+            orientation = simd_slerp(orientation, facingUser, 0.08)
 
             entity.setPosition(position, relativeTo: nil)
             entity.setOrientation(orientation, relativeTo: nil)
@@ -357,10 +370,11 @@ struct TsuruPortalView: View {
         // O flap fica ligado (em loop) durante o voo simples inteiro.
         guard let bird = await prepareBird(model) else { return }
 
-        // Portal -> frente do rosto (altura dos olhos), em curva suave.
-        await flySmooth(bird, to: hoverWorldPosition(), duration: 4.0)
+        // Portal -> frente do rosto (altura dos olhos), em curva suave,
+        // trackeando o usuário durante a aproximação.
+        await flySmooth(bird, to: hoverWorldPosition(), duration: 4.0, trackingTarget: hoverWorldPosition)
 
-        // Paira por alguns segundos encarando o usuário.
+        // Paira por alguns segundos num ponto fixo do mundo (não segue mais).
         await hoverInPlace(bird, seconds: 3.0)
 
         // Voa para longe, subindo, e some.
@@ -382,8 +396,8 @@ struct TsuruPortalView: View {
 
         guard let bird = await prepareBird(model) else { return }
 
-        // Portal -> frente dos olhos, para o usuário ver o pássaro chegando.
-        await flySmooth(bird, to: hoverWorldPosition(), duration: 4.0)
+        // Portal -> frente dos olhos, trackeando o usuário na aproximação.
+        await flySmooth(bird, to: hoverWorldPosition(), duration: 4.0, trackingTarget: hoverWorldPosition)
 
         // Paira na frente do rosto enquanto espera uma mão válida (timeout).
         var hand: SIMD3<Float>?
