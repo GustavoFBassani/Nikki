@@ -16,11 +16,14 @@ struct TsuruPortalView: View {
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @Environment(\.openWindow) private var openWindow
 
-    /// Hand tracking só é usado na variação `.handLanding`.
+    /// Sessão ARKit: pose da cabeça sempre; hand tracking só em `.handLanding`.
     @State private var handManager = HandTrackingManager()
 
-    /// Âncora na cabeça: serve de referência tanto para posicionar o portal
-    /// quanto para calcular o ponto-alvo "à frente do rosto".
+    /// Âncora na cabeça, usada apenas para o portal visual seguir o usuário.
+    /// IMPORTANTE: no visionOS o transform de `AnchorEntity(.head)` é opaco
+    /// para o app (privacidade) — `convert(position:to:)` nela devolve a
+    /// posição como se a cabeça estivesse na origem (no chão!). Toda a
+    /// matemática do voo usa a pose real do device via `WorldTrackingProvider`.
     @State private var headAnchor = AnchorEntity(.head)
 
     /// Raiz no espaço do mundo onde o tsuru voando é adicionado.
@@ -32,12 +35,17 @@ struct TsuruPortalView: View {
     /// Evita disparar a mesma animação duas vezes para um único request.
     @State private var isFlying = false
 
-    // Distâncias e alturas (em metros) usadas pela POC, relativas à cabeça.
-    private let portalDistance: Float = 2   // portal à frente da cabeça (-z)
-    private let hoverDistance: Float = 0.6     // ponto onde o tsuru paira
-    private let spawnHeight: Float = 2      // altura onde o tsuru nasce (acima da linha dos olhos)
-    private let hoverHeight: Float = 0.4      // altura onde o tsuru paira na sua frente
-    private let tsuruScale: Float = 0.5       // tamanho do tsuru
+    // Distâncias e alturas (em metros) usadas pela POC, relativas aos olhos.
+    private let portalDistance: Float = 2       // portal à frente da cabeça
+    private let portalHeightOffset: Float = 0.35 // portal um pouco acima da linha dos olhos
+    private let hoverDistance: Float = 0.9      // ponto onde o tsuru paira
+    private let hoverHeightOffset: Float = -0.05 // praticamente na linha dos olhos
+    private let tsuruScale: Float = 0.5         // tamanho do tsuru
+
+    /// Correção do eixo "frente" do modelo: o bico do asset já aponta para -Z
+    /// (o "frente" do RealityKit), então nenhum giro extra é necessário.
+    // MARK: Se o tsuru voar de costas ou de lado, ajuste este ângulo (.pi, .pi/2, -.pi/2).
+    private let modelForwardFix = simd_quatf(angle: -.pi/2, axis: [0, 1, 0])
 
     var body: some View {
         RealityView { content in
@@ -70,7 +78,7 @@ struct TsuruPortalView: View {
             materials: [material]
         )
         // À frente do rosto (-z), um pouco acima da linha dos olhos.
-        portal.position = [0, spawnHeight, -portalDistance]
+        portal.position = [0, portalHeightOffset, -portalDistance]
         return portal
     }
 
@@ -93,17 +101,52 @@ struct TsuruPortalView: View {
         openWindow(id: "Launcher")
     }
 
-    /// Posição mundial do portal (origem do voo), um pouco acima da linha dos olhos.
-    private func portalWorldPosition() -> SIMD3<Float> {
-        let local = SIMD3<Float>(0, spawnHeight, -portalDistance)
-        return headAnchor.convert(position: local, to: nil)
+    // MARK: - Pose da cabeça (via WorldTrackingProvider)
+
+    /// Posição dos olhos e direção horizontal do olhar, no mundo.
+    /// Fallback (Simulador sem pose): olhos a 1.3 m do chão olhando para -z.
+    private func headPose() -> (position: SIMD3<Float>, forward: SIMD3<Float>) {
+        guard let m = handManager.deviceTransform else {
+            return (SIMD3<Float>(0, 1.3, 0), SIMD3<Float>(0, 0, -1))
+        }
+        let position = SIMD3<Float>(m.columns.3.x, m.columns.3.y, m.columns.3.z)
+        // -Z do device é a direção do olhar; achata para não apontar pro chão/teto.
+        var forward = -SIMD3<Float>(m.columns.2.x, m.columns.2.y, m.columns.2.z)
+        forward.y = 0
+        forward = simd_length(forward) > 0.001
+            ? simd_normalize(forward)
+            : SIMD3<Float>(0, 0, -1)
+        return (position, forward)
     }
 
-    /// Ponto ~`hoverDistance` à frente do rosto (na sua direção), no mundo.
-    private func hoverWorldPosition() -> SIMD3<Float> {
-        let local = SIMD3<Float>(0, hoverHeight, -hoverDistance)
-        return headAnchor.convert(position: local, to: nil)
+    /// Espera a primeira pose válida do device (a sessão demora alguns frames).
+    private func waitForHeadPose() async {
+        for _ in 0..<30 where handManager.deviceTransform == nil {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
     }
+
+    /// Posição mundial do portal (origem do voo), um pouco acima da linha dos olhos.
+    private func portalWorldPosition() -> SIMD3<Float> {
+        let head = headPose()
+        return head.position + head.forward * portalDistance
+            + SIMD3<Float>(0, portalHeightOffset, 0)
+    }
+
+    /// Ponto ~`hoverDistance` à frente do rosto, na altura dos olhos, no mundo.
+    private func hoverWorldPosition() -> SIMD3<Float> {
+        let head = headPose()
+        return head.position + head.forward * hoverDistance
+            + SIMD3<Float>(0, hoverHeightOffset, 0)
+    }
+
+    /// Ponto distante à frente do usuário para o tsuru ir embora, subindo.
+    private func awayWorldPosition() -> SIMD3<Float> {
+        let head = headPose()
+        return head.position + head.forward * 8 + SIMD3<Float>(0, 1.5, 0)
+    }
+
+    // MARK: - Tsuru
 
     /// Carrega o modelo do tsuru direto do asset (sem cena da árvore, sem clone),
     /// reaproveitando a mesma entidade entre voos. O load acontece aqui (dentro do
@@ -142,61 +185,6 @@ struct TsuruPortalView: View {
         }
     }
 
-    /// Move o tsuru até `target`, orientando-o para encarar essa posição.
-    private func fly(_ entity: Entity, to target: SIMD3<Float>, duration: TimeInterval) {
-        let from = entity.position(relativeTo: nil)
-        entity.look(at: target, from: from, relativeTo: nil)
-        var transform = entity.transform
-        transform.translation = target
-        entity.move(to: transform, relativeTo: worldRoot, duration: duration, timingFunction: .easeInOut)
-    }
-
-    /// Voa do ponto atual até `target` de forma "tremulada", como um objeto real:
-    /// o trajeto é quebrado em vários segmentos curtos, cada um com um pequeno
-    /// desvio aleatório de altura e lateral (jitter). Em cada segmento o tsuru é
-    /// reorientado para encarar o próximo ponto, dando a sensação de voo errático.
-    ///
-    /// - Parameters:
-    ///   - target: destino final no espaço do mundo.
-    ///   - totalDuration: tempo total aproximado do trajeto.
-    ///   - segments: em quantos pedaços o caminho é dividido (mais = mais tremido).
-    ///   - wobble: amplitude máxima (em metros) do desvio lateral/vertical.
-    private func flyWobbly(
-        _ entity: Entity,
-        to target: SIMD3<Float>,
-        totalDuration: TimeInterval,
-        segments: Int = 6,
-        wobble: Float = 0.18
-    ) async {
-        let start = entity.position(relativeTo: nil)
-        let segDuration = totalDuration / TimeInterval(segments)
-
-        // Vetor "direita" relativo à direção do voo, para desviar lateralmente.
-        let forward = simd_normalize(target - start)
-        let worldUp = SIMD3<Float>(0, 1, 0)
-        let right = simd_length(simd_cross(forward, worldUp)) > 0.001
-            ? simd_normalize(simd_cross(forward, worldUp))
-            : SIMD3<Float>(1, 0, 0)
-
-        for i in 1...segments {
-            let t = Float(i) / Float(segments)
-            // Ponto base interpolado linearmente em direção ao alvo.
-            let base = simd_mix(start, target, SIMD3<Float>(repeating: t))
-
-            // Desvio aleatório, que diminui conforme chega perto do alvo (chega suave).
-            let damping = 1.0 - t
-            let lateral = Float.random(in: -wobble...wobble) * damping
-            let vertical = Float.random(in: -wobble...wobble) * damping
-
-            let waypoint = (i == segments)
-                ? target  // último segmento aterrissa exatamente no alvo
-                : base + right * lateral + worldUp * vertical
-
-            fly(entity, to: waypoint, duration: segDuration)
-            try? await Task.sleep(for: .seconds(segDuration))
-        }
-    }
-
     /// Finaliza o voo: esconde o tsuru e o remove da cena.
     private func retireTsuru(_ entity: Entity) {
         entity.stopAllAnimations()
@@ -204,87 +192,206 @@ struct TsuruPortalView: View {
         entity.removeFromParent()
     }
 
+    // MARK: - Movimento
+
+    /// Orientação que faz o tsuru encarar `direction`: só yaw (giro em torno
+    /// de Y) mais um leve pitch, para nunca rolar/inclinar de lado.
+    private func orientationFacing(_ direction: SIMD3<Float>, fallback: simd_quatf) -> simd_quatf {
+        let length = simd_length(direction)
+        guard length > 0.0001 else { return fallback }
+        let d = direction / length
+
+        var flat = SIMD3<Float>(d.x, 0, d.z)
+        guard simd_length(flat) > 0.001 else { return fallback }
+        flat = simd_normalize(flat)
+
+        // Ângulo que leva o "frente" do RealityKit (-Z) até `flat`.
+        let yaw = simd_quatf(angle: atan2f(-flat.x, -flat.z), axis: [0, 1, 0])
+        // Pitch suave (60% do real, limitado) — sobe/desce o bico sem cabrar.
+        let pitchAngle = max(-0.5, min(0.5, asinf(max(-1, min(1, d.y))) * 0.6))
+        let pitch = simd_quatf(angle: pitchAngle, axis: [1, 0, 0])
+        return yaw * pitch * modelForwardFix
+    }
+
+    /// Ponto e tangente de uma Bézier cúbica.
+    private func bezier(
+        _ p0: SIMD3<Float>, _ p1: SIMD3<Float>,
+        _ p2: SIMD3<Float>, _ p3: SIMD3<Float>, _ t: Float
+    ) -> SIMD3<Float> {
+        let u = 1 - t
+        return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3
+    }
+
+    private func bezierTangent(
+        _ p0: SIMD3<Float>, _ p1: SIMD3<Float>,
+        _ p2: SIMD3<Float>, _ p3: SIMD3<Float>, _ t: Float
+    ) -> SIMD3<Float> {
+        let u = 1 - t
+        return 3 * u * u * (p1 - p0) + 6 * u * t * (p2 - p1) + 3 * t * t * (p3 - p2)
+    }
+
+    /// Voa suavemente do ponto atual até `target` seguindo uma curva Bézier
+    /// com um leve arco e desvio lateral, atualizada a cada frame (~60 Hz).
+    /// A orientação é interpolada (slerp) na direção do movimento, então o
+    /// tsuru faz curvas suaves em vez de "teleportar" e girar de repente.
+    ///
+    /// - Parameters:
+    ///   - target: destino final no espaço do mundo.
+    ///   - duration: tempo total do trajeto.
+    ///   - arcHeight: quanto a curva sobe no meio do caminho.
+    ///   - lateralArc: desvio lateral máximo (sorteado) da curva.
+    private func flySmooth(
+        _ entity: Entity,
+        to target: SIMD3<Float>,
+        duration: TimeInterval,
+        arcHeight: Float = 0.25,
+        lateralArc: Float = 0.2
+    ) async {
+        let start = entity.position(relativeTo: nil)
+        let travel = target - start
+        let distance = simd_length(travel)
+        guard distance > 0.01 else { return }
+
+        let up = SIMD3<Float>(0, 1, 0)
+        var right = simd_cross(travel / distance, up)
+        right = simd_length(right) > 0.001 ? simd_normalize(right) : SIMD3<Float>(1, 0, 0)
+
+        // Pontos de controle: arco para cima com curvinha lateral aleatória.
+        let side = Float.random(in: -lateralArc...lateralArc)
+        let c1 = start + travel * 0.33 + up * arcHeight + right * side
+        let c2 = start + travel * 0.66 + up * (arcHeight * 0.5) + right * (side * 0.5)
+
+        let frameDT: TimeInterval = 1.0 / 60.0
+        let steps = max(1, Int(duration / frameDT))
+        var orientation = entity.orientation(relativeTo: nil)
+
+        for i in 1...steps {
+            let raw = Float(i) / Float(steps)
+            let t = raw * raw * (3 - 2 * raw) // ease-in-out
+
+            var position = bezier(start, c1, c2, target, t)
+            // Balancinho vertical de voo, sumindo perto do destino.
+            position.y += sinf(raw * .pi * 4) * 0.02 * (1 - raw)
+
+            let velocity = bezierTangent(start, c1, c2, target, t)
+            let desired = orientationFacing(velocity, fallback: orientation)
+            orientation = simd_slerp(orientation, desired, 0.15)
+
+            entity.setPosition(position, relativeTo: nil)
+            entity.setOrientation(orientation, relativeTo: nil)
+            try? await Task.sleep(for: .seconds(frameDT))
+        }
+        entity.setPosition(target, relativeTo: nil)
+    }
+
+    /// Mantém o tsuru "pairando" em torno do ponto à frente dos olhos com um
+    /// flutuar suave, sempre encarando o usuário. O centro é recalculado a
+    /// partir da pose da cabeça, então ele acompanha se o usuário se mover.
+    private func hoverInPlace(_ entity: Entity, seconds: TimeInterval) async {
+        let frameDT: TimeInterval = 1.0 / 60.0
+        let steps = max(1, Int(seconds / frameDT))
+        var position = entity.position(relativeTo: nil)
+        var orientation = entity.orientation(relativeTo: nil)
+
+        for i in 0..<steps {
+            let time = Float(i) * Float(frameDT)
+            var target = hoverWorldPosition()
+            // Flutuar de "asa parada no ar": sobe/desce e balança de leve.
+            target.y += sinf(time * 2.2) * 0.03
+            target.x += sinf(time * 1.3) * 0.015
+
+            position = simd_mix(position, target, SIMD3<Float>(repeating: 0.06))
+
+            // Encara o usuário enquanto paira.
+            let head = headPose()
+            let desired = orientationFacing(head.position - position, fallback: orientation)
+            orientation = simd_slerp(orientation, desired, 0.08)
+
+            entity.setPosition(position, relativeTo: nil)
+            entity.setOrientation(orientation, relativeTo: nil)
+            try? await Task.sleep(for: .seconds(frameDT))
+        }
+    }
+
     // MARK: - Variação 1: voo simples
 
     private func runSimpleFlight() async {
+        // Só a pose da cabeça — não requer permissão do usuário.
+        _ = await handManager.start(hands: false)
+        await waitForHeadPose()
+
         guard let tsuru = await prepareTsuru() else { return }
 
-        // Portal -> frente do rosto, voando de forma tremulada (não em linha reta).
-        await flyWobbly(tsuru, to: hoverWorldPosition(), totalDuration: 3.5)
+        // Portal -> frente do rosto (altura dos olhos), em curva suave.
+        await flySmooth(tsuru, to: hoverWorldPosition(), duration: 4.0)
 
-        // Paira por alguns segundos, com um leve flutuar no lugar.
-        await hoverInPlace(tsuru, around: hoverWorldPosition(), seconds: 3.0)
+        // Paira por alguns segundos encarando o usuário.
+        await hoverInPlace(tsuru, seconds: 3.0)
 
-        // Voa para longe (-z, bem à frente) e some — também tremulado.
-        let away = headAnchor.convert(position: SIMD3<Float>(0, 0.6, -8), to: nil)
-        await flyWobbly(tsuru, to: away, totalDuration: 3.0, wobble: 0.25)
+        // Voa para longe, subindo, e some.
+        await flySmooth(tsuru, to: awayWorldPosition(), duration: 3.5, arcHeight: 0.6, lateralArc: 0.4)
         retireTsuru(tsuru)
-    }
-
-    /// Mantém o tsuru "pairando" em torno de `center` com pequenas oscilações,
-    /// para não ficar congelado no ar enquanto espera.
-    private func hoverInPlace(_ entity: Entity, around center: SIMD3<Float>, seconds: TimeInterval) async {
-        let steps = max(1, Int(seconds / 0.6))
-        for _ in 0..<steps {
-            let jitter = SIMD3<Float>(
-                Float.random(in: -0.05...0.05),
-                Float.random(in: -0.04...0.04),
-                Float.random(in: -0.05...0.05)
-            )
-            // Só translada (mantém a orientação atual) para não girar enquanto paira.
-            var transform = entity.transform
-            transform.translation = center + jitter
-            entity.move(to: transform, relativeTo: worldRoot, duration: 0.6, timingFunction: .easeInOut)
-            try? await Task.sleep(for: .seconds(0.6))
-        }
+        handManager.stop()
     }
 
     // MARK: - Variação 2: pouso na mão (hand tracking)
 
     private func runHandLanding() async {
         // Decisão da POC: sem hand tracking (Simulador), apenas loga e aborta.
-        let available = await handManager.start()
+        let available = await handManager.start(hands: true)
         guard available else {
             print("[TsuruPOC] Pouso na mão ignorado — rode no device.")
             return
         }
+        await waitForHeadPose()
 
         guard let tsuru = await prepareTsuru() else { return }
 
-        // Aguarda uma posição de mão válida (com timeout curto).
+        // Portal -> frente dos olhos, para o usuário ver o tsuru chegando.
+        await flySmooth(tsuru, to: hoverWorldPosition(), duration: 4.0)
+
+        // Paira na frente do rosto enquanto espera uma mão válida (timeout).
         var hand: SIMD3<Float>?
-        for _ in 0..<60 {
+        for _ in 0..<10 {
             if let p = handManager.latestHandPosition {
                 hand = p
                 break
             }
-            try? await Task.sleep(for: .milliseconds(100))
+            await hoverInPlace(tsuru, seconds: 0.6)
         }
 
-        guard let handPosition = hand else {
+        guard hand != nil else {
             print("[TsuruPOC] Nenhuma mão detectada a tempo — abortando.")
+            await flySmooth(tsuru, to: awayWorldPosition(), duration: 3.0, arcHeight: 0.6)
             retireTsuru(tsuru)
             handManager.stop()
             return
         }
 
-        // Portal -> mão.
-        fly(tsuru, to: handPosition, duration: 2.0)
-        try? await Task.sleep(for: .seconds(2.0))
+        // Desce suavemente até a palma (posição mais recente da mão).
+        let landingTarget = (handManager.latestHandPosition ?? hand!) + SIMD3<Float>(0, 0.01, 0)
+        await flySmooth(tsuru, to: landingTarget, duration: 2.0, arcHeight: 0.15, lateralArc: 0.1)
 
-        // Pousa: segue a mão por alguns segundos.
-        let landingSeconds = 4
-        for _ in 0..<(landingSeconds * 10) {
-            if let p = handManager.latestHandPosition {
-                tsuru.position = p
+        // Pousado: segue a mão com interpolação (sem teleportar), encarando o usuário.
+        let frameDT: TimeInterval = 1.0 / 60.0
+        let landingSeconds: TimeInterval = 4
+        var position = tsuru.position(relativeTo: nil)
+        var orientation = tsuru.orientation(relativeTo: nil)
+        for _ in 0..<Int(landingSeconds / frameDT) {
+            if let palm = handManager.latestHandPosition {
+                let target = palm + SIMD3<Float>(0, 0.01, 0)
+                position = simd_mix(position, target, SIMD3<Float>(repeating: 0.25))
+                let head = headPose()
+                let desired = orientationFacing(head.position - position, fallback: orientation)
+                orientation = simd_slerp(orientation, desired, 0.08)
+                tsuru.setPosition(position, relativeTo: nil)
+                tsuru.setOrientation(orientation, relativeTo: nil)
             }
-            try? await Task.sleep(for: .milliseconds(100))
+            try? await Task.sleep(for: .seconds(frameDT))
         }
 
         // Levanta voo e some.
-        let away = headAnchor.convert(position: SIMD3<Float>(0, 0.4, -8), to: nil)
-        fly(tsuru, to: away, duration: 2.0)
-        try? await Task.sleep(for: .seconds(2.0))
+        await flySmooth(tsuru, to: awayWorldPosition(), duration: 3.0, arcHeight: 0.6, lateralArc: 0.4)
         retireTsuru(tsuru)
         handManager.stop()
     }

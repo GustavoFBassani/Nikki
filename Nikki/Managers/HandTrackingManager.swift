@@ -7,6 +7,7 @@
 
 #if os(visionOS)
 import ARKit
+import QuartzCore
 import RealityKit
 import simd
 
@@ -14,40 +15,56 @@ import simd
 @Observable
 final class HandTrackingManager {
 
-    private let session = ARKitSession()
-    private let handProvider = HandTrackingProvider()
+    private var session = ARKitSession()
+    private var handProvider: HandTrackingProvider?
+    private var worldProvider: WorldTrackingProvider?
 
-    /// Última transform mundial conhecida da mão acompanhada (palma).
+    /// Última transform mundial conhecida da palma da mão acompanhada.
     /// `nil` enquanto nenhuma mão válida foi detectada.
     private(set) var latestHandTransform: simd_float4x4?
 
     private var updatesTask: Task<Void, Never>?
 
-    /// Inicia a sessão de hand tracking.
+    /// Inicia a sessão ARKit.
     ///
-    /// - Returns: `true` se o hand tracking está disponível e autorizado
-    ///   (device real); `false` no Simulador ou se a autorização for negada —
-    ///   nesse caso o chamador deve abortar a animação (decisão da POC).
-    func start() async -> Bool {
-        guard HandTrackingProvider.isSupported else {
-            print("[HandTracking] Indisponível — rode no device. Nada será animado.")
-            return false
-        }
+    /// - Parameter hands: se `true`, além da pose do device (cabeça) também
+    ///   pede autorização e inicia o hand tracking.
+    /// - Returns: `false` se `hands == true` e o hand tracking está
+    ///   indisponível (Simulador) ou foi negado — nesse caso o chamador deve
+    ///   abortar a animação de pouso (decisão da POC). O world tracking
+    ///   (pose da cabeça) não requer permissão do usuário.
+    func start(hands: Bool) async -> Bool {
+        stop()
+        session = ARKitSession()
 
-        let authorization = await session.requestAuthorization(for: [.handTracking])
-        guard authorization[.handTracking] == .allowed else {
-            print("[HandTracking] Autorização negada/indisponível. Nada será animado.")
-            return false
+        let world = WorldTrackingProvider()
+        var providers: [any DataProvider] = [world]
+        var hand: HandTrackingProvider?
+
+        if hands {
+            guard HandTrackingProvider.isSupported else {
+                print("[HandTracking] Indisponível — rode no device. Nada será animado.")
+                return false
+            }
+            let authorization = await session.requestAuthorization(for: [.handTracking])
+            guard authorization[.handTracking] == .allowed else {
+                print("[HandTracking] Autorização negada/indisponível. Nada será animado.")
+                return false
+            }
+            hand = HandTrackingProvider()
+            providers.append(hand!)
         }
 
         do {
-            try await session.run([handProvider])
+            try await session.run(providers)
         } catch {
-            print("[HandTracking] Falha ao iniciar ARKitSession: \(error). Nada será animado.")
+            print("[HandTracking] Falha ao iniciar ARKitSession: \(error).")
             return false
         }
 
-        startConsumingUpdates()
+        worldProvider = world
+        handProvider = hand
+        if let hand { startConsumingUpdates(from: hand) }
         return true
     }
 
@@ -56,27 +73,52 @@ final class HandTrackingManager {
         updatesTask?.cancel()
         updatesTask = nil
         latestHandTransform = nil
+        if handProvider != nil || worldProvider != nil {
+            session.stop()
+        }
+        handProvider = nil
+        worldProvider = nil
     }
 
-    /// Posição mundial atual da mão acompanhada, se houver.
+    /// Transform mundial atual do device (cabeça/olhos), se disponível.
+    /// Não requer autorização do usuário.
+    var deviceTransform: simd_float4x4? {
+        guard let worldProvider, worldProvider.state == .running else { return nil }
+        let anchor = worldProvider.queryDeviceAnchor(atTimestamp: CACurrentMediaTime())
+        guard let anchor, anchor.isTracked else { return nil }
+        return anchor.originFromAnchorTransform
+    }
+
+    /// Posição mundial atual da palma da mão acompanhada, se houver.
     var latestHandPosition: SIMD3<Float>? {
         guard let m = latestHandTransform else { return nil }
         return SIMD3<Float>(m.columns.3.x, m.columns.3.y, m.columns.3.z)
     }
 
-    private func startConsumingUpdates() {
+    private func startConsumingUpdates(from provider: HandTrackingProvider) {
         updatesTask?.cancel()
         updatesTask = Task { [weak self] in
-            guard let self else { return }
-            for await update in self.handProvider.anchorUpdates {
+            for await update in provider.anchorUpdates {
+                guard let self else { return }
                 let anchor = update.anchor
                 // Acompanha a mão direita; cai para qualquer mão rastreada se preciso.
                 guard anchor.isTracked else { continue }
                 if anchor.chirality == .right || self.latestHandTransform == nil {
-                    self.latestHandTransform = anchor.originFromAnchorTransform
+                    self.latestHandTransform = Self.palmTransform(of: anchor)
                 }
             }
         }
+    }
+
+    /// Centro da palma (base do dedo médio) em coordenadas de mundo.
+    /// O origin do `HandAnchor` fica no punho, o que faria o tsuru pousar
+    /// no pulso em vez da mão.
+    private static func palmTransform(of anchor: HandAnchor) -> simd_float4x4 {
+        guard
+            let joint = anchor.handSkeleton?.joint(.middleFingerKnuckle),
+            joint.isTracked
+        else { return anchor.originFromAnchorTransform }
+        return anchor.originFromAnchorTransform * joint.anchorFromJointTransform
     }
 }
 #endif

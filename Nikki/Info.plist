@@ -6,6 +6,8 @@
 	<string>1156927169939216</string>
 	<key>NSWorldSensingUsageDescription</key>
 	<string>Usado para o tsuru pousar na sua mão.</string>
+	<key>NSHandsTrackingUsageDescription</key>
+	<string>Usado para o tsuru pousar na sua mão.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>instagram-stories</string>
