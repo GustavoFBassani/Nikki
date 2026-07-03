@@ -23,7 +23,7 @@ extension View {
                     endPoint: .top
                 )
             )
-            .glassBackgroundEffect()
+            .nikkiGlassBackground()
             .ignoresSafeArea()
     }
     
@@ -40,7 +40,17 @@ extension View {
                     endPoint: .top
                 )
             )
-            .glassBackgroundEffect()
+            .nikkiGlassBackground()
             .ignoresSafeArea()
+    }
+
+    /// `glassBackgroundEffect` só existe no visionOS; no-op no iOS.
+    @ViewBuilder
+    func nikkiGlassBackground() -> some View {
+        #if os(visionOS)
+        self.glassBackgroundEffect()
+        #else
+        self
+        #endif
     }
 }

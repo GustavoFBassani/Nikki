@@ -8,6 +8,7 @@
 import Foundation
 
 extension StringCatalog {
+    static let back = String(localized: "common.back")
     static let cancel = String(localized: "common.cancel")
     static let delete = String(localized: "common.delete")
     static let share = String(localized: "common.share")

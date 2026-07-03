@@ -50,7 +50,11 @@ struct NikkiApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     private let dataContainer = PersistenceController.shared.container
     @State private var sceneVM = SceneViewModel()
-    
+
+    #if os(visionOS)
+    @State private var bonsaiAppModel = BonsaiAppModel()
+    #endif
+
     // O 'body' do App sempre retorna uma 'Scene' (Cena).
     // É aqui que dizemos ao iOS/visionOS quais tipos de janelas ou ambientes nosso app tem.
     var body: some Scene {
@@ -65,6 +69,9 @@ struct NikkiApp: App {
         WindowGroup {
             RootView() // A tela que vai aparecer dentro dessa janela
                 .environment(sceneVM) // Passando nosso ViewModel para todas as telas filhas
+            #if os(visionOS)
+                .environment(bonsaiAppModel)
+            #endif
         }
         // O .modelContainer conecta o banco de dados (SwiftData) a essa janela,
         // para que qualquer @Query lá dentro consiga ler e salvar dados.
@@ -124,6 +131,15 @@ struct NikkiApp: App {
         // estilos nós damos suporte, permitindo que a Coroa Digital (Digital Crown) do óculos
         // controle o quanto o usuário quer mergulhar na experiência.
         .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
+
+        // Espaço imersivo de posicionamento do bonsai em superfície real.
+        ImmersiveSpace(id: bonsaiAppModel.immersiveSpaceID) {
+            BonsaiImmersiveView()
+                .environment(bonsaiAppModel)
+                .onAppear { bonsaiAppModel.immersiveSpaceState = .open }
+                .onDisappear { bonsaiAppModel.immersiveSpaceState = .closed }
+        }
+        .immersionStyle(selection: .constant(.mixed), in: .mixed)
         #endif
     }
 }

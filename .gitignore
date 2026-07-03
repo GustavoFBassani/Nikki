@@ -51,3 +51,6 @@ fastlane/test_output
 DerivedData/
 
 **/Features/Testing
+
+# RealityComposer Pro per-user workspace data
+*.rcuserdata
