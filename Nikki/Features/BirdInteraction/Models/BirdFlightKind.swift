@@ -1,5 +1,5 @@
 //
-//  SceneViewModel+POCTsuru.swift
+//  BirdFlightKind.swift
 //  Nikki
 //
 //  Created by Alex Fraga on 30/06/26.
@@ -11,7 +11,7 @@ import Foundation
 enum FlightModel: Equatable {
     /// Origami tsuru do pacote NikkiProject.
     case tsuru
-    /// FlatBird (usdz em Features/3DModels), com animação própria de bater asas.
+    /// FlatBird (usdz em Features/BirdInteraction/3DModels), com animação própria de bater asas.
     case flatBird
 }
 
