@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-private struct VisionScrapMenu: View {
+struct VisionScrapMenu: View {
     @Binding var isPaperMenuOpen: Bool
     let onVisualizeOrigamis: () -> Void
     let onSelectStyle: (String) -> Void
@@ -90,10 +90,10 @@ private struct VisionScrapMenu: View {
         .padding(.horizontal, 48)
         .padding(.vertical, 30)
         .frame(width: 500, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 48)
-                .fill(Color.gray.opacity(0.7))
+        .glassBackgroundEffect(
+            in: RoundedRectangle(cornerRadius: 48)
         )
+        
     }
 
     private func openStyle(at index: Int) {
