@@ -248,17 +248,6 @@
     "Carimbos" : {
 
     },
-    "Carregando ambiente..." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loading Scene"
-          }
-        }
-      }
-    },
     "common.cancel" : {
       "localizations" : {
         "en" : {
@@ -862,6 +851,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stories"
+          }
+        }
+      }
+    },
+    "splash.env.3d.button" : {
+      "comment" : "Button label to start the 3D experience.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Start"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Começar"
+          }
+        }
+      }
+    },
+    "splash.env.3d.description" : {
+      "comment" : "Description of the 3D experience card on the environment selection screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Position the bonsai wherever you wish and interact with it."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Posicione o bonsai onde você quiser e interaja com ele"
+          }
+        }
+      }
+    },
+    "splash.env.3d.title" : {
+      "comment" : "Title of the 3D experience card on the environment selection screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3D Experience"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experiência 3D"
+          }
+        }
+      }
+    },
+    "splash.env.immersive.button" : {
+      "comment" : "Button label to begin the immersive experience.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Begin"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Começar"
+          }
+        }
+      }
+    },
+    "splash.env.immersive.description" : {
+      "comment" : "Description of the immersive experience card on the environment selection screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Discover an incredible scenario and explore the environment."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descubra um cenário incrível e explore-o"
+          }
+        }
+      }
+    },
+    "splash.env.immersive.title" : {
+      "comment" : "Title of the immersive experience card on the environment selection screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Immersive Experience"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experiência imersiva"
           }
         }
       }

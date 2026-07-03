@@ -15,22 +15,17 @@ struct RootView: View {
     private let dataContainer = PersistenceController.shared.container
     var body: some View {
         Group {
-//            if hasSeenOnboarding {
-//                #if os(visionOS)
-//                VisionOSLauncherView()
-//                #else
-//                SceneView()
-//                #endif
-//            } else {
-//                NavigationStack {
-//                    OnboardingFirstView()
-//                }
-//            }
-                #if os(visionOS)
-                VisionOSLauncherView()
-                #else
+            #if os(visionOS)
+            VisionSplashView()
+            #else
+            if hasSeenOnboarding {
                 SceneView()
-                #endif
+            } else {
+                NavigationStack {
+                    OnboardingFirstView()
+                }
+            }
+            #endif
         }
         .modelContainer(dataContainer)
     }
