@@ -599,6 +599,13 @@ struct VisionOSImmersiveSceneView: View {
                     }
                 }
         )
+        .gesture(
+            SpatialTapGesture()
+                .targetedToAnyEntity()
+                .onEnded { value in
+                    vm.handleTap(on: value.entity)
+                }
+        )
         .task {
             if vm.scene == nil {
                 await vm.loadScene()
@@ -608,6 +615,7 @@ struct VisionOSImmersiveSceneView: View {
             vm.loadMotivation()
             vm.evaluateTipsVisibility()
         }
+
     }
 }
 #endif
@@ -616,3 +624,4 @@ struct VisionOSImmersiveSceneView: View {
     SceneView()
         .environment(SceneViewModel())
 }
+
