@@ -80,14 +80,28 @@ struct VisionOSLauncherView: View {
             Button("Tsuru: voo simples") {
                 Task {
                     await openImmersiveSpace(id: "TsuruPOC")
-                    sceneVM.pocFlightRequest = .simpleFlight
+                    sceneVM.pocFlightRequest = .simpleFlight(.tsuru)
                     dismissWindow()
                 }
             }
             Button("Tsuru: pousa na mão") {
                 Task {
                     await openImmersiveSpace(id: "TsuruPOC")
-                    sceneVM.pocFlightRequest = .handLanding
+                    sceneVM.pocFlightRequest = .handLanding(.tsuru)
+                    dismissWindow()
+                }
+            }
+            Button("FlatBird: voo simples") {
+                Task {
+                    await openImmersiveSpace(id: "TsuruPOC")
+                    sceneVM.pocFlightRequest = .simpleFlight(.flatBird)
+                    dismissWindow()
+                }
+            }
+            Button("FlatBird: pousa na mão") {
+                Task {
+                    await openImmersiveSpace(id: "TsuruPOC")
+                    sceneVM.pocFlightRequest = .handLanding(.flatBird)
                     dismissWindow()
                 }
             }

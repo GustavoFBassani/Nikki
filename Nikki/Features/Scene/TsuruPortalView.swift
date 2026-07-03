@@ -29,11 +29,18 @@ struct TsuruPortalView: View {
     /// Raiz no espaço do mundo onde o tsuru voando é adicionado.
     @State private var worldRoot = Entity()
 
-    /// A única entidade do tsuru desta POC (carregada do asset, sem clone).
-    @State private var tsuru: Entity?
+    /// Entidades já carregadas, uma por modelo (sem clone), reusadas entre voos.
+    @State private var loadedBirds: [FlightModel: Entity] = [:]
+
+    /// Controller da animação de bater asas do voo atual — usado para pausar
+    /// o flap quando o pássaro pousa na mão e retomar quando levanta voo.
+    @State private var flapController: AnimationPlaybackController?
 
     /// Evita disparar a mesma animação duas vezes para um único request.
     @State private var isFlying = false
+
+    /// Correção de "frente" do modelo em voo (setada em `prepareBird`).
+    @State private var currentForwardFix = simd_quatf(angle: 0, axis: [0, 1, 0])
 
     // Distâncias e alturas (em metros) usadas pela POC, relativas aos olhos.
     private let portalDistance: Float = 2       // portal à frente da cabeça
@@ -41,11 +48,19 @@ struct TsuruPortalView: View {
     private let hoverDistance: Float = 0.9      // ponto onde o tsuru paira
     private let hoverHeightOffset: Float = -0.05 // praticamente na linha dos olhos
     private let tsuruScale: Float = 0.5         // tamanho do tsuru
+    private let birdScale: Float = 0.0005         // tamanho do passaro
 
-    /// Correção do eixo "frente" do modelo: o bico do asset já aponta para -Z
-    /// (o "frente" do RealityKit), então nenhum giro extra é necessário.
-    // MARK: Se o tsuru voar de costas ou de lado, ajuste este ângulo (.pi, .pi/2, -.pi/2).
-    private let modelForwardFix = simd_quatf(angle: -.pi/2, axis: [0, 1, 0])
+    // MARK: Se um modelo voar de costas ou de lado, ajuste o ângulo dele (0, .pi, .pi/2, -.pi/2).
+    /// Correção do eixo "frente" de cada modelo, para o bico apontar na
+    /// direção do voo (o "frente" do RealityKit é -Z).
+    private func modelForwardFix(for model: FlightModel) -> simd_quatf {
+        switch model {
+        case .tsuru:
+            return simd_quatf(angle: -.pi / 2, axis: [0, 1, 0])
+        case .flatBird:
+            return simd_quatf(angle: .pi/2, axis: [0, 1, 0])
+        }
+    }
 
     var body: some View {
         RealityView { content in
@@ -89,10 +104,10 @@ struct TsuruPortalView: View {
         isFlying = true
 
         switch kind {
-        case .simpleFlight:
-            await runSimpleFlight()
-        case .handLanding:
-            await runHandLanding()
+        case .simpleFlight(let model):
+            await runSimpleFlight(model)
+        case .handLanding(let model):
+            await runHandLanding(model)
         }
 
         isFlying = false
@@ -146,48 +161,67 @@ struct TsuruPortalView: View {
         return head.position + head.forward * 8 + SIMD3<Float>(0, 1.5, 0)
     }
 
-    // MARK: - Tsuru
+    // MARK: - Pássaro (tsuru / FlatBird)
 
-    /// Carrega o modelo do tsuru direto do asset (sem cena da árvore, sem clone),
+    /// Carrega o modelo direto do asset (sem cena da árvore, sem clone),
     /// reaproveitando a mesma entidade entre voos. O load acontece aqui (dentro do
     /// Task do voo) e não em `.task`, para não ser cancelado pela transição de
     /// janela/space — o que causava o `CancellationError`.
-    private func loadTsuruIfNeeded() async -> Entity? {
-        if let tsuru { return tsuru }
+    private func loadBirdIfNeeded(_ model: FlightModel) async -> Entity? {
+        if let cached = loadedBirds[model] { return cached }
         do {
-            let entity = try await Entity(named: "tsuru", in: nikkiProjectBundle)
+            let entity: Entity
+            switch model {
+            case .tsuru:
+                entity = try await Entity(named: "tsuru", in: nikkiProjectBundle)
+            case .flatBird:
+                // FlatBird.usdz fica em Features/3DModels, no bundle do app.
+                entity = try await Entity(named: "FlatBird")
+            }
             entity.isEnabled = false
-            tsuru = entity
+            loadedBirds[model] = entity
             return entity
         } catch {
-            print("[TsuruPOC] Falha ao carregar o asset 'tsuru': \(error)")
+            print("[TsuruPOC] Falha ao carregar o asset de \(model): \(error)")
             return nil
         }
     }
 
-    /// Prepara a única entidade do tsuru na origem do portal e inicia o flap.
+    /// Prepara a entidade do modelo na origem do portal e inicia o flap.
     /// Retorna `nil` se o asset não pôde ser carregado.
-    private func prepareTsuru() async -> Entity? {
-        guard let tsuru = await loadTsuruIfNeeded() else { return nil }
-        tsuru.removeFromParent()
-        tsuru.scale = [tsuruScale, tsuruScale, tsuruScale]
-        tsuru.position = portalWorldPosition()
-        tsuru.isEnabled = true
-        worldRoot.addChild(tsuru)
-        playFlap(on: tsuru)
-        return tsuru
+    private func prepareBird(_ model: FlightModel) async -> Entity? {
+        guard let bird = await loadBirdIfNeeded(model) else { return nil }
+        currentForwardFix = modelForwardFix(for: model)
+        bird.removeFromParent()
+        switch model {
+        case .tsuru:
+            bird.scale = [tsuruScale, tsuruScale, tsuruScale]
+        case .flatBird:
+            bird.scale = [birdScale, birdScale, birdScale]
+        }
+        bird.position = portalWorldPosition()
+        bird.isEnabled = true
+        worldRoot.addChild(bird)
+        playFlap(on: bird)
+        return bird
     }
 
-    /// Toca a animação de bater asas embutida no asset.
+    /// Toca a animação de bater asas embutida no asset, em loop, guardando o
+    /// controller para poder pausar/retomar durante o pouso na mão.
     private func playFlap(on entity: Entity) {
         if let anim = entity.availableAnimations.first {
-            entity.playAnimation(anim.repeat(), transitionDuration: 0.3, startsPaused: false)
+            flapController = entity.playAnimation(
+                anim.repeat(),
+                transitionDuration: 0.3,
+                startsPaused: false
+            )
         }
     }
 
-    /// Finaliza o voo: esconde o tsuru e o remove da cena.
-    private func retireTsuru(_ entity: Entity) {
+    /// Finaliza o voo: esconde o pássaro e o remove da cena.
+    private func retireBird(_ entity: Entity) {
         entity.stopAllAnimations()
+        flapController = nil
         entity.isEnabled = false
         entity.removeFromParent()
     }
@@ -210,7 +244,7 @@ struct TsuruPortalView: View {
         // Pitch suave (60% do real, limitado) — sobe/desce o bico sem cabrar.
         let pitchAngle = max(-0.5, min(0.5, asinf(max(-1, min(1, d.y))) * 0.6))
         let pitch = simd_quatf(angle: pitchAngle, axis: [1, 0, 0])
-        return yaw * pitch * modelForwardFix
+        return yaw * pitch * currentForwardFix
     }
 
     /// Ponto e tangente de uma Bézier cúbica.
@@ -315,28 +349,29 @@ struct TsuruPortalView: View {
 
     // MARK: - Variação 1: voo simples
 
-    private func runSimpleFlight() async {
+    private func runSimpleFlight(_ model: FlightModel) async {
         // Só a pose da cabeça — não requer permissão do usuário.
         _ = await handManager.start(hands: false)
         await waitForHeadPose()
 
-        guard let tsuru = await prepareTsuru() else { return }
+        // O flap fica ligado (em loop) durante o voo simples inteiro.
+        guard let bird = await prepareBird(model) else { return }
 
         // Portal -> frente do rosto (altura dos olhos), em curva suave.
-        await flySmooth(tsuru, to: hoverWorldPosition(), duration: 4.0)
+        await flySmooth(bird, to: hoverWorldPosition(), duration: 4.0)
 
         // Paira por alguns segundos encarando o usuário.
-        await hoverInPlace(tsuru, seconds: 3.0)
+        await hoverInPlace(bird, seconds: 3.0)
 
         // Voa para longe, subindo, e some.
-        await flySmooth(tsuru, to: awayWorldPosition(), duration: 3.5, arcHeight: 0.6, lateralArc: 0.4)
-        retireTsuru(tsuru)
+        await flySmooth(bird, to: awayWorldPosition(), duration: 3.5, arcHeight: 0.6, lateralArc: 0.4)
+        retireBird(bird)
         handManager.stop()
     }
 
     // MARK: - Variação 2: pouso na mão (hand tracking)
 
-    private func runHandLanding() async {
+    private func runHandLanding(_ model: FlightModel) async {
         // Decisão da POC: sem hand tracking (Simulador), apenas loga e aborta.
         let available = await handManager.start(hands: true)
         guard available else {
@@ -345,10 +380,10 @@ struct TsuruPortalView: View {
         }
         await waitForHeadPose()
 
-        guard let tsuru = await prepareTsuru() else { return }
+        guard let bird = await prepareBird(model) else { return }
 
-        // Portal -> frente dos olhos, para o usuário ver o tsuru chegando.
-        await flySmooth(tsuru, to: hoverWorldPosition(), duration: 4.0)
+        // Portal -> frente dos olhos, para o usuário ver o pássaro chegando.
+        await flySmooth(bird, to: hoverWorldPosition(), duration: 4.0)
 
         // Paira na frente do rosto enquanto espera uma mão válida (timeout).
         var hand: SIMD3<Float>?
@@ -357,26 +392,31 @@ struct TsuruPortalView: View {
                 hand = p
                 break
             }
-            await hoverInPlace(tsuru, seconds: 0.6)
+            await hoverInPlace(bird, seconds: 0.6)
         }
 
         guard hand != nil else {
             print("[TsuruPOC] Nenhuma mão detectada a tempo — abortando.")
-            await flySmooth(tsuru, to: awayWorldPosition(), duration: 3.0, arcHeight: 0.6)
-            retireTsuru(tsuru)
+            await flySmooth(bird, to: awayWorldPosition(), duration: 3.0, arcHeight: 0.6)
+            retireBird(bird)
             handManager.stop()
             return
         }
 
         // Desce suavemente até a palma (posição mais recente da mão).
         let landingTarget = (handManager.latestHandPosition ?? hand!) + SIMD3<Float>(0, 0.01, 0)
-        await flySmooth(tsuru, to: landingTarget, duration: 2.0, arcHeight: 0.15, lateralArc: 0.1)
+        await flySmooth(bird, to: landingTarget, duration: 2.0, arcHeight: 0.15, lateralArc: 0.1)
+
+        // FlatBird pousado não bate asas; retoma quando levantar voo.
+        if model == .flatBird {
+            flapController?.pause()
+        }
 
         // Pousado: segue a mão com interpolação (sem teleportar), encarando o usuário.
         let frameDT: TimeInterval = 1.0 / 60.0
         let landingSeconds: TimeInterval = 4
-        var position = tsuru.position(relativeTo: nil)
-        var orientation = tsuru.orientation(relativeTo: nil)
+        var position = bird.position(relativeTo: nil)
+        var orientation = bird.orientation(relativeTo: nil)
         for _ in 0..<Int(landingSeconds / frameDT) {
             if let palm = handManager.latestHandPosition {
                 let target = palm + SIMD3<Float>(0, 0.01, 0)
@@ -384,15 +424,18 @@ struct TsuruPortalView: View {
                 let head = headPose()
                 let desired = orientationFacing(head.position - position, fallback: orientation)
                 orientation = simd_slerp(orientation, desired, 0.08)
-                tsuru.setPosition(position, relativeTo: nil)
-                tsuru.setOrientation(orientation, relativeTo: nil)
+                bird.setPosition(position, relativeTo: nil)
+                bird.setOrientation(orientation, relativeTo: nil)
             }
             try? await Task.sleep(for: .seconds(frameDT))
         }
 
-        // Levanta voo e some.
-        await flySmooth(tsuru, to: awayWorldPosition(), duration: 3.0, arcHeight: 0.6, lateralArc: 0.4)
-        retireTsuru(tsuru)
+        // Levanta voo (voltando a bater asas) e some.
+        if model == .flatBird {
+            flapController?.resume()
+        }
+        await flySmooth(bird, to: awayWorldPosition(), duration: 3.0, arcHeight: 0.6, lateralArc: 0.4)
+        retireBird(bird)
         handManager.stop()
     }
 }
