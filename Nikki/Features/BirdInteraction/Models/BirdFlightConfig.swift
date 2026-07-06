@@ -6,6 +6,7 @@
 //
 
 #if os(visionOS)
+import Foundation
 import simd
 
 /// Constantes de geometria do voo (distâncias, alturas, escalas) e as
@@ -34,6 +35,23 @@ enum BirdFlightConfig {
         switch model {
         case .tsuru:    return tsuruScale
         case .flatBird: return flatBirdScale
+        }
+    }
+
+    // MARK: - Ajuste de pouso na mão.
+
+    /// Tempo em segundos que o modelo fica pousado na palma da mão.
+    static let handLandingSeconds: TimeInterval = 7
+
+    /// Offset vertical em metros aplicado ao pousar
+    ///
+    /// - `flatBird`: a origem do modelo fica no centro vertical, então subimos
+    ///   metade da altura já escalada
+    /// - `tsuru`: quase certo, só um pouco pra cima.
+    static func landingHeightOffset(for model: FlightModel, scaledHeight: Float) -> Float {
+        switch model {
+        case .flatBird: return scaledHeight / 2
+        case .tsuru:    return 0.02
         }
     }
 

@@ -247,16 +247,23 @@ final class BirdFlightViewModel {
             await hoverInPlace(bird, seconds: 0.6)
         }
 
-        guard hand != nil else {
-            print("[TsuruPOC] Nenhuma mão detectada a tempo — abortando.")
+        guard let hand else {
+            print("Nenhuma mão detectada a tempo — abortando.")
             await flySmooth(bird, to: headPose.awayWorldPosition(), duration: 3.0, arcHeight: 0.6)
             birdLoader.retireBird(bird)
             handManager.stop()
             return
         }
 
+        let scaledHeight = bird.visualBounds(relativeTo: nil).extents.y
+        let landingLift = SIMD3<Float>(
+            0,
+            BirdFlightConfig.landingHeightOffset(for: model, scaledHeight: scaledHeight),
+            0
+        )
+
         // Desce suavemente até a palma (posição mais recente da mão).
-        let landingTarget = (handManager.latestHandPosition ?? hand!) + SIMD3<Float>(0, 0.01, 0)
+        let landingTarget = (handManager.latestHandPosition ?? hand) + landingLift
         await flySmooth(bird, to: landingTarget, duration: 2.0, arcHeight: 0.15, lateralArc: 0.1)
 
         // FlatBird pousado não bate asas; retoma quando levantar voo.
@@ -264,14 +271,14 @@ final class BirdFlightViewModel {
             birdLoader.pauseFlap()
         }
 
-        // Pousado: segue a mão com interpolação (sem teleportar), encarando o usuário.
+        // Pousado: segue a mão com interpolação, encarando o usuário.
         let frameDT: TimeInterval = 1.0 / 60.0
-        let landingSeconds: TimeInterval = 4
+        let landingSeconds = BirdFlightConfig.handLandingSeconds
         var position = bird.position(relativeTo: nil)
         var orientation = bird.orientation(relativeTo: nil)
         for _ in 0..<Int(landingSeconds / frameDT) {
             if let palm = handManager.latestHandPosition {
-                let target = palm + SIMD3<Float>(0, 0.01, 0)
+                let target = palm + landingLift
                 position = simd_mix(position, target, SIMD3<Float>(repeating: 0.25))
                 let head = headPose.headPose()
                 let desired = orientationFacing(head.position - position, fallback: orientation)
