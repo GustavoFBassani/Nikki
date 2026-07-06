@@ -38,7 +38,6 @@ struct VisionScrapMenu: View {
                 Button {
                     withAnimation(.easeInOut(duration: 0.22)) {
                         isPaperMenuOpen.toggle()
-                        print("botao ativando")
                     }
                 } label: {
                     HStack(spacing: 24) {

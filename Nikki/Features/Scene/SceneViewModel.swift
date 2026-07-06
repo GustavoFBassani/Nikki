@@ -302,7 +302,6 @@ class SceneViewModel {
 
         isFocusedOnTsuru = true
         orderedEntities = orderedEntitiesByPageCreationDate()
-        debugPageControl()
     }
 
     func deleteTsurusAtScene() async {
@@ -626,42 +625,4 @@ class SceneViewModel {
         UserDefaults.standard.set(true, forKey: hasSeenFocusTsuruTipKey)
     }
 
-    // MARK: - DEBUG FUNCTIONS
-
-    func debugTsuruComponents(_ obj: Entity) {
-        print("=== DEBUG TSURU ===")
-        print("Objeto pai: \(obj.name)")
-
-        if let bird = obj.children.first(where: {
-            $0.name == "flappingBird___0PercentFolded"
-        }) {
-            print("Bird encontrado: \(bird.name)")
-            print(
-                "Tem InputTarget? \(bird.components[InputTargetComponent.self] != nil)"
-            )
-            print(
-                "Tem Collision? \(bird.components[CollisionComponent.self] != nil)"
-            )
-            print("Posição: \(bird.position)")
-            print("Escala: \(bird.scale)")
-            print("Está no dicionário? \(dict[bird] != nil)")
-
-            if let collision = bird.components[CollisionComponent.self] {
-                print("Collision shapes: \(collision.shapes.count) shapes")
-
-                for (index, shape) in collision.shapes.enumerated() {
-                    print("Shape \(index): \(shape)")
-                }
-            }
-        } else {
-            print("✗ Bird NÃO encontrado!")
-        }
-
-        print("==================")
-    }
-
-    func debugPageControl() {
-        print("pageControl: ", pageControlTsuru.currentPageControl)
-        print("numero de scraps: ", orderedEntities.count)
-    }
 }

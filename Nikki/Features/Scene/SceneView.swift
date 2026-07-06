@@ -538,8 +538,6 @@ struct VisionOSImmersiveSceneView: View {
                                    (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
                         
                         if let page {
-                            print("Clicado no tsuru da página: \(page.title ?? "Sem Título")")
-                            
                             vm.currentPage = page
                             
                             let style = page.paperStyle ?? "Papel em Branco"
@@ -552,7 +550,6 @@ struct VisionOSImmersiveSceneView: View {
             SpatialTapGesture()
                 .targetedToAnyEntity()
                 .onEnded { value in
-                    print("nome: \(value.entity.name)")
                     vm.handleTap(on: value.entity)
                 }
         )
