@@ -10,6 +10,8 @@ import SwiftUI
 struct EnvironmentSelectionView: View {
     #if os(visionOS)
     @Environment(BonsaiAppModel.self) private var appModel
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissWindow) private var dismissWindow
     #endif
 
     var body: some View {
@@ -30,7 +32,15 @@ struct EnvironmentSelectionView: View {
                 title: StringCatalog.experienceTitleImmersive,
                 description: StringCatalog.experienceDescriptionImmersive,
                 buttonLabel: StringCatalog.experienceBeginImmersive,
-                action: { /* TODO */ }
+                action: {
+                    #if os(visionOS)
+                    Task { @MainActor in
+                        if case .opened = await openImmersiveSpace(id: "TreeView") {
+                            dismissWindow()
+                        }
+                    }
+                    #endif
+                }
             )
         }
         .padding(.horizontal, 130)
