@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-#if os(visionOS)
 /// Gradiente da splash screen
 extension View {
     func nikkiGradientBackground() -> some View {
@@ -24,10 +23,10 @@ extension View {
                     endPoint: .top
                 )
             )
-            .glassBackgroundEffect()
+            .nikkiGlassBackground()
             .ignoresSafeArea()
     }
-    
+
     func buttonEnvSelectionBackground() -> some View {
         self
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -41,8 +40,17 @@ extension View {
                     endPoint: .top
                 )
             )
-            .glassBackgroundEffect()
+            .nikkiGlassBackground()
             .ignoresSafeArea()
     }
+
+    /// `glassBackgroundEffect` só existe no visionOS; no-op no iOS.
+    @ViewBuilder
+    func nikkiGlassBackground() -> some View {
+        #if os(visionOS)
+        self.glassBackgroundEffect()
+        #else
+        self
+        #endif
+    }
 }
-#endif

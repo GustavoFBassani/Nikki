@@ -104,7 +104,7 @@ struct CanvasViewModelTest {
         let viewModel = CanvasViewModel(page: page, paperStyle: nil)
         
         // When
-        try? viewModel.deleteCurrentPage(using: manager.context)
+        try? viewModel.deleteCurrentPage()
         
         // Then
         let fetchedPage = try? manager.fetchPage(by: page.id)

@@ -8,6 +8,12 @@
 import SwiftUI
 
 struct EnvironmentSelectionView: View {
+    #if os(visionOS)
+    @Environment(BonsaiAppModel.self) private var appModel
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissWindow) private var dismissWindow
+    #endif
+
     var body: some View {
         HStack(spacing: 32) {
             EnvironmentCard(
@@ -15,14 +21,26 @@ struct EnvironmentSelectionView: View {
                 title: StringCatalog.experienceTitle3D,
                 description: StringCatalog.experienceDescription3D,
                 buttonLabel: StringCatalog.experienceStart3D,
-                action: { /* TODO */ }
+                action: {
+                    #if os(visionOS)
+                    withAnimation { appModel.windowScreen = .bonsaiControl }
+                    #endif
+                }
             )
             EnvironmentCard(
                 imageName: "immersiveGarden",
                 title: StringCatalog.experienceTitleImmersive,
                 description: StringCatalog.experienceDescriptionImmersive,
                 buttonLabel: StringCatalog.experienceBeginImmersive,
-                action: { /* TODO */ }
+                action: {
+                    #if os(visionOS)
+                    Task { @MainActor in
+                        if case .opened = await openImmersiveSpace(id: "TreeView") {
+                            dismissWindow()
+                        }
+                    }
+                    #endif
+                }
             )
         }
         .padding(.horizontal, 130)
@@ -30,9 +48,10 @@ struct EnvironmentSelectionView: View {
     }
 }
 
-#if os(visionOS)
 #Preview {
     EnvironmentSelectionView()
         .nikkiGradientBackground()
+    #if os(visionOS)
+        .environment(BonsaiAppModel())
+    #endif
 }
-#endif

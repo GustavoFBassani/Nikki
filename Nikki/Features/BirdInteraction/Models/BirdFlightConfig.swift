@@ -24,6 +24,8 @@ enum BirdFlightConfig {
     static let hoverDistance: Float = 0.9
     /// Praticamente na linha dos olhos.
     static let hoverHeightOffset: Float = -0.05
+    // Tempo em segundos que o modelo fica pousado na palma da mão.
+    static let handLandingSeconds: TimeInterval = 7
 
     // MARK: - Escalas por modelo.
 
@@ -39,9 +41,6 @@ enum BirdFlightConfig {
     }
 
     // MARK: - Ajuste de pouso na mão.
-
-    /// Tempo em segundos que o modelo fica pousado na palma da mão.
-    static let handLandingSeconds: TimeInterval = 7
 
     /// Offset vertical em metros aplicado ao pousar
     ///

@@ -42,17 +42,21 @@ struct VisionSplashView: View {
         phase >= .windowOpen ? windowFullWidth : windowStartWidth
     }
 
+    private var contentHeight: CGFloat? {
+        showEnvironmentSelection ? nil : windowHeight
+    }
+
     var body: some View {
         ZStack {
             if showEnvironmentSelection {
-                EnvironmentSelectionView()
+                VisionHomeRouter()
                     .transition(.opacity)
             } else {
                 splashAnimation()
             }
         }
         .nikkiGradientBackground()
-        .frame(width: contentWidth, height: windowHeight)
+        .frame(width: contentWidth, height: contentHeight)
         .task {
             await runIntroFlight()
             await runAnimationsSequence()

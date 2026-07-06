@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "pt-BR",
   "strings" : {
+    "" : {
+
+    },
     "3D Model “Japanese garden” — created by Katydid. License: Sketchfab Free Standard (https://sketchfab.com/licenses/free-standard).  Modified by Martina Adegas. Available in: https://sketchfab.com/3d-models/japanese-garden-3083a8ae73bd47c68e655713915787f5" : {
 
     },
@@ -20,6 +23,298 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nikki"
+          }
+        }
+      }
+    },
+    "Artist" : {
+
+    },
+    "bonsai.error.model" : {
+      "comment" : "Error shown when the 3D model fails to load in the placement space.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load the model. Try again."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível carregar o modelo. Tente novamente."
+          }
+        }
+      }
+    },
+    "bonsai.error.tracking" : {
+      "comment" : "Error shown when ARKit surface tracking fails to start.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't start surface tracking."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível iniciar o rastreamento de superfícies."
+          }
+        }
+      }
+    },
+    "bonsai.panel.instruction.drag" : {
+      "comment" : "Placement instruction: drag to reposition the bonsai.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to reposition"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arraste para reposicionar"
+          }
+        }
+      }
+    },
+    "bonsai.panel.instruction.look" : {
+      "comment" : "Placement instruction: look at a flat surface.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Look at a flat surface"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olhe para uma superfície plana"
+          }
+        }
+      }
+    },
+    "bonsai.panel.instruction.tap" : {
+      "comment" : "Placement instruction: tap to place the bonsai.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to place the bonsai"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque para posicionar o bonsai"
+          }
+        }
+      }
+    },
+    "bonsai.panel.placed" : {
+      "comment" : "Badge shown on the control panel after the bonsai has been placed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonsai placed"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonsai posicionado"
+          }
+        }
+      }
+    },
+    "bonsai.panel.subtitle" : {
+      "comment" : "Subtitle inviting the user to place the cherry tree on a real surface.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place your cherry tree on any surface"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Posicione sua cerejeira em qualquer superfície"
+          }
+        }
+      }
+    },
+    "bonsai.panel.title" : {
+      "comment" : "Title of the bonsai placement control panel.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonsai"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonsai"
+          }
+        }
+      }
+    },
+    "bonsai.status.loading" : {
+      "comment" : "Status card while the 3D model loads. %@ is the placement target name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading %@…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carregando %@…"
+          }
+        }
+      }
+    },
+    "bonsai.status.searchHint" : {
+      "comment" : "Hint shown below the surface search status.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Look around for a table or the floor"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olhe ao redor para uma mesa ou o chão"
+          }
+        }
+      }
+    },
+    "bonsai.status.searching" : {
+      "comment" : "Status card while ARKit looks for a horizontal surface.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking for a surface…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Procurando uma superfície…"
+          }
+        }
+      }
+    },
+    "bonsai.status.tapToPlace" : {
+      "comment" : "Status card prompting the placement tap. %@ is the placement target name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the surface to place %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque na superfície para posicionar %@"
+          }
+        }
+      }
+    },
+    "bonsai.target.bonsai" : {
+      "comment" : "Placement target name used inside status messages.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the bonsai"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "o bonsai"
+          }
+        }
+      }
+    },
+    "bonsai.target.scene" : {
+      "comment" : "Placement target name used inside status messages.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the scene"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "a cena"
+          }
+        }
+      }
+    },
+    "bonsai.toggle.close" : {
+      "comment" : "Button that closes the bonsai placement immersive space.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close Placement"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fechar Posicionamento"
+          }
+        }
+      }
+    },
+    "bonsai.toggle.open" : {
+      "comment" : "Button that opens the bonsai placement immersive space.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place Bonsai"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Posicionar Bonsai"
+          }
+        }
+      }
+    },
+    "bonsai.toggle.wait" : {
+      "comment" : "Button label while the immersive space is opening or closing.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please wait…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguarde…"
           }
         }
       }
@@ -248,6 +543,34 @@
     "Carimbos" : {
 
     },
+    "Carregando ambiente..." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading Scene"
+          }
+        }
+      }
+    },
+    "common.back" : {
+      "comment" : "Generic back button label.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar"
+          }
+        }
+      }
+    },
     "common.cancel" : {
       "localizations" : {
         "en" : {
@@ -366,12 +689,6 @@
           }
         }
       }
-    },
-    "FlatBird: pousa na mão" : {
-
-    },
-    "FlatBird: voo simples" : {
-
     },
     "ImmersiveSpace" : {
 
@@ -676,6 +993,22 @@
         }
       }
     },
+    "scene.vision.visualize.origamis" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Visualize your origamis"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualize seus origamis"
+          }
+        }
+      }
+    },
     "Share" : {
 
     },
@@ -957,13 +1290,7 @@
         }
       }
     },
-    "Tsuru: pousa na mão" : {
-
-    },
-    "Tsuru: voo simples" : {
-
-    },
-    "Volume" : {
+    "Title" : {
 
     }
   },
