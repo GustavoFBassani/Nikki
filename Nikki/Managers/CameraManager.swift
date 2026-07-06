@@ -8,7 +8,8 @@
 import RealityKit
 import SwiftUI
 
-class CameraManager  {
+@MainActor
+class CameraManager: CameraManaging {
     
     //MARK: - CAMERA PROPERTIES
     /// Câmera perspectiva usada para visualizar a cena

@@ -32,9 +32,6 @@ struct NormalSceneView: View {
     var DEBUG_SHOULD_DELETE = false
     
     var body: some View {
-        // [iOS 17+ e visionOS] Como estamos usando o @Environment para pegar o ViewModel,
-        // ele perde o suporte automático a "Bindings" (variáveis com o cifrão $).
-        // Usar @Bindable aqui dentro diz pro SwiftUI recriar os $ necessários pra essa tela.
         @Bindable var vm = vm
         
         NavigationStack {
@@ -394,73 +391,180 @@ struct NormalSceneView: View {
 // ---------------------------------------------------------
 // TELA TOTALMENTE IMERSIVA PARA VISIONOS
 // ---------------------------------------------------------
-// Essa tela roda dentro do `ImmersiveSpace` que vimos lá no AppDelegate.
-// Ao contrário de uma tela normal, ela não tem NavigationStack, nem fundo, nem barra de navegação.
-// Tudo que colocarmos aqui vai aparecer misturado no mundo real do usuário.
 struct VisionOSImmersiveSceneView: View {
-    // Pegando o mesmo SceneViewModel global lá do AppDelegate
     @Environment(SceneViewModel.self) var vm
-    
-    // Variável nativa para comandar a abertura de janelas 2D secundárias
     @Environment(\.openWindow) private var openWindow
-    
+
+    @State private var isPaperMenuOpen = false
+
     var body: some View {
-        // O RealityView é o componente do visionOS capaz de renderizar e mostrar modelos 3D (.usdz, cenas)
         RealityView { content, attachments in
             if let scene = vm.scene {
                 content.add(scene)
             }
             
-            if let menuAttachment = attachments.entity(for: "customPlus") {
+            if let buttonMinus = attachments.entity(for: "removeFocusOnTsuru") {
                 let headAnchor = AnchorEntity(.head)
-                menuAttachment.position = [0, -0.3, -0.8]
+                buttonMinus.position = [-0.5, -0.3, -0.8]
 
-                headAnchor.addChild(menuAttachment)
+                headAnchor.addChild(buttonMinus)
                 content.add(headAnchor)
+            } // isso aqui vai mudar, MAS POR enquanto deixa
+            
+            if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
+                buttonNextTsuru.position = [-2, 0, 6.4]
+                buttonNextTsuru.isEnabled = false
+                content.add(buttonNextTsuru)
+            }
+            
+            if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
+                buttonPreviousTsuru.position = [-1, 0, 6.4]
+                buttonPreviousTsuru.isEnabled = false
+                content.add(buttonPreviousTsuru)
+            }
+            
+            if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
+                buttonScrapMenu.position = [-1.3, 0, 6]
+                buttonScrapMenu.isEnabled = vm.isLookingAtTree
+                content.add(buttonScrapMenu)
+                
             }
 
         } update: { content, attachments in
+            
+            // Dummy read: força o bloco update a rodar quando o tsuru muda
+            _ = vm.selectedPage
 
             if let scene = vm.scene, scene.parent == nil {
                 content.add(scene)
             }
             
+            if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
+                buttonNextTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft && !vm.isCanvasPresented
+            }
+            
+            if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
+                buttonPreviousTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight && !vm.isCanvasPresented
+            }
+            
+            if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
+                buttonScrapMenu.isEnabled = vm.isLookingAtTree
+            }
+            
         } attachments: {
             
-            Attachment(id: "customPlus") {
-                Menu {
-                    ForEach(PaperStyles.allCases, id: \.self) { style in
-                        Button {
-                            vm.openCanvasWithStyle = style.name
-                        } label: {
-                            Text(style.title)
-                                .font(.custom("CaveatBrush-Regular", size: 5))
-                        }
+            Attachment(id: "ScrapMenu") {
+                VisionScrapMenu(isPaperMenuOpen: $isPaperMenuOpen) {
+                    vm.isLookingAtTree = false
+                    if !vm.orderedPages.isEmpty {
+                        vm.repositioningCameraToTsuru(vm.pickLastTsuru())
                     }
                     
+                    Task {
+                        vm.isCameraNotMoving = false
+                        try? await Task.sleep(nanoseconds: 700_000_000)
+                        vm.isCameraNotMoving = true
+                    }
+                    
+                } onSelectStyle: { style in
+                    vm.isLookingAtTree = false
+                    isPaperMenuOpen = false
+                    openWindow(
+                        id: "CanvasWindow",
+                        value: style
+                    )
+
+                }
+
+            }
+            
+            Attachment(id: "removeFocusOnTsuru") {
+                Button {
+                    vm.repositioningCameraToTree()
+                    vm.isFocusedOnBandstand = false
+                    vm.saveMotivation()
+                    
                 } label: {
-                    Image("customPlus")
+                    Image(systemName: "xmark")
                         .scaledToFit()
                         .frame(width: 44, height: 44)
                         .background(
                             RoundedRectangle(cornerRadius: 22)
                                 .fill(Color.white.opacity(0.85))
                         )
+                        .foregroundStyle(.black)
                 }
 
-            }
+            } //ISSO AQUI AINDA VAI MUDAR
             
+            Attachment(id: "moveToLeftTsuru") {
+                Button {
+                    vm.navigateToTsuru(at: "left")
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .frame(width: 52, height: 52)
+                        .background(.thinMaterial, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .padding(16)
+            } // ESSE AQUI JA TEM O DESIGN OFICIAL
+            
+            Attachment(id: "moveToRightTsuru") {
+                Button {
+                    vm.navigateToTsuru(at: "right")
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .frame(width: 52, height: 52)
+                        .background(.thinMaterial, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .padding(16)
+            } // ESSE AQUI JA TEM O DESIGN OFICIAL
+
         }
+        .gesture(
+            SpatialTapGesture()
+                .targetedToAnyEntity()
+                .onEnded { value in
+                    let clickedEntity = value.entity
+                    
+                    
+                    if value.entity.name == "v176CherryTree02_Shape_v176CherryFlower_0" ||
+                        value.entity.name == "v176CherryTree02_Shape_v176CherryBranch01_0" {
+                        vm.isLookingAtTree.toggle()
+                    } else {
+                        let page = vm.dict[clickedEntity] ??
+                                   vm.dict.first(where: { $0.key.parent == clickedEntity })?.value ??
+                                   (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
+                        
+                        if let page {
+                            print("Clicado no tsuru da página: \(page.title ?? "Sem Título")")
+                            
+                            vm.currentPage = page
+                            
+                            let style = page.paperStyle ?? "Papel em Branco"
+                            openWindow(id: "CanvasWindow", value: style)
+                        }
+                    }
+                }
+        )
+        .gesture(
+            SpatialTapGesture()
+                .targetedToAnyEntity()
+                .onEnded { value in
+                    print("nome: \(value.entity.name)")
+                    vm.handleTap(on: value.entity)
+                }
+        )
         .task {
-            // Quando a tela imersiva aparecer na frente do usuário, carregamos a cena inicial.
-            // Repare que passamos 'animated: false' porque no visionOS o usuário vai focar andando e olhando
             if vm.scene == nil {
                 await vm.loadScene()
-                vm.repositioningCameraToTree(animated: false)
+                vm.repositioningCameraToTree(animated: true)
             }
+
             vm.loadMotivation()
+            vm.evaluateTipsVisibility()
         }
-        
 
     }
 }
@@ -470,3 +574,4 @@ struct VisionOSImmersiveSceneView: View {
     SceneView()
         .environment(SceneViewModel())
 }
+

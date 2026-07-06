@@ -58,7 +58,7 @@ struct BonsaiImmersiveView: View {
                 }
         )
         .gesture(
-            DragGesture(coordinateSpace: .global)
+            DragGesture()
                 .targetedToAnyEntity()
                 .onChanged { value in
                     handleDrag(value)
@@ -98,7 +98,7 @@ struct BonsaiImmersiveView: View {
               let placedTree = placementManager.placedTree,
               isEntity(value.entity, descendantOf: placedTree) else { return }
 
-        let handPosition = value.convert(value.gestureValue.location3D, from: .global, to: .scene)
+        let handPosition = value.convert(value.gestureValue.location3D, from: .local, to: .scene)
 
         if dragOffset == nil {
             dragOffset = placedTree.position - SIMD3<Float>(handPosition.x, placedTree.position.y, handPosition.z)
