@@ -17,13 +17,18 @@ struct RootView: View {
         Group {
             if hasSeenOnboarding {
                 #if os(visionOS)
-                VisionOSLauncherView()
+//                VisionOSLauncherView()
+                VisionSplashView()
                 #else
                 SceneView()
                 #endif
             } else {
                 NavigationStack {
+                    #if os(visionOS)
+                    VisionSplashView()
+                    #else
                     OnboardingFirstView()
+                    #endif
                 }
             }
         }

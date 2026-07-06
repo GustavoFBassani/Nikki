@@ -5,6 +5,7 @@
 //  Created by Gustavo Ferreira bassani on 03/07/26.
 //
 
+#if os(visionOS)
 import SwiftUI
 
 
@@ -37,7 +38,6 @@ struct VisionScrapMenu: View {
                 Button {
                     withAnimation(.easeInOut(duration: 0.22)) {
                         isPaperMenuOpen.toggle()
-                        print("botao ativando")
                     }
                 } label: {
                     HStack(spacing: 24) {
@@ -139,3 +139,4 @@ private struct PaperOptionButton: View {
         .buttonStyle(.plain)
     }
 }
+#endif

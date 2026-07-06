@@ -39,6 +39,12 @@ struct NikkiApp: App {
 
     @State private var sceneVM = SceneViewModel()
 
+    #if os(visionOS)
+    @State private var bonsaiAppModel = BonsaiAppModel()
+    #endif
+
+    // O 'body' do App sempre retorna uma 'Scene' (Cena).
+    // É aqui que dizemos ao iOS/visionOS quais tipos de janelas ou ambientes nosso app tem.
     var body: some Scene {
 
         // MARK: - Main Window
@@ -46,8 +52,20 @@ struct NikkiApp: App {
         WindowGroup {
             RootView()
                 .environment(sceneVM)
+            #if os(visionOS)
+                .environment(bonsaiAppModel)
+            #endif
         }
         .modelContainer(dataContainer)
+        #if os(visionOS)
+        // .plain remove o vidro padrão do sistema, para que a própria view controle o
+        // vidro colorido via .background(Color...opacity) + .glassBackgroundEffect().
+        // .contentSize faz a janela física acompanhar o tamanho do conteúdo: quando a
+        // VisionSplashView anima a largura do frame, a janela do visionOS abre lateralmente.
+        .windowStyle(.plain)
+        .defaultSize(width: 1280, height: 720)
+        .windowResizability(.contentSize)
+        #endif
 
         #if os(visionOS)
 
@@ -86,6 +104,14 @@ struct NikkiApp: App {
         .modelContainer(dataContainer)
         .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
 
+        // Espaço imersivo de posicionamento do bonsai em superfície real.
+        ImmersiveSpace(id: bonsaiAppModel.immersiveSpaceID) {
+            BonsaiImmersiveView()
+                .environment(bonsaiAppModel)
+                .onAppear { bonsaiAppModel.immersiveSpaceState = .open }
+                .onDisappear { bonsaiAppModel.immersiveSpaceState = .closed }
+        }
+        .immersionStyle(selection: .constant(.mixed), in: .mixed)
         #endif
     }
 }
