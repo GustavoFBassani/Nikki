@@ -562,6 +562,9 @@ struct VisionOSImmersiveSceneView: View {
             vm.loadMotivation()
             vm.evaluateTipsVisibility()
         }
+        .onAppear {
+            AudioPlayer.shared.playEnvironment()
+        }
 
     }
 }
