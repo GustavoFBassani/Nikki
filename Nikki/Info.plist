@@ -3,13 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>NSWorldSensingUsageDescription</key>
-	<string>Este app precisa escanear o ambiente para detectar superfícies onde você pode posicionar seu bonsai.</string>
+	<string>Este app escaneia o ambiente para detectar superfícies e para interações.</string>
 	<key>InstagramAppID</key>
 	<string>1156927169939216</string>
-	<key>NSWorldSensingUsageDescription</key>
-	<string>Usado para o tsuru pousar na sua mão.</string>
 	<key>NSHandsTrackingUsageDescription</key>
-	<string>Usado para o tsuru pousar na sua mão.</string>
+	<string>Usado para interações do app com você.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>instagram-stories</string>

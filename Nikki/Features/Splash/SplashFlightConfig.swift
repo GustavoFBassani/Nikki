@@ -23,10 +23,8 @@ enum SplashFlightConfig {
     /// Modelo usado na intro da splash.
     static let model: FlightModel = .flatBird
 
-    /// Voo disparado na intro. Por padrão é o "volta pra tela" (o pássaro sai da
-    /// tela, paira e retorna, disparando a splash). Trocar aqui para testar
-    /// outras variações no futuro (ex.: `.simpleFlight(model)`).
-    static var flightKind: TsuruFlightKind { .returnToScreen(model) }
+    /// Tipo de voo realizado pelo modelo.
+    static var flightKind: TsuruFlightKind { .handLanding(model) }
 
     // MARK: - Portal em modo "tela" (splash)
 

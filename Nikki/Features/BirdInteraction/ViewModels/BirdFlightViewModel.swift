@@ -266,10 +266,11 @@ final class BirdFlightViewModel {
     // MARK: - Variação 2: pouso na mão (hand tracking)
 
     private func runHandLanding(_ model: FlightModel) async {
-        // Decisão da POC: sem hand tracking (Simulador), apenas loga e aborta.
         let available = await handManager.start(hands: true)
+        // Sem hand tracking não aborta, faz o voo `returnToScreen`
         guard available else {
-            print("[TsuruPOC] Pouso na mão ignorado — rode no device.")
+            print("[TsuruPortal] Sem hand tracking — fallback para voo simples (volta pra tela).")
+            await runReturnToScreen(model)
             return
         }
         await headPose.waitForHeadPose()
