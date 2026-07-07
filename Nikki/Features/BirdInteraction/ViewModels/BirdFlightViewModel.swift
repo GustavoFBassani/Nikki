@@ -233,7 +233,7 @@ final class BirdFlightViewModel {
         _ = await handManager.start(hands: false)
         await headPose.waitForHeadPose()
 
-        // Nasce no plano da tela da splash (não no portal flutuante da POC).
+        // Nasce no plano da tela da splash.
         let screen = headPose.splashScreenWorldPosition()
         guard let bird = await prepareBird(model, at: screen) else { return }
 

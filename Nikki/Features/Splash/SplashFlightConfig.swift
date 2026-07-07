@@ -11,11 +11,7 @@ import Foundation
 import simd
 
 /// Configuração do voo do pássaro que abre a splash screen.
-///
-/// Tudo que define QUAL pássaro e COMO ele voa antes da splash começar mora
-/// aqui, para ficar fácil de trocar durante os testes sem mexer na lógica da
-/// view. Hoje o fluxo é fixo (FlatBird + voo simples), mas mantemos os valores
-/// parametrizados para experimentar depois.
+
 enum SplashFlightConfig {
 
     // MARK: - Escolha do pássaro / voo (parametrizável)
@@ -26,20 +22,15 @@ enum SplashFlightConfig {
     /// Tipo de voo realizado pelo modelo.
     static var flightKind: TsuruFlightKind { .handLanding(model) }
 
-    // MARK: - Portal em modo "tela" (splash)
+    // MARK: - Portal
 
-    /// No fluxo da splash o portal não é o pequeno plano flutuante da POC: ele
-    /// representa a própria "tela" de onde o pássaro sai e para onde volta, do
-    /// tamanho da janela da splash. Estes valores posicionam/dimensionam esse
-    /// plano à frente do usuário.
-
-    /// Distância do plano/tela à frente dos olhos (metros).
+    /// Distância do plano/tela à frente dos olhos metros.
     static let screenDistance: Float = 1.4
-    /// Altura do centro da tela relativa à linha dos olhos (metros).
+    /// Altura do centro da tela relativa à linha dos olhos metros.
     static let screenHeightOffset: Float = 0.0
-    /// Largura da tela (metros). Proporção ~16:9 para casar com a janela 1280x720.
+    /// Largura da tela metros. Proporção 16:9 para casar com a janela 1280x720.
     static let screenWidth: Float = 1.0
-    /// Altura da tela (metros).
+    /// Altura da tela metros.
     static let screenHeight: Float = 0.5625
     /// Opacidade do plano da tela.
     static let screenOpacity: CGFloat = 0.0

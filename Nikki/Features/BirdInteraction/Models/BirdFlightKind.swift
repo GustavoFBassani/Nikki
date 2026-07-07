@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Qual modelo 3D faz o voo da POC.
+/// Qual modelo 3D faz o voo.
 enum FlightModel: Equatable {
     /// Origami tsuru do pacote NikkiProject.
     case tsuru
@@ -15,8 +15,7 @@ enum FlightModel: Equatable {
     case flatBird
 }
 
-/// Qual variação da animação da POC deve ser disparada quando o
-/// `ImmersiveSpace` "TsuruPOC" aparecer.
+/// Qual variação da animação de voo deve ser disparada.
 enum TsuruFlightKind: Equatable {
     /// O pássaro sai do portal, vem até a frente do rosto, paira e some.
     /// Funciona em qualquer lugar (inclusive Simulador).

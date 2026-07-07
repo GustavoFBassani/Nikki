@@ -30,9 +30,9 @@ final class HandTrackingManager {
     /// - Parameter hands: se `true`, além da pose do device (cabeça) também
     ///   pede autorização e inicia o hand tracking.
     /// - Returns: `false` se `hands == true` e o hand tracking está
-    ///   indisponível (Simulador) ou foi negado — nesse caso o chamador deve
-    ///   abortar a animação de pouso (decisão da POC). O world tracking
-    ///   (pose da cabeça) não requer permissão do usuário.
+    ///   indisponível (Simulador) ou foi negado, o chamador decide
+    ///   o fallback do voo.
+    ///   
     func start(hands: Bool) async -> Bool {
         stop()
         session = ARKitSession()

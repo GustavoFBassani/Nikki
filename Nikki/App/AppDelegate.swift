@@ -48,10 +48,8 @@ struct NikkiApp: App {
     var body: some Scene {
         // MARK: - Main Window
 
-        // Janela principal e padrão do app (sem `id`). No iOS é a tela inteira;
-        // no visionOS é a janela 2D de vidro que abre ao iniciar o app.
-        // Precisa do `id: "Launcher"` porque a POC do tsuru reabre esta janela
-        // via `openWindow(id: "Launcher")` ao terminar o voo.
+        // Janela principal e padrão do app. No iOS é a tela inteira; no visionOS
+        // é a janela 2D de vidro que abre ao iniciar o app.
         WindowGroup(id: "Launcher") {
             RootView()
                 .environment(sceneVM)
@@ -107,19 +105,11 @@ struct NikkiApp: App {
         .modelContainer(dataContainer)
         .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
 
-        // Portal do tsuru. Space de debug das duas animações do pássaro
-        // (voo simples e pouso na mão). A view observa `sceneVM.pocFlightRequest`.
-        ImmersiveSpace(id: "TsuruPortal") {
-            TsuruPortalView()
-                .environment(sceneVM)
-        }
-        .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
-
         // Intro da splash: voo do pássaro. O pássaro sai da "tela", paira e volta,
-        // e a `VisionSplashView` assume a partir daí (portal do tamanho da tela,
-        // disparo automático via isSplashIntro).
+        // e a `VisionSplashView` assume a partir daí. O voo dispara sozinho quando
+        // o space aparece.
         ImmersiveSpace(id: "SplashIntro") {
-            TsuruPortalView(isSplashIntro: true)
+            TsuruPortalView()
                 .environment(sceneVM)
         }
         .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)

@@ -115,11 +115,6 @@ class SceneViewModel {
         !isCanvasPresented && !isScenePaused
     }
 
-    //MARK: - POC Tsuru Flight
-    /// Sinaliza para a `TsuruPortalView` qual animação da POC deve rodar.
-    /// Os botões da `VisionOSLauncherView` setam isso após abrir o space "TsuruPOC".
-    var pocFlightRequest: TsuruFlightKind?
-
     //MARK: - Splash Flight (intro)
     /// `true` quando o pássaro da intro voltou para a tela. A `VisionSplashView`
     /// observa isso para fechar o space do voo e começar a animação da splash.
