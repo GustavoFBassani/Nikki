@@ -49,7 +49,7 @@ struct NikkiApp: App {
 
         // MARK: - Main Window
 
-        WindowGroup {
+        WindowGroup(id: "MainWindow") {
             RootView()
                 .environment(sceneVM)
             #if os(visionOS)

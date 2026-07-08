@@ -9,6 +9,10 @@ import SwiftUI
 
 struct VisionSplashView: View {
 
+    #if os(visionOS)
+    @Environment(BonsaiAppModel.self) private var appModel
+    #endif
+
     // Enum de fases da animação para controle das mesmas
     @State private var phase: Phase = .idle
     // Fim da animação para transição para próxima tela
@@ -58,7 +62,20 @@ struct VisionSplashView: View {
         .nikkiGradientBackground()
         .frame(width: contentWidth, height: contentHeight)
         .task {
+            #if os(visionOS)
+            if appModel.hasCompletedSplash {
+                phase = .windowOpen
+                showEnvironmentSelection = true
+                return
+            }
+            #endif
+
             await runAnimationsSequence()
+
+            #if os(visionOS)
+            appModel.hasCompletedSplash = true
+            #endif
+
             withAnimation(.easeInOut(duration: 0.6)) { showEnvironmentSelection = true }
         }
     }
