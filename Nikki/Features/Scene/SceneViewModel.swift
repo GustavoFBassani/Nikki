@@ -88,6 +88,7 @@ class SceneViewModel {
 
     #if os(visionOS)
     var isLookingAtTree: Bool = false
+    var isNearBridge: Bool = false
     #endif
 
     // MARK: - SCENE ENTITIES
@@ -154,7 +155,12 @@ class SceneViewModel {
                 credits.generateCollisionShapes(recursive: true)
                 credits.components[InputTargetComponent.self] = .init()
             }
-            
+
+            if let bridge = scene.findEntity(named: "Japanese_Red_Bridge") {
+                bridge.generateCollisionShapes(recursive: true)
+                bridge.components[InputTargetComponent.self] = .init()
+            }
+
             #if os(visionOS)
             // No visionOS, ajustamos a posição inicial do mundo ANTES de ele ser adicionado
             // na view (antes do self.scene = scene), para que o primeiro frame já nasça
@@ -460,6 +466,13 @@ class SceneViewModel {
                 showCredits = true
                 return
             }
+
+            #if os(visionOS)
+            if ent.name == "Japanese_Red_Bridge" {
+                isNearBridge.toggle()
+                return
+            }
+            #endif
 
             current = ent.parent
         }
