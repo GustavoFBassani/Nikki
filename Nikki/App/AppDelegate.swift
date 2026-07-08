@@ -58,7 +58,7 @@ struct NikkiApp: App {
             #if os(visionOS)
                 .environment(bonsaiAppModel)
             #endif
-                .onChange(of: scenePhase) { _, newPhase in
+                .onChange(of: scenePhase, initial: true) { _, newPhase in
                     // Cobre cold launch e volta do background.
                     switch newPhase {
                     case .active:
