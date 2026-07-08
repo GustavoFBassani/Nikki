@@ -418,29 +418,33 @@ struct VisionOSImmersiveSceneView: View {
                 content.add(scene)
             }
             
-            if let buttonMinus = attachments.entity(for: "removeFocusOnTsuru") {
-                let headAnchor = AnchorEntity(.head)
-                buttonMinus.position = [-0.5, -0.3, -0.8]
-
-                headAnchor.addChild(buttonMinus)
-                content.add(headAnchor)
-            } // isso aqui vai mudar, MAS POR enquanto deixa
             
             if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
-                buttonNextTsuru.position = [-2, 0, 6.4]
+                buttonNextTsuru.position = [-1.48, -0.2, 6.4]
                 buttonNextTsuru.isEnabled = false
                 content.add(buttonNextTsuru)
             }
             
             if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
-                buttonPreviousTsuru.position = [-1, 0, 6.4]
+                buttonPreviousTsuru.position = [-1.435, -0.2, 6.4]
                 buttonPreviousTsuru.isEnabled = false
                 content.add(buttonPreviousTsuru)
             }
             
+            if let doneBtn = attachments.entity(for: "doneTsuruTab") {
+                doneBtn.position = [-1.55, -0.2, 6.4]
+                doneBtn.isEnabled = false
+                content.add(doneBtn)
+            }
+            
+            if let bg = attachments.entity(for: "tabBarBackground") {
+                bg.position = [-1.5, -0.2, 6.39999] // Ligeiramente atrás para o efeito de fundo
+                bg.isEnabled = false
+                content.add(bg)
+            }
+            
             if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
                 buttonScrapMenu.position = [-1.3, 0, 6]
-                buttonScrapMenu.isEnabled = vm.isLookingAtTree
                 content.add(buttonScrapMenu)
                 
             }
@@ -462,8 +466,16 @@ struct VisionOSImmersiveSceneView: View {
                 buttonPreviousTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight && !vm.isCanvasPresented
             }
             
+            if let doneBtn = attachments.entity(for: "doneTsuruTab") {
+                doneBtn.isEnabled = vm.isFocusedOnTsuru && !vm.isCanvasPresented
+            }
+            
+            if let bg = attachments.entity(for: "tabBarBackground") {
+                bg.isEnabled = vm.isFocusedOnTsuru && !vm.isCanvasPresented
+            }
+            
             if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
-                buttonScrapMenu.isEnabled = vm.isLookingAtTree
+                buttonScrapMenu.isEnabled = vm.isLookingAtTree && !vm.isFocusedOnTsuru
             }
             
         } attachments: {
@@ -497,26 +509,7 @@ struct VisionOSImmersiveSceneView: View {
                 )
 
             }
-            
-            Attachment(id: "removeFocusOnTsuru") {
-                Button {
-                    vm.repositioningCameraToTree()
-                    vm.isFocusedOnBandstand = false
-                    vm.saveMotivation()
-                    
-                } label: {
-                    Image(systemName: "xmark")
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color.white.opacity(0.85))
-                        )
-                        .foregroundStyle(.black)
-                }
-
-            } //ISSO AQUI AINDA VAI MUDAR
-            
+                        
             Attachment(id: "moveToLeftTsuru") {
                 Button {
                     vm.navigateToTsuru(at: "left")
@@ -540,30 +533,58 @@ struct VisionOSImmersiveSceneView: View {
                 .buttonStyle(.plain)
                 .padding(16)
             } // ESSE AQUI JA TEM O DESIGN OFICIAL
+            
+            Attachment(id: "doneTsuruTab") {
+                Button {
+                    vm.repositioningCameraToTree()
+                    vm.isFocusedOnBandstand = false
+                    vm.saveMotivation()
+                } label: {
+                    Text("Done")
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 500))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+                .padding(16)
+            }
+            
+            Attachment(id: "tabBarBackground") {
+                Color.clear
+                    .frame(width: 280, height: 84)
+#if os(visionOS)
+                    .glassBackgroundEffect(
+                        in: RoundedRectangle(cornerRadius: 42)
+                    )
+#endif
+            }
 
         }
         .gesture(
+            
             SpatialTapGesture()
                 .targetedToAnyEntity()
                 .onEnded { value in
                     let clickedEntity = value.entity
                     
-                    
-                    if value.entity.name == "v176CherryTree02_Shape_v176CherryFlower_0" ||
-                        value.entity.name == "v176CherryTree02_Shape_v176CherryBranch01_0" {
-                        vm.isLookingAtTree.toggle()
-                    } else {
-                        let page = vm.dict[clickedEntity] ??
-                                   vm.dict.first(where: { $0.key.parent == clickedEntity })?.value ??
-                                   (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
-                        
-                        if let page {
-                            vm.currentPage = page
+                        if (value.entity.name == "v176CherryTree02_Shape_v176CherryFlower_0" ||
+                            value.entity.name == "v176CherryTree02_Shape_v176CherryBranch01_0") {
+                            vm.isLookingAtTree.toggle()
+                        } else {
+                            let page = vm.dict[clickedEntity] ??
+                            vm.dict.first(where: { $0.key.parent == clickedEntity })?.value ??
+                            (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
                             
-                            let style = page.paperStyle ?? "Papel em Branco"
-                            openWindow(id: "CanvasWindow", value: style)
+                            if let page {
+                                vm.currentPage = page
+                                
+                                let style = page.paperStyle ?? "Papel em Branco"
+                                openWindow(id: "CanvasWindow", value: style)
+                            }
                         }
-                    }
+                    
                 }
         )
         .gesture(
