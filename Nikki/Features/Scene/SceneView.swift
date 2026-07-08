@@ -430,7 +430,6 @@ struct VisionOSImmersiveSceneView: View {
             
             if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
                 buttonScrapMenu.position = [-1.3, 0, 6]
-                buttonScrapMenu.isEnabled = vm.isLookingAtTree
                 content.add(buttonScrapMenu)
                 
             }
@@ -461,7 +460,7 @@ struct VisionOSImmersiveSceneView: View {
             }
             
             if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
-                buttonScrapMenu.isEnabled = vm.isLookingAtTree
+                buttonScrapMenu.isEnabled = vm.isLookingAtTree && !vm.isFocusedOnTsuru
             }
             
         } attachments: {
@@ -544,27 +543,28 @@ struct VisionOSImmersiveSceneView: View {
 
         }
         .gesture(
+            
             SpatialTapGesture()
                 .targetedToAnyEntity()
                 .onEnded { value in
                     let clickedEntity = value.entity
                     
-                    
-                    if value.entity.name == "v176CherryTree02_Shape_v176CherryFlower_0" ||
-                        value.entity.name == "v176CherryTree02_Shape_v176CherryBranch01_0" {
-                        vm.isLookingAtTree.toggle()
-                    } else {
-                        let page = vm.dict[clickedEntity] ??
-                                   vm.dict.first(where: { $0.key.parent == clickedEntity })?.value ??
-                                   (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
-                        
-                        if let page {
-                            vm.currentPage = page
+                        if (value.entity.name == "v176CherryTree02_Shape_v176CherryFlower_0" ||
+                            value.entity.name == "v176CherryTree02_Shape_v176CherryBranch01_0") {
+                            vm.isLookingAtTree.toggle()
+                        } else {
+                            let page = vm.dict[clickedEntity] ??
+                            vm.dict.first(where: { $0.key.parent == clickedEntity })?.value ??
+                            (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
                             
-                            let style = page.paperStyle ?? "Papel em Branco"
-                            openWindow(id: "CanvasWindow", value: style)
+                            if let page {
+                                vm.currentPage = page
+                                
+                                let style = page.paperStyle ?? "Papel em Branco"
+                                openWindow(id: "CanvasWindow", value: style)
+                            }
                         }
-                    }
+                    
                 }
         )
         .gesture(

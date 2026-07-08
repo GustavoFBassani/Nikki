@@ -194,9 +194,14 @@ class SceneViewModel {
         // Esconde ou mostra o tsuru atual
         if let page = currentPage,
            let entity = dict.first(where: { $0.value.id == page.id })?.key {
-            // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
-            // Escondemos o pai para sumir com o pássaro por completo (incluindo possíveis sombras/efeitos).
-            entity.parent?.isEnabled = !isPresented
+            
+            if entity.name == "flappingBird___0PercentFolded" {
+                // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
+                entity.parent?.isEnabled = !isPresented
+            } else {
+                // entity já é o contêiner principal (caso do tsuru recém criado)
+                entity.isEnabled = !isPresented
+            }
         }
 
         scene?.isEnabled = true
@@ -542,9 +547,16 @@ class SceneViewModel {
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
         guard canInteractWithImmersiveScene else { return }
 
+        var target = newTsuru
+        #if os(visionOS)
+        if target?.name != "flappingBird___0PercentFolded" {
+            target = target?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) ?? target?.children.first ?? target
+        }
+        #endif
+
         cameraManager.repositioningCameraNewToTsuru(
             animated: true,
-            tsuruToFocus: newTsuru
+            tsuruToFocus: target
         )
 
         isFocusedOnTsuru = true
