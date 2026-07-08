@@ -35,9 +35,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 struct NikkiApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    @Environment(\.scenePhase) private var scenePhase
+
     private let dataContainer = PersistenceController.shared.container
 
     @State private var sceneVM = SceneViewModel()
+    @State private var environmentManager = EnvironmentManager.shared
 
     #if os(visionOS)
     @State private var bonsaiAppModel = BonsaiAppModel()
@@ -55,6 +58,18 @@ struct NikkiApp: App {
             #if os(visionOS)
                 .environment(bonsaiAppModel)
             #endif
+                .onChange(of: scenePhase, initial: true) { _, newPhase in
+                    // Cobre cold launch e volta do background.
+                    switch newPhase {
+                    case .active:
+                        Task { await sceneVM.refreshEnvironmentOnActive() }
+                        environmentManager.startWeatherPolling()
+                    case .background:
+                        environmentManager.stopWeatherPolling()
+                    default:
+                        break
+                    }
+                }
         }
         .modelContainer(dataContainer)
         #if os(visionOS)

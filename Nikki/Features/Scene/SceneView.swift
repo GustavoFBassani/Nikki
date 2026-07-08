@@ -23,7 +23,7 @@ struct SceneView: View {
 }
 
 struct NormalSceneView: View {
-    
+
     @Environment(SceneViewModel.self) var vm
     @State private var showMotivationRoll = false
     @State private var isEditingMotivation = false
@@ -76,6 +76,9 @@ struct NormalSceneView: View {
                     try? context.save()
                 }
                 vm.evaluateTipsVisibility()
+
+                // Começa o áudio ambiente conforme o clima assim que a cena aparece.
+                vm.startEnvironment()
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -191,8 +194,8 @@ struct NormalSceneView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
-                if !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
+                // Só mostra o + quando a cena carregou e NÃO está focado no tsuru nem no coreto
+                if vm.scene != nil, !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
                     VStack(alignment: .trailing, spacing: 8) {
                         
                         Menu {
@@ -204,7 +207,11 @@ struct NormalSceneView: View {
                                         .font(.custom("CaveatBrush-Regular", size: 5))
                                 }
                             }
-                            
+
+                            // MOCK APRESENTAÇÃO - REMOVER DEPOIS
+                            Button("Alternar dia/noite") { vm.mockToggleDayPeriod() }
+                            Button("Mudar clima") { vm.mockCycleWeather() }
+
                         } label: {
                             Image("customPlus")
                                 .scaledToFit()
@@ -276,7 +283,7 @@ struct NormalSceneView: View {
                 
             }  // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
-                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
+                if vm.scene != nil, !vm.isFocusedOnTsuru, !vm.isFocusedOnBandstand {
                     VStack(alignment: .leading, spacing: 8) {
                         
                         if vm.showFocusTsuruTip {
@@ -380,6 +387,14 @@ struct NormalSceneView: View {
                     .zIndex(3)
                 }
             }
+            .overlay {
+                // Loading enquanto a cena 3D é montada pela primeira vez
+                if vm.scene == nil {
+                    ProgressView()
+                        .controlSize(.large)
+                        .tint(.white)
+                }
+            }
             .sensoryFeedback(.impact, trigger: vm.selectedPage)
 
         }
@@ -454,27 +469,32 @@ struct VisionOSImmersiveSceneView: View {
         } attachments: {
             
             Attachment(id: "ScrapMenu") {
-                VisionScrapMenu(isPaperMenuOpen: $isPaperMenuOpen) {
-                    vm.isLookingAtTree = false
-                    if !vm.orderedPages.isEmpty {
-                        vm.repositioningCameraToTsuru(vm.pickLastTsuru())
-                    }
-                    
-                    Task {
-                        vm.isCameraNotMoving = false
-                        try? await Task.sleep(nanoseconds: 700_000_000)
-                        vm.isCameraNotMoving = true
-                    }
-                    
-                } onSelectStyle: { style in
-                    vm.isLookingAtTree = false
-                    isPaperMenuOpen = false
-                    openWindow(
-                        id: "CanvasWindow",
-                        value: style
-                    )
+                VisionScrapMenu(
+                    isPaperMenuOpen: $isPaperMenuOpen,
+                    onVisualizeOrigamis: {
+                        vm.isLookingAtTree = false
+                        if !vm.orderedPages.isEmpty {
+                            vm.repositioningCameraToTsuru(vm.pickLastTsuru())
+                        }
 
-                }
+                        Task {
+                            vm.isCameraNotMoving = false
+                            try? await Task.sleep(nanoseconds: 700_000_000)
+                            vm.isCameraNotMoving = true
+                        }
+                    },
+                    onSelectStyle: { style in
+                        vm.isLookingAtTree = false
+                        isPaperMenuOpen = false
+                        openWindow(
+                            id: "CanvasWindow",
+                            value: style
+                        )
+                    },
+                    // MOCK APRESENTAÇÃO - REMOVER DEPOIS
+                    onMockToggleDayPeriod: { vm.mockToggleDayPeriod() },
+                    onMockCycleWeather: { vm.mockCycleWeather() }
+                )
 
             }
             
@@ -561,9 +581,9 @@ struct VisionOSImmersiveSceneView: View {
 
             vm.loadMotivation()
             vm.evaluateTipsVisibility()
-        }
-        .onAppear {
-            AudioPlayer.shared.playEnvironment()
+
+            // Começa o áudio ambiente conforme o clima assim que a cena aparece.
+            vm.startEnvironment()
         }
 
     }
