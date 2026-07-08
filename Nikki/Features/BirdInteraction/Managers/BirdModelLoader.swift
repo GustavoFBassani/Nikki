@@ -35,8 +35,8 @@ final class BirdModelLoader {
             case .tsuru:
                 entity = try await Entity(named: "tsuru", in: nikkiProjectBundle)
             case .flatBird:
-                // FlatBird.usdz fica em Features/BirdInteraction/3DModels, no bundle do app.
-                entity = try await Entity(named: "FlatBird")
+                // Model fica em Features/BirdInteraction/3DModels, no bundle do app.
+                entity = try await Entity(named: "BlueFlatBird")
             }
             entity.isEnabled = false
             loadedBirds[model] = entity
