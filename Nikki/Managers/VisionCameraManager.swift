@@ -38,7 +38,7 @@ class VisionCameraManager: CameraManaging {
         currentlyFocusedTsuru = tsuruContainer
         
         // 1. Ideal world point where the Tsuru will stop (in front of the face)
-        let idealWorldFocusPoint = SIMD3<Float>(0, 1.2, -0.6)
+        let idealWorldFocusPoint = SIMD3<Float>(0, 1.6, -0.6)
         
         // 2. Convert this world coordinate to the local coordinate of the tree branch
         let localTargetPosition = sceneRoot.convert(position: idealWorldFocusPoint, from: nil)
