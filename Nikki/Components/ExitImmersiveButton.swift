@@ -13,27 +13,25 @@ struct ExitImmersiveButton: View {
         Button {
             onExit()
         } label: {
-            HStack(spacing: 16) {
+            HStack(spacing: 18) {
                 Image(systemName: "mountain.2.fill")
-                    .font(.system(size: 22))
+                    .font(.system(size: 30))
                     .foregroundStyle(.white)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 72, height: 72)
                     .background(.thinMaterial, in: Circle())
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(StringCatalog.exitImmersiveTitle)
-                        .font(Fonts.Body)
+                        .font(.custom("CaveatBrush-Regular", size: 40))
                         .foregroundStyle(.white)
 
                     Text(StringCatalog.exitImmersiveSubtitle)
-                        .font(Fonts.Footnote)
+                        .font(.custom("CaveatBrush-Regular", size: 28))
                         .foregroundStyle(.white.opacity(0.85))
                 }
-
-                Spacer(minLength: 0)
             }
-            .padding(12)
-            .frame(minWidth: 320, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 14)
             .glassBackgroundEffect(in: Capsule())
         }
         .buttonStyle(.plain)
