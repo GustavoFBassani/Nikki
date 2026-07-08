@@ -400,7 +400,7 @@ class SceneViewModel {
 
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
-        newFlapBird.components.set(CollisionComponent(shapes: [.generateBox(size: [0.2, 0.2, 0.2])]))
+        newFlapBird.components.set(CollisionComponent(shapes: [.generateBox(size: [0.15, 0.15, 0.15])]))
     }
 
     func applyTexture(to tsuru: Entity?, texture scrapImage: UIImage?) async {
