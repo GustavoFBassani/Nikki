@@ -8,7 +8,6 @@
 import SwiftUI
 import AVFoundation
 
-// MARK: - Player de áudio simples
 @Observable
 class AudioPlayer {
     static let shared = AudioPlayer()
@@ -16,38 +15,45 @@ class AudioPlayer {
     
     private var environmentPlayer: AVAudioPlayer?
 
+    /// Faixa ambiente aatual para evitar reiniciar a mesma.
+    private(set) var currentEnvironmentTrack: String?
+
     func play(url: URL) {
         player?.pause()
         player = AVPlayer(url: url)
         player?.play()
     }
-    
-    func playEnvironment() {
-        
-        guard environmentPlayer == nil else { return }
 
-        print("antes do data asset")
+    /// Toca a trilha ambiente padrão.
+    func playEnvironment() {
+        playEnvironment(named: "environmentSong")
+    }
+
+    /// Toca uma trilha ambiente em loop. Se já for a mesma faixa, mantém, se diferente troca
+    func playEnvironment(named trackName: String) {
+
+        guard currentEnvironmentTrack != trackName else { return }
 
         Task.detached {
-            guard let audioAsset = NSDataAsset(name: "environmentSong") else {
-                print("Audio file 'environmentSong' not found in Assets")
+            guard let audioAsset = NSDataAsset(name: trackName) else {
+                print("Audio file '\(trackName)' not found in Assets")
                 return
             }
 
-            print("depois do data asset")
             do {
                 try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
                 try AVAudioSession.sharedInstance().setActive(true)
-                
+
                 let newPlayer = try AVAudioPlayer(data: audioAsset.data, fileTypeHint: AVFileType.mp3.rawValue)
                 newPlayer.numberOfLoops = -1
                 newPlayer.volume = 1
                 newPlayer.prepareToPlay()
-                
+
                 await MainActor.run {
+                    self.environmentPlayer?.stop()
                     self.environmentPlayer = newPlayer
                     self.environmentPlayer?.play()
-                    print("Tocando com sucesso!")
+                    self.currentEnvironmentTrack = trackName
                 }
             } catch {
                 print("Erro:", error)
@@ -58,6 +64,7 @@ class AudioPlayer {
     func stopEnvironmentPlayer() {
         environmentPlayer?.stop()
         environmentPlayer = nil
+        currentEnvironmentTrack = nil
     }
 
     func stop() {

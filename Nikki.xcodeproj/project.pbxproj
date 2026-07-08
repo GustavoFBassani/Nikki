@@ -542,6 +542,7 @@
 				CURRENT_PROJECT_VERSION = 4.0;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = W35YJ39H5L;
+				"DEVELOPMENT_TEAM[sdk=xros*]" = W35YJ39H5L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Nikki/Info.plist;
@@ -564,7 +565,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = br.academy.Nikki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Nikki2026PP;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Nikki2026ProvisioningProfile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=xros*]" = Nikki2026ProvisioningProfile;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -589,6 +591,7 @@
 				CURRENT_PROJECT_VERSION = 4.0;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = W35YJ39H5L;
+				"DEVELOPMENT_TEAM[sdk=xros*]" = W35YJ39H5L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Nikki/Info.plist;
@@ -611,7 +614,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = br.academy.Nikki;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Nikki2026PP;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Nikki2026ProvisioningProfile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=xros*]" = Nikki2026ProvisioningProfile;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
