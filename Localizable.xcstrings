@@ -10,6 +10,16 @@
     "3D Model: “Cherry Tree” Created by: local.yany Available in: https://sketchfab.com/3d-models/cherry-tree-5f6d9059b971429999343e0f398bf487  License: Creative Commons Attribution 4.0 (CC BY 4.0) https://creativecommons.org/licenses/by/4.0/" : {
 
     },
+    "Alternar dia/noite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch day/night"
+          }
+        }
+      }
+    },
     "app.name" : {
       "comment" : "The name of the app.",
       "localizations" : {
@@ -543,17 +553,6 @@
     "Carimbos" : {
 
     },
-    "Carregando ambiente..." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loading Scene"
-          }
-        }
-      }
-    },
     "common.back" : {
       "comment" : "Generic back button label.",
       "localizations" : {
@@ -690,8 +689,25 @@
         }
       }
     },
+    "Done" : {
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Concluir"
+          }
+        }
+      }
+    },
     "ImmersiveSpace" : {
-
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espaço imersivo"
+          }
+        }
+      }
     },
     "Model: Chinese Lamp - 4096px² Author: Mark Peters Model's Link: https://sketchfab.com/3d-models/chinese-lamp-4096px2-9eddb4de98274410b7405f7ea6667f3a  License: Creative Commons Attribution (CC BY)" : {
 
@@ -701,6 +717,16 @@
     },
     "Model: Japanese Torii Gate Author: Sahir Virmani Model's Link: https://sketchfab.com/3d-models/japanese-torii-gate-2027a248de1b4b70985ff97e708fb50d  License: Creative Commons Attribution (CC BY 4.0)" : {
 
+    },
+    "Mudar clima" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change weather"
+          }
+        }
+      }
     },
     "OK" : {
 

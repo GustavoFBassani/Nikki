@@ -37,6 +37,7 @@ class SceneViewModel {
 
     var scrapService = ScrapService.shared
     var motivationService = MotivationService.shared
+    let environmentManager = EnvironmentManager.shared
 
     // MARK: - CAMERA PROPERTIES
 
@@ -97,6 +98,8 @@ class SceneViewModel {
     var tsuru: Entity?
     var newTsuru: Entity?
 
+    private var scenarioTask: Task<Void, Never>?
+
     // MARK: - IMMERSIVE / CANVAS STATE
 
     var immersiveSpaceState: SceneImmersiveSpaceState = .closed
@@ -141,7 +144,6 @@ class SceneViewModel {
         do {
             let scene = try await Entity(named: "Scene", in: nikkiProjectBundle)
 
-            self.scene = scene
             scene.isEnabled = true
 
             let camera = PerspectiveCamera()
@@ -159,6 +161,9 @@ class SceneViewModel {
                 credits.components[InputTargetComponent.self] = .init()
             }
             
+            environmentManager.refreshDayPeriod()
+            await applyScenarioTexture(environmentManager.dayPeriod.scenarioTextureName, in: scene)
+
             #if os(visionOS)
             // No visionOS, ajustamos a posição inicial do mundo ANTES de ele ser adicionado
             // na view (antes do self.scene = scene), para que o primeiro frame já nasça
@@ -198,12 +203,24 @@ class SceneViewModel {
         // Esconde ou mostra o tsuru atual
         if let page = currentPage,
            let entity = dict.first(where: { $0.value.id == page.id })?.key {
-            // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
-            // Escondemos o pai para sumir com o pássaro por completo (incluindo possíveis sombras/efeitos).
-            entity.parent?.isEnabled = !isPresented
+            
+            if entity.name == "flappingBird___0PercentFolded" {
+                // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
+                entity.parent?.isEnabled = !isPresented
+            } else {
+                // entity já é o contêiner principal (caso do tsuru recém criado)
+                entity.isEnabled = !isPresented
+            }
         }
 
         scene?.isEnabled = true
+
+        // Para/retoma o áudio ambiente junto com o canvas.
+        if isPresented {
+            environmentManager.pauseEnvironmentAudio()
+        } else {
+            environmentManager.resumeEnvironmentAudio()
+        }
 
         if isPresented {
             isScenePaused = false
@@ -244,6 +261,13 @@ class SceneViewModel {
         finishingResumeScene = false
 
         scene?.isEnabled = !paused
+
+        // Para/retoma o áudio ambiente junto com a pausa da cena.
+        if paused {
+            environmentManager.pauseEnvironmentAudio()
+        } else {
+            environmentManager.resumeEnvironmentAudio()
+        }
 
         if !paused {
             finishingResumeScene = true
@@ -404,7 +428,7 @@ class SceneViewModel {
 
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
-        newFlapBird.components.set(CollisionComponent(shapes: [.generateBox(size: [0.2, 0.2, 0.2])]))
+        newFlapBird.components.set(CollisionComponent(shapes: [.generateBox(size: [0.15, 0.15, 0.15])]))
     }
 
     func applyTexture(to tsuru: Entity?, texture scrapImage: UIImage?) async {
@@ -446,6 +470,93 @@ class SceneViewModel {
         } catch {
             print("Erro ao aplicar textura no tsuru: \(error)")
         }
+    }
+
+    // MARK: - ENVIRONMENT (PERÍODO, CLIMA e ÁUDIO)
+
+    func startEnvironment() {
+        environmentManager.updateAudioForWeather()
+    }
+
+    func refreshEnvironmentOnActive() async {
+        // Só mexe no ambiente se a cena já existe
+        guard scene != nil else { return }
+
+        environmentManager.refreshDayPeriod()
+        environmentManager.updateAudioForWeather()
+        applyScenario(environmentManager.dayPeriod.scenarioTextureName)
+
+        if await environmentManager.refreshWeather() {
+            environmentManager.updateAudioForWeather()
+        }
+    }
+
+    func mockToggleDayPeriod() {
+        environmentManager.mockToggleDayPeriod()
+        applyScenario(environmentManager.dayPeriod.scenarioTextureName)
+    }
+
+    func mockCycleWeather() {
+        environmentManager.mockCycleWeather()
+    }
+
+    // MARK: - SCENARIO (DIA / NOITE)
+
+    func applyScenario(_ textureName: String) {
+        scenarioTask?.cancel()
+        scenarioTask = Task { [weak self] in
+            guard let self, let scene = self.scene else { return }
+            await self.applyScenarioTexture(textureName, in: scene)
+        }
+    }
+
+    private func applyScenarioTexture(_ textureName: String, in root: Entity) async {
+        guard let domeModel = skyDomeMesh(in: root),
+              var modelComponent = domeModel.components[ModelComponent.self]
+        else {
+            print("Dome_01 não encontrado para trocar cenário")
+            return
+        }
+
+        guard let cgImage = UIImage(named: textureName)?.cgImage else {
+            print("Imagem de cenário '\(textureName)' não encontrada")
+            return
+        }
+
+        do {
+            let texture = try await TextureResource(
+                image: cgImage,
+                options: .init(semantic: .color)
+            )
+
+            if Task.isCancelled { return }
+
+            var material = UnlitMaterial()
+            material.color = .init(tint: .white, texture: .init(texture))
+
+            modelComponent.materials = [material]
+            domeModel.components.set(modelComponent)
+        } catch {
+            print("Erro ao aplicar cenário: \(error)")
+        }
+    }
+
+    private func skyDomeMesh(in root: Entity) -> Entity? {
+        guard let skyDome = root.findEntity(named: "SkyDome") else { return nil }
+
+        return skyDome.findEntity(named: "Dome_01") ?? firstModelEntity(in: skyDome)
+    }
+
+    private func firstModelEntity(in entity: Entity) -> Entity? {
+        if entity.components[ModelComponent.self] != nil {
+            return entity
+        }
+        for child in entity.children {
+            if let found = firstModelEntity(in: child) {
+                return found
+            }
+        }
+        return nil
     }
 
     func handleTap(on entity: Entity) {
@@ -546,9 +657,16 @@ class SceneViewModel {
     func repositioningCameraToTsuru(_ newTsuru: Entity?) {
         guard canInteractWithImmersiveScene else { return }
 
+        var target = newTsuru
+        #if os(visionOS)
+        if target?.name != "flappingBird___0PercentFolded" {
+            target = target?.children.first(where: { $0.name == "flappingBird___0PercentFolded" }) ?? target?.children.first ?? target
+        }
+        #endif
+
         cameraManager.repositioningCameraNewToTsuru(
             animated: true,
-            tsuruToFocus: newTsuru
+            tsuruToFocus: target
         )
 
         isFocusedOnTsuru = true

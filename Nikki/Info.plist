@@ -4,6 +4,8 @@
 <dict>
 	<key>NSWorldSensingUsageDescription</key>
 	<string>Este app escaneia o ambiente para detectar superfícies e para interações.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Usamos sua localização para ajustar o ambiente ao clima atual da sua região.</string>
 	<key>InstagramAppID</key>
 	<string>1156927169939216</string>
 	<key>NSHandsTrackingUsageDescription</key>
