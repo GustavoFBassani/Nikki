@@ -194,8 +194,8 @@ struct NormalSceneView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
-                if !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
+                // Só mostra o + quando a cena carregou e NÃO está focado no tsuru nem no coreto
+                if vm.scene != nil, !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
                     VStack(alignment: .trailing, spacing: 8) {
                         
                         Menu {
@@ -283,7 +283,7 @@ struct NormalSceneView: View {
                 
             }  // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
-                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
+                if vm.scene != nil, !vm.isFocusedOnTsuru, !vm.isFocusedOnBandstand {
                     VStack(alignment: .leading, spacing: 8) {
                         
                         if vm.showFocusTsuruTip {
@@ -385,6 +385,14 @@ struct NormalSceneView: View {
                     .padding(.leading, 16)
                     .padding(.top, 24)
                     .zIndex(3)
+                }
+            }
+            .overlay {
+                // Loading enquanto a cena 3D é montada pela primeira vez
+                if vm.scene == nil {
+                    ProgressView()
+                        .controlSize(.large)
+                        .tint(.white)
                 }
             }
             .sensoryFeedback(.impact, trigger: vm.selectedPage)
