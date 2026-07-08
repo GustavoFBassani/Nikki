@@ -49,10 +49,11 @@ struct NikkiApp: App {
     // O 'body' do App sempre retorna uma 'Scene' (Cena).
     // É aqui que dizemos ao iOS/visionOS quais tipos de janelas ou ambientes nosso app tem.
     var body: some Scene {
-
         // MARK: - Main Window
 
-        WindowGroup {
+        // Janela principal e padrão do app. No iOS é a tela inteira; no visionOS
+        // é a janela 2D de vidro que abre ao iniciar o app.
+        WindowGroup(id: "Launcher") {
             RootView()
                 .environment(sceneVM)
             #if os(visionOS)
@@ -117,6 +118,15 @@ struct NikkiApp: App {
                 }
         }
         .modelContainer(dataContainer)
+        .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
+
+        // Intro da splash: voo do pássaro. O pássaro sai da "tela", paira e volta,
+        // e a `VisionSplashView` assume a partir daí. O voo dispara sozinho quando
+        // o space aparece.
+        ImmersiveSpace(id: "SplashIntro") {
+            TsuruPortalView()
+                .environment(sceneVM)
+        }
         .immersionStyle(selection: .constant(.mixed), in: .mixed, .full)
 
         // Espaço imersivo de posicionamento do bonsai em superfície real.

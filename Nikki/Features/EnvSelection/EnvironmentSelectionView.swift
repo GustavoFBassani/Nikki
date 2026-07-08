@@ -48,7 +48,6 @@ struct EnvironmentSelectionView: View {
     }
 }
 
-
 #Preview {
     EnvironmentSelectionView()
         .nikkiGradientBackground()

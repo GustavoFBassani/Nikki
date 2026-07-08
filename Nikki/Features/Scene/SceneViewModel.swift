@@ -111,13 +111,17 @@ class SceneViewModel {
     /// Mantido para compatibilidade com chamadas antigas.
     /// No visionOS, essa flag não deve desligar `scene?.isEnabled`.
     var isScenePaused: Bool = false
-
     /// Mantido para compatibilidade com `waitUntilSceneResumed()`.
     var finishingResumeScene: Bool = true
 
     var canInteractWithImmersiveScene: Bool {
         !isCanvasPresented && !isScenePaused
     }
+
+    //MARK: - Splash Flight (intro)
+    /// `true` quando o pássaro da intro voltou para a tela. A `VisionSplashView`
+    /// observa isso para fechar o space do voo e começar a animação da splash.
+    var splashFlightDidReturn: Bool = false
 
     // MARK: - Motivation
 
