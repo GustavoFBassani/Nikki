@@ -989,6 +989,40 @@
         }
       }
     },
+    "scene.vision.exit.subtitle" : {
+      "comment" : "Subtitle for the button that closes the full immersive space, anchored on the bridge.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Return to 3d experience"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar para a experiência 3D"
+          }
+        }
+      }
+    },
+    "scene.vision.exit.title" : {
+      "comment" : "Title for the button that closes the full immersive space, anchored on the bridge.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit Immersive"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sair do Imersivo"
+          }
+        }
+      }
+    },
     "scene.vision.visualize.origamis" : {
       "localizations" : {
         "en" : {
