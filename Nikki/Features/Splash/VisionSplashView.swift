@@ -80,8 +80,12 @@ struct VisionSplashView: View {
 
         // Espera o sinal da TsuruPortalView de que o pássaro voltou pra tela.
         while !sceneVM.splashFlightDidReturn {
-            try? await Task.sleep(for: .milliseconds(50))
-        }
+             do {
+                 try await Task.sleep(for: .milliseconds(50))
+             } catch {
+                 return
+             }
+         }
 
         await dismissImmersiveSpace()
     }
