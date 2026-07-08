@@ -394,6 +394,7 @@ struct NormalSceneView: View {
 struct VisionOSImmersiveSceneView: View {
     @Environment(SceneViewModel.self) var vm
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
 
     @State private var isPaperMenuOpen = false
 
@@ -427,7 +428,13 @@ struct VisionOSImmersiveSceneView: View {
                 buttonScrapMenu.position = [-1.3, 0, 6]
                 buttonScrapMenu.isEnabled = vm.isLookingAtTree
                 content.add(buttonScrapMenu)
-                
+
+            }
+
+            if let exitImmersiveButton = attachments.entity(for: "ExitImmersiveButton") {
+                exitImmersiveButton.position = [-1.3, 0, 7.2]
+                exitImmersiveButton.isEnabled = vm.isNearBridge
+                content.add(exitImmersiveButton)
             }
 
         } update: { content, attachments in
@@ -450,7 +457,11 @@ struct VisionOSImmersiveSceneView: View {
             if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
                 buttonScrapMenu.isEnabled = vm.isLookingAtTree
             }
-            
+
+            if let exitImmersiveButton = attachments.entity(for: "ExitImmersiveButton") {
+                exitImmersiveButton.isEnabled = vm.isNearBridge
+            }
+
         } attachments: {
             
             Attachment(id: "ScrapMenu") {
@@ -477,7 +488,16 @@ struct VisionOSImmersiveSceneView: View {
                 }
 
             }
-            
+
+            Attachment(id: "ExitImmersiveButton") {
+                ExitImmersiveButton {
+                    Task { @MainActor in
+                        await dismissImmersiveSpace()
+                        vm.isNearBridge = false
+                    }
+                }
+            }
+
             Attachment(id: "removeFocusOnTsuru") {
                 Button {
                     vm.repositioningCameraToTree()
