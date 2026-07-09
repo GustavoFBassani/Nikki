@@ -417,6 +417,8 @@ struct NormalSceneView: View {
 
         @State private var isPaperMenuOpen = false
 
+        private var tabBarHeight: Float = 0.1
+
         var body: some View {
             RealityView { content, attachments in
                 if let scene = vm.scene {
@@ -424,25 +426,25 @@ struct NormalSceneView: View {
                 }
 
                 if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
-                    buttonNextTsuru.position = [-1.48, -0.2, 6.4]
+                    buttonNextTsuru.position = [-1.48, tabBarHeight, 6.4]
                     buttonNextTsuru.isEnabled = false
                     content.add(buttonNextTsuru)
                 }
 
                 if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
-                    buttonPreviousTsuru.position = [-1.435, -0.2, 6.4]
+                    buttonPreviousTsuru.position = [-1.435, tabBarHeight, 6.4]
                     buttonPreviousTsuru.isEnabled = false
                     content.add(buttonPreviousTsuru)
                 }
 
                 if let doneBtn = attachments.entity(for: "doneTsuruTab") {
-                    doneBtn.position = [-1.55, -0.2, 6.4]
+                    doneBtn.position = [-1.55, tabBarHeight, 6.4]
                     doneBtn.isEnabled = false
                     content.add(doneBtn)
                 }
 
                 if let bg = attachments.entity(for: "tabBarBackground") {
-                    bg.position = [-1.5, -0.2, 6.39999]  // Ligeiramente atrás para o efeito de fundo
+                    bg.position = [-1.5, tabBarHeight, 6.39999]  // Ligeiramente atrás para o efeito de fundo
                     bg.isEnabled = false
                     content.add(bg)
                 }
