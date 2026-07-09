@@ -254,6 +254,10 @@ class SceneViewModel {
 
     func markImmersiveClosed() {
         immersiveSpaceState = .closed
+
+        // Cobre qualquer caminho de saida do imersivo (botao de sair ou
+        // fechamento pelo sistema): sem isso o audio ambiente segue tocando.
+        environmentManager.pauseEnvironmentAudio()
     }
 
     func markImmersiveOpening() {
