@@ -98,7 +98,6 @@ class SceneViewModel {
     var tree: Entity?
     var tsuru: Entity?
     var newTsuru: Entity?
-    var bridge: Entity?
 
     private var scenarioTask: Task<Void, Never>?
 
@@ -166,7 +165,6 @@ class SceneViewModel {
             if let bridgeHitbox = scene.findEntity(named: "bridgeHitbox") {
                 bridgeHitbox.generateCollisionShapes(recursive: true)
                 bridgeHitbox.components[InputTargetComponent.self] = .init()
-                bridge = bridgeHitbox
             }
 
             environmentManager.refreshDayPeriod()
@@ -215,7 +213,6 @@ class SceneViewModel {
         {
             if entity.name == "flappingBird___0PercentFolded" {
                 // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
-                // Escondemos o pai para sumir com o pássaro por completo (incluindo possíveis sombras/efeitos).
                 entity.parent?.isEnabled = !isPresented
             } else {
                 // entity já é o contêiner principal (caso do tsuru recém criado)
@@ -255,9 +252,11 @@ class SceneViewModel {
     func markImmersiveClosed() {
         immersiveSpaceState = .closed
 
-        // Cobre qualquer caminho de saida do imersivo (botao de sair ou
-        // fechamento pelo sistema): sem isso o audio ambiente segue tocando.
         environmentManager.pauseEnvironmentAudio()
+
+        #if os(visionOS)
+            isNearBridge = false
+        #endif
     }
 
     func markImmersiveOpening() {

@@ -33,9 +33,6 @@ class BonsaiAppModel {
     var placementTarget: PlacementTarget = .bonsai
     var isTreePlaced = false
     var windowScreen: WindowScreen = .environmentSelection
-
-    /// Quando a janela principal e reaberta (ex.: ao sair do imersivo),
-    /// a splash nao roda de novo.
     var hasCompletedSplash = false
 }
 #endif

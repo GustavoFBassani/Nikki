@@ -532,7 +532,6 @@ struct NormalSceneView: View {
                             // app fica sem nenhuma cena aberta e e suspenso.
                             openWindow(id: "Launcher")
                             await dismissImmersiveSpace()
-                            vm.isNearBridge = false
                         }
                     }
                 }
