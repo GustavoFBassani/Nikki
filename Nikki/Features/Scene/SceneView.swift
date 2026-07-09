@@ -76,6 +76,9 @@ struct NormalSceneView: View {
                     try? context.save()
                 }
                 vm.evaluateTipsVisibility()
+
+                // Começa o áudio ambiente conforme o clima assim que a cena aparece.
+                vm.startEnvironment()
             }
             .gesture(
                 /// DragGesture permite detectar movimento de um dedo na tela
@@ -194,8 +197,8 @@ struct NormalSceneView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                // Só mostra o + quando NÃO está focado no tsuru e NÃO está focado no coreto
-                if !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
+                // Só mostra o + quando a cena carregou e NÃO está focado no tsuru nem no coreto
+                if vm.scene != nil, !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
                     VStack(alignment: .trailing, spacing: 8) {
 
                         Menu {
@@ -207,6 +210,10 @@ struct NormalSceneView: View {
                                         .font(.custom("CaveatBrush-Regular", size: 5))
                                 }
                             }
+
+                            // MOCK APRESENTAÇÃO - REMOVER DEPOIS
+                            Button("Alternar dia/noite") { vm.mockToggleDayPeriod() }
+                            Button("Mudar clima") { vm.mockCycleWeather() }
 
                         } label: {
                             Image("customPlus")
@@ -279,7 +286,7 @@ struct NormalSceneView: View {
 
             }  // custom data and chevrons tabbar
             .overlay(alignment: .bottomLeading) {
-                if !vm.isFocusedOnTsuru && !vm.isFocusedOnBandstand {
+                if vm.scene != nil, !vm.isFocusedOnTsuru, !vm.isFocusedOnBandstand {
                     VStack(alignment: .leading, spacing: 8) {
 
                         if vm.showFocusTsuruTip {
@@ -384,6 +391,14 @@ struct NormalSceneView: View {
                     .zIndex(3)
                 }
             }
+            .overlay {
+                // Loading enquanto a cena 3D é montada pela primeira vez
+                if vm.scene == nil {
+                    ProgressView()
+                        .controlSize(.large)
+                        .tint(.white)
+                }
+            }
             .sensoryFeedback(.impact, trigger: vm.selectedPage)
 
         }
@@ -408,31 +423,33 @@ struct NormalSceneView: View {
                     content.add(scene)
                 }
 
-                if let buttonMinus = attachments.entity(for: "removeFocusOnTsuru") {
-                    let headAnchor = AnchorEntity(.head)
-                    buttonMinus.position = [-0.5, -0.3, -0.8]
-
-                    headAnchor.addChild(buttonMinus)
-                    content.add(headAnchor)
-                }  // isso aqui vai mudar, MAS POR enquanto deixa
-
                 if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
-                    buttonNextTsuru.position = [-2, 0, 6.4]
+                    buttonNextTsuru.position = [-1.48, -0.2, 6.4]
                     buttonNextTsuru.isEnabled = false
                     content.add(buttonNextTsuru)
                 }
 
                 if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
-                    buttonPreviousTsuru.position = [-1, 0, 6.4]
+                    buttonPreviousTsuru.position = [-1.435, -0.2, 6.4]
                     buttonPreviousTsuru.isEnabled = false
                     content.add(buttonPreviousTsuru)
                 }
 
+                if let doneBtn = attachments.entity(for: "doneTsuruTab") {
+                    doneBtn.position = [-1.55, -0.2, 6.4]
+                    doneBtn.isEnabled = false
+                    content.add(doneBtn)
+                }
+
+                if let bg = attachments.entity(for: "tabBarBackground") {
+                    bg.position = [-1.5, -0.2, 6.39999]  // Ligeiramente atrás para o efeito de fundo
+                    bg.isEnabled = false
+                    content.add(bg)
+                }
+
                 if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
                     buttonScrapMenu.position = [-1.3, 0, 6]
-                    buttonScrapMenu.isEnabled = vm.isLookingAtTree
                     content.add(buttonScrapMenu)
-
                 }
 
                 if let exitImmersiveButton = attachments.entity(for: "ExitImmersiveButton") {
@@ -461,8 +478,16 @@ struct NormalSceneView: View {
                         vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight && !vm.isCanvasPresented
                 }
 
+                if let doneBtn = attachments.entity(for: "doneTsuruTab") {
+                    doneBtn.isEnabled = vm.isFocusedOnTsuru && !vm.isCanvasPresented
+                }
+
+                if let bg = attachments.entity(for: "tabBarBackground") {
+                    bg.isEnabled = vm.isFocusedOnTsuru && !vm.isCanvasPresented
+                }
+
                 if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
-                    buttonScrapMenu.isEnabled = vm.isLookingAtTree
+                    buttonScrapMenu.isEnabled = vm.isLookingAtTree && !vm.isFocusedOnTsuru
                 }
 
                 if let exitImmersiveButton = attachments.entity(for: "ExitImmersiveButton") {
@@ -472,28 +497,32 @@ struct NormalSceneView: View {
             } attachments: {
 
                 Attachment(id: "ScrapMenu") {
-                    VisionScrapMenu(isPaperMenuOpen: $isPaperMenuOpen) {
-                        vm.isLookingAtTree = false
-                        if !vm.orderedPages.isEmpty {
-                            vm.repositioningCameraToTsuru(vm.pickLastTsuru())
-                        }
+                    VisionScrapMenu(
+                        isPaperMenuOpen: $isPaperMenuOpen,
+                        onVisualizeOrigamis: {
+                            vm.isLookingAtTree = false
+                            if !vm.orderedPages.isEmpty {
+                                vm.repositioningCameraToTsuru(vm.pickLastTsuru())
+                            }
 
-                        Task {
-                            vm.isCameraNotMoving = false
-                            try? await Task.sleep(nanoseconds: 700_000_000)
-                            vm.isCameraNotMoving = true
-                        }
-
-                    } onSelectStyle: { style in
-                        vm.isLookingAtTree = false
-                        isPaperMenuOpen = false
-                        openWindow(
-                            id: "CanvasWindow",
-                            value: style
-                        )
-
-                    }
-
+                            Task {
+                                vm.isCameraNotMoving = false
+                                try? await Task.sleep(nanoseconds: 700_000_000)
+                                vm.isCameraNotMoving = true
+                            }
+                        },
+                        onSelectStyle: { style in
+                            vm.isLookingAtTree = false
+                            isPaperMenuOpen = false
+                            openWindow(
+                                id: "CanvasWindow",
+                                value: style
+                            )
+                        },
+                        // MOCK APRESENTAÇÃO - REMOVER DEPOIS
+                        onMockToggleDayPeriod: { vm.mockToggleDayPeriod() },
+                        onMockCycleWeather: { vm.mockCycleWeather() }
+                    )
                 }
 
                 Attachment(id: "ExitImmersiveButton") {
@@ -501,31 +530,12 @@ struct NormalSceneView: View {
                         Task { @MainActor in
                             // Reabrir a janela antes de fechar o espaco, senao o
                             // app fica sem nenhuma cena aberta e e suspenso.
-                            openWindow(id: "MainWindow")
+                            openWindow(id: "Launcher")
                             await dismissImmersiveSpace()
                             vm.isNearBridge = false
                         }
                     }
                 }
-
-                Attachment(id: "removeFocusOnTsuru") {
-                    Button {
-                        vm.repositioningCameraToTree()
-                        vm.isFocusedOnBandstand = false
-                        vm.saveMotivation()
-
-                    } label: {
-                        Image(systemName: "xmark")
-                            .scaledToFit()
-                            .frame(width: 44, height: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 22)
-                                    .fill(Color.white.opacity(0.85))
-                            )
-                            .foregroundStyle(.black)
-                    }
-
-                }  //ISSO AQUI AINDA VAI MUDAR
 
                 Attachment(id: "moveToLeftTsuru") {
                     Button {
@@ -550,6 +560,31 @@ struct NormalSceneView: View {
                     .buttonStyle(.plain)
                     .padding(16)
                 }  // ESSE AQUI JA TEM O DESIGN OFICIAL
+
+                Attachment(id: "doneTsuruTab") {
+                    Button {
+                        vm.repositioningCameraToTree()
+                        vm.isFocusedOnBandstand = false
+                        vm.saveMotivation()
+                    } label: {
+                        Text("Done")
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 500))
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(16)
+                }
+
+                Attachment(id: "tabBarBackground") {
+                    Color.clear
+                        .frame(width: 280, height: 84)
+                        .glassBackgroundEffect(
+                            in: RoundedRectangle(cornerRadius: 42)
+                        )
+                }
 
             }
             .gesture(
@@ -594,9 +629,9 @@ struct NormalSceneView: View {
 
                 vm.loadMotivation()
                 vm.evaluateTipsVisibility()
-            }
-            .onAppear {
-                AudioPlayer.shared.playEnvironment()
+
+                // Começa o áudio ambiente conforme o clima assim que a cena aparece.
+                vm.startEnvironment()
             }
 
         }

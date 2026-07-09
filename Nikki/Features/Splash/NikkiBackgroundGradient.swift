@@ -26,7 +26,7 @@ extension View {
             .nikkiGlassBackground()
             .ignoresSafeArea()
     }
-    
+
     func buttonEnvSelectionBackground() -> some View {
         self
             .frame(maxWidth: .infinity, maxHeight: .infinity)
