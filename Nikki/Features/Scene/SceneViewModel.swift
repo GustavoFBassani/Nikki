@@ -11,7 +11,7 @@ import SwiftUI
 import TipKit
 
 #if os(iOS)
-import UIKit
+    import UIKit
 #endif
 
 enum SceneImmersiveSpaceState {
@@ -23,12 +23,12 @@ enum SceneImmersiveSpaceState {
 @MainActor
 @Observable
 class SceneViewModel {
-    
+
     //MARK: - MANAGER
     #if os(visionOS)
-    var cameraManager: CameraManaging = VisionCameraManager()
+        var cameraManager: CameraManaging = VisionCameraManager()
     #else
-    var cameraManager: CameraManaging = CameraManager()
+        var cameraManager: CameraManaging = CameraManager()
     #endif
 
     var pageControlTsuru = PageControlTsurus()
@@ -72,7 +72,7 @@ class SceneViewModel {
     var currentPageControl: Int { pageControlTsuru.currentPageControl }
 
     #if os(iOS)
-    let generator = UIImpactFeedbackGenerator(style: .rigid)
+        let generator = UIImpactFeedbackGenerator(style: .rigid)
     #endif
 
     // MARK: - PAGE CONTROL
@@ -88,7 +88,8 @@ class SceneViewModel {
     var showCredits = false
 
     #if os(visionOS)
-    var isLookingAtTree: Bool = false
+        var isLookingAtTree: Bool = false
+        var isNearBridge: Bool = false
     #endif
 
     // MARK: - SCENE ENTITIES
@@ -160,24 +161,30 @@ class SceneViewModel {
                 credits.generateCollisionShapes(recursive: true)
                 credits.components[InputTargetComponent.self] = .init()
             }
-            
+
+            if let bridgeHitbox = scene.findEntity(named: "bridgeHitbox") {
+                bridgeHitbox.generateCollisionShapes(recursive: true)
+                bridgeHitbox.components[InputTargetComponent.self] = .init()
+            }
+
             environmentManager.refreshDayPeriod()
             await applyScenarioTexture(environmentManager.dayPeriod.scenarioTextureName, in: scene)
 
             #if os(visionOS)
-            // No visionOS, ajustamos a posição inicial do mundo ANTES de ele ser adicionado
-            // na view (antes do self.scene = scene), para que o primeiro frame já nasça
-            // no lugar certo e não pule.
-            self.cameraManager.repositioningCameraToTree(animated: false, tree: tree)
+                // No visionOS, ajustamos a posição inicial do mundo ANTES de ele ser adicionado
+                // na view (antes do self.scene = scene), para que o primeiro frame já nasça
+                // no lugar certo e não pule.
+                self.cameraManager.repositioningCameraToTree(animated: false, tree: tree)
 
-            tree?.generateCollisionShapes(recursive: true)
-            tree?.components[InputTargetComponent.self] = .init(allowedInputTypes: .indirect)
-            tree?.components.set(CollisionComponent(shapes: [.generateBox(size: [0.5, 0.5, 0.5])]))
+                tree?.generateCollisionShapes(recursive: true)
+                tree?.components[InputTargetComponent.self] = .init(allowedInputTypes: .indirect)
+                tree?.components.set(
+                    CollisionComponent(shapes: [.generateBox(size: [0.5, 0.5, 0.5])]))
             #endif
-            
+
             // Só agora liberamos a cena para a View desenhar!
             self.scene = scene
-            
+
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
 
@@ -202,8 +209,8 @@ class SceneViewModel {
 
         // Esconde ou mostra o tsuru atual
         if let page = currentPage,
-           let entity = dict.first(where: { $0.value.id == page.id })?.key {
-            
+            let entity = dict.first(where: { $0.value.id == page.id })?.key
+        {
             if entity.name == "flappingBird___0PercentFolded" {
                 // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
                 entity.parent?.isEnabled = !isPresented
@@ -244,6 +251,12 @@ class SceneViewModel {
 
     func markImmersiveClosed() {
         immersiveSpaceState = .closed
+
+        environmentManager.pauseEnvironmentAudio()
+
+        #if os(visionOS)
+            isNearBridge = false
+        #endif
     }
 
     func markImmersiveOpening() {
@@ -252,27 +265,27 @@ class SceneViewModel {
 
     func setScenePaused(_ paused: Bool) {
         #if os(visionOS)
-        // No visionOS, NÃO desligue a Entity raiz.
-        // Desligar a cena pode fazer o usuário ver o ambiente default do sistema.
-        // Para o canvas, tratamos "paused" como "canvas apresentado".
-        setCanvasPresented(paused)
+            // No visionOS, NÃO desligue a Entity raiz.
+            // Desligar a cena pode fazer o usuário ver o ambiente default do sistema.
+            // Para o canvas, tratamos "paused" como "canvas apresentado".
+            setCanvasPresented(paused)
         #else
-        isScenePaused = paused
-        finishingResumeScene = false
+            isScenePaused = paused
+            finishingResumeScene = false
 
-        scene?.isEnabled = !paused
+            scene?.isEnabled = !paused
 
-        // Para/retoma o áudio ambiente junto com a pausa da cena.
-        if paused {
-            environmentManager.pauseEnvironmentAudio()
-        } else {
-            environmentManager.resumeEnvironmentAudio()
-        }
+            // Para/retoma o áudio ambiente junto com a pausa da cena.
+            if paused {
+                environmentManager.pauseEnvironmentAudio()
+            } else {
+                environmentManager.resumeEnvironmentAudio()
+            }
 
-        if !paused {
-            finishingResumeScene = true
-            updateCamera()
-        }
+            if !paused {
+                finishingResumeScene = true
+                updateCamera()
+            }
         #endif
     }
 
@@ -314,15 +327,15 @@ class SceneViewModel {
         lastAdded += 1
 
         #if os(visionOS)
-        cameraManager.repositioningCameraNewToTsuru(
-            animated: false,
-            tsuruToFocus: newTsuru?.children.first
-        )
+            cameraManager.repositioningCameraNewToTsuru(
+                animated: false,
+                tsuruToFocus: newTsuru?.children.first
+            )
         #else
-        cameraManager.repositioningCameraNewToTsuru(
-            animated: false,
-            tsuruToFocus: newTsuru
-        )
+            cameraManager.repositioningCameraNewToTsuru(
+                animated: false,
+                tsuruToFocus: newTsuru
+            )
 
         #endif
 
@@ -428,7 +441,8 @@ class SceneViewModel {
 
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
-        newFlapBird.components.set(CollisionComponent(shapes: [.generateBox(size: [0.15, 0.15, 0.15])]))
+        newFlapBird.components.set(
+            CollisionComponent(shapes: [.generateBox(size: [0.15, 0.15, 0.15])]))
     }
 
     func applyTexture(to tsuru: Entity?, texture scrapImage: UIImage?) async {
@@ -580,6 +594,25 @@ class SceneViewModel {
         }
     }
 
+    #if os(visionOS)
+        func handleBridgeTap(on entity: Entity) -> Bool {
+            guard canInteractWithImmersiveScene else { return false }
+
+            var current: Entity? = entity
+
+            while let ent = current {
+                if ent.name == "bridgeHitbox" {
+                    isNearBridge.toggle()
+                    return true
+                }
+
+                current = ent.parent
+            }
+
+            return false
+        }
+    #endif
+
     func openTsuru() {
         guard !isCanvasPresented else { return }
 
@@ -622,7 +655,7 @@ class SceneViewModel {
         )
 
         #if os(iOS)
-        generator.impactOccurred()
+            generator.impactOccurred()
         #endif
 
         Task {

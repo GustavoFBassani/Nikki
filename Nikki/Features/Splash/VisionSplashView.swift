@@ -10,6 +10,7 @@ import SwiftUI
 #if os(visionOS)
 struct VisionSplashView: View {
 
+    @Environment(BonsaiAppModel.self) private var appModel
     @Environment(SceneViewModel.self) private var sceneVM
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
@@ -58,8 +59,17 @@ struct VisionSplashView: View {
         .nikkiGradientBackground()
         .frame(width: contentWidth, height: contentHeight)
         .task {
+            if appModel.hasCompletedSplash {
+                phase = .windowOpen
+                showEnvironmentSelection = true
+                return
+            }
+
             await runIntroFlight()
             await runAnimationsSequence()
+
+            appModel.hasCompletedSplash = true
+
             withAnimation(.easeInOut(duration: 0.6)) { showEnvironmentSelection = true }
         }
     }

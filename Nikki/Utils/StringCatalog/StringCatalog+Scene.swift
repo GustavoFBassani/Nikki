@@ -21,4 +21,8 @@ extension StringCatalog {
     static let openOrigami = String(localized: "scene.origami.open")
     static let gardenOfMemories = String(localized: "onboarding.garden.memories")
     static let visualizeOrigamis = String(localized: "scene.vision.visualize.origamis")
+
+    // Exit immersive button (bridge)
+    static let exitImmersiveTitle = String(localized: "scene.vision.exit.title")
+    static let exitImmersiveSubtitle = String(localized: "scene.vision.exit.subtitle")
 }
