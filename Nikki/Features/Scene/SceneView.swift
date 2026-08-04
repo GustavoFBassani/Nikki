@@ -194,8 +194,9 @@ struct NormalSceneView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                // Só mostra o + quando a cena carregou e NÃO está focado no tsuru nem no coreto
-                if vm.scene != nil, !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand) {
+                // Só mostra o + quando a cena carregou, NÃO está focado no tsuru nem no
+                // coreto, e ainda há posição livre na árvore para pendurar o tsuru.
+                if vm.scene != nil, !(vm.isFocusedOnTsuru || vm.isFocusedOnBandstand), vm.canAddNewPage {
                     VStack(alignment: .trailing, spacing: 8) {
                         
                         Menu {
@@ -480,6 +481,7 @@ struct VisionOSImmersiveSceneView: View {
             Attachment(id: "ScrapMenu") {
                 VisionScrapMenu(
                     isPaperMenuOpen: $isPaperMenuOpen,
+                    canAddNewPage: vm.canAddNewPage,
                     onVisualizeOrigamis: {
                         vm.isLookingAtTree = false
                         if !vm.orderedPages.isEmpty {

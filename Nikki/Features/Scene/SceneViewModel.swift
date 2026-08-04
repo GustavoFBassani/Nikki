@@ -54,11 +54,24 @@ class SceneViewModel {
     var orderedPages: [Page?] = []
     var orderedEntities: [Entity] = []
     var dict: [Entity: Page] = [:]
-    var lastAdded: Int = 0
 
     let tsuruPositions: [SIMD3<Float>] = TsuruPosition.allCases.map { tsuru in
         return tsuru.position
     }
+
+    /// Quantos tsurus a árvore comporta. É o número de posições modeladas na cena
+    /// (`TsuruPosition`), não um número solto: passar disso não tem onde pendurar.
+    var maxTsurus: Int { tsuruPositions.count }
+
+    /// Índice da posição livre para o próximo tsuru. Deriva de `orderedPages`, que é
+    /// recarregado do SwiftData ao criar e ao deletar — então apagar um scrap libera
+    /// a vaga sozinho. Era um contador à parte (`lastAdded`) que só crescia, e por
+    /// isso descolava da contagem real e travava o botão de criar.
+    var nextTsuruIndex: Int { orderedPages.count }
+
+    /// `false` quando a árvore já está cheia. A UI usa isso para esconder o botão de
+    /// criar página, já que uma página a mais não teria posição no galho.
+    var canAddNewPage: Bool { nextTsuruIndex < maxTsurus }
 
     var currentPage: Page? = nil
     var selectedPage: Page?
@@ -187,8 +200,6 @@ class SceneViewModel {
             try orderedPages = scrapService.fetchAllPages()
             await loadTsurusAtScene()
 
-            lastAdded = orderedPages.count
-
             updateCamera()
         } catch {
             print("Erro ao carregar cena: \(error)")
@@ -285,10 +296,21 @@ class SceneViewModel {
     // MARK: - PERSISTENCE FUNCTIONS
 
     func parseCanvasDateAndAddNewTsuruAtScene() async {
+        // Rede de segurança: a UI já esconde o botão de criar quando a árvore lota,
+        // mas a página é salva antes deste método rodar. Sem esta guarda, indexar
+        // `tsuruPositions` fora do range derrubaria o app.
+        guard canAddNewPage else {
+            print("Árvore cheia: o limite é \(maxTsurus) tsurus")
+            fetchUpdatedTsurusAtOrderedPages()
+            return
+        }
+
         newTsuru = tsuru?.clone(recursive: true)
 
         if let newTsuru {
-            newTsuru.position = tsuruPositions[lastAdded]
+            // Ainda com `orderedPages` anterior ao refetch abaixo, então a contagem
+            // aqui é justamente o índice da primeira posição livre.
+            newTsuru.position = tsuruPositions[nextTsuruIndex]
 
             do {
                 let newPage = try scrapService.fetchLastPage()
@@ -310,8 +332,6 @@ class SceneViewModel {
 
             selectedPage = dict[newTsuru]
         }
-
-        lastAdded += 1
 
         #if os(visionOS)
         cameraManager.repositioningCameraNewToTsuru(
@@ -342,8 +362,6 @@ class SceneViewModel {
 
         fetchUpdatedTsurusAtOrderedPages()
 
-        lastAdded = orderedPages.count
-
         await loadTsurusAtScene()
 
         repositioningCameraToTree(animated: false)
@@ -368,31 +386,32 @@ class SceneViewModel {
 
             scene.isEnabled = true
 
-            for i in 0..<orderedPages.count {
-                if orderedPages.count < 30 {
-                    if let page = orderedPages[i] {
-                        guard let tsuru else { return }
+            // Uma página por posição modelada. A condição antiga (`orderedPages.count < 30`)
+            // era invariante no loop: a partir de 30 páginas ela zerava a renderização
+            // inteira e a árvore aparecia vazia, sem erro nenhum.
+            for i in 0..<min(orderedPages.count, maxTsurus) {
+                if let page = orderedPages[i] {
+                    guard let tsuru else { return }
 
-                        let obj = tsuru.clone(recursive: true)
-                        fixTsuruPos(obj)
+                    let obj = tsuru.clone(recursive: true)
+                    fixTsuruPos(obj)
 
-                        obj.transform.rotation = simd_quatf(
-                            angle: .pi,
-                            axis: [0, 1, 0]
-                        )
+                    obj.transform.rotation = simd_quatf(
+                        angle: .pi,
+                        axis: [0, 1, 0]
+                    )
 
-                        obj.position = tsuruPositions[i]
+                    obj.position = tsuruPositions[i]
 
-                        await applyTexture(to: obj, texture: page.markupImage)
+                    await applyTexture(to: obj, texture: page.markupImage)
 
-                        scene.addChild(obj)
-                        playTsuruAnimation(tsuruToAnimate: obj)
+                    scene.addChild(obj)
+                    playTsuruAnimation(tsuruToAnimate: obj)
 
-                        if let newFlapBird = obj.children.first(where: {
-                            $0.name == "flappingBird___0PercentFolded"
-                        }) {
-                            dict.updateValue(page, forKey: newFlapBird)
-                        }
+                    if let newFlapBird = obj.children.first(where: {
+                        $0.name == "flappingBird___0PercentFolded"
+                    }) {
+                        dict.updateValue(page, forKey: newFlapBird)
                     }
                 }
             }
