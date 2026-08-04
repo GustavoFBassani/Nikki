@@ -18,6 +18,11 @@ class EnvironmentManager {
     private var pollingTask: Task<Void, Never>?
     private let pollingInterval: UInt64 = 30 * 60 * 1_000_000_000 // 30 min em nanosecs
 
+    /// A trilha ambiente pertence à cena. Enquanto `false` (splash, onboarding),
+    /// qualquer pedido de áudio é ignorado — inclusive o do `scenePhase` no cold
+    /// launch e o do polling de clima. A cena libera em `activateEnvironmentAudio()`.
+    private(set) var isEnvironmentAudioActive = false
+
     // MARK: - Período e clima
 
     /// Reavalia o período do dia a partir da hora atual.
@@ -60,7 +65,21 @@ class EnvironmentManager {
 
     // MARK: - Áudio
 
+    /// Libera o áudio ambiente e já toca a trilha do clima atual.
+    /// Só deve ser chamado quando a cena estiver montada.
+    func activateEnvironmentAudio() {
+        isEnvironmentAudioActive = true
+        updateAudioForWeather()
+    }
+
+    /// Silencia e volta a bloquear o áudio até a cena liberar de novo.
+    func deactivateEnvironmentAudio() {
+        isEnvironmentAudioActive = false
+        AudioPlayer.shared.stopEnvironmentPlayer()
+    }
+
     func updateAudioForWeather() {
+        guard isEnvironmentAudioActive else { return }
         AudioPlayer.shared.playEnvironment(named: weather.songName)
     }
 
@@ -69,20 +88,6 @@ class EnvironmentManager {
     }
 
     func resumeEnvironmentAudio() {
-        updateAudioForWeather()
-    }
-
-    // MARK: - Mock (apresentação) — REMOVER DEPOIS
-
-    func mockToggleDayPeriod() {
-        dayPeriod = (dayPeriod == .day) ? .night : .day
-    }
-
-    func mockCycleWeather() {
-        let all = WeatherCondition.allCases
-        if let index = all.firstIndex(of: weather) {
-            weather = all[(index + 1) % all.count]
-        }
         updateAudioForWeather()
     }
 }

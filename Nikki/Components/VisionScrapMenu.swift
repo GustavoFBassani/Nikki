@@ -13,10 +13,6 @@ struct VisionScrapMenu: View {
     @Binding var isPaperMenuOpen: Bool
     let onVisualizeOrigamis: () -> Void
     let onSelectStyle: (String) -> Void
-    // MARK: MOCK APRESENTAÇÃO
-    var onMockToggleDayPeriod: () -> Void = { }
-    var onMockCycleWeather: () -> Void = { }
-    ///
 
     var body: some View {
         VStack(alignment: .leading, spacing: 26) {
@@ -37,26 +33,6 @@ struct VisionScrapMenu: View {
                 }
             }
             .buttonStyle(.plain)
-
-            // MARK: MOCK APRESENTAÇÃO
-            Button {
-                onMockToggleDayPeriod()
-            } label: {
-                Text("Alternar dia/noite")
-                    .font(.custom("CaveatBrush-Regular", size: 30))
-                    .foregroundStyle(.white)
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                onMockCycleWeather()
-            } label: {
-                Text("Mudar clima")
-                    .font(.custom("CaveatBrush-Regular", size: 30))
-                    .foregroundStyle(.white)
-            }
-            .buttonStyle(.plain)
-            ///
 
             VStack(alignment: .leading, spacing: 24) {
                 Button {

@@ -11,6 +11,7 @@
 
     },
     "Alternar dia/noite" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -719,6 +720,7 @@
 
     },
     "Mudar clima" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

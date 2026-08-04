@@ -475,29 +475,34 @@ class SceneViewModel {
     // MARK: - ENVIRONMENT (PERÍODO, CLIMA e ÁUDIO)
 
     func startEnvironment() {
-        environmentManager.updateAudioForWeather()
+        // Chamado com a cena já montada: é aqui que o áudio ambiente é liberado,
+        // para o app não tocar nada durante splash/onboarding. Toca já a trilha do
+        // clima conhecido para não abrir em silêncio, e em seguida consulta o clima
+        // real: se tiver mudado, a faixa é trocada.
+        environmentManager.activateEnvironmentAudio()
+
+        Task {
+            if await environmentManager.refreshWeather() {
+                environmentManager.updateAudioForWeather()
+            }
+        }
     }
 
     func refreshEnvironmentOnActive() async {
-        // Só mexe no ambiente se a cena já existe
-        guard scene != nil else { return }
-
         environmentManager.refreshDayPeriod()
+        // No-op enquanto a cena não liberou o áudio (splash / onboarding).
         environmentManager.updateAudioForWeather()
-        applyScenario(environmentManager.dayPeriod.scenarioTextureName)
+
+        // O cenário só pode ser aplicado depois que a cena carregou. No cold launch
+        // esse método roda antes do loadScene(), e o startEnvironment() do onAppear
+        // cuida da textura inicial.
+        if scene != nil {
+            applyScenario(environmentManager.dayPeriod.scenarioTextureName)
+        }
 
         if await environmentManager.refreshWeather() {
             environmentManager.updateAudioForWeather()
         }
-    }
-
-    func mockToggleDayPeriod() {
-        environmentManager.mockToggleDayPeriod()
-        applyScenario(environmentManager.dayPeriod.scenarioTextureName)
-    }
-
-    func mockCycleWeather() {
-        environmentManager.mockCycleWeather()
     }
 
     // MARK: - SCENARIO (DIA / NOITE)

@@ -207,11 +207,6 @@ struct NormalSceneView: View {
                                         .font(.custom("CaveatBrush-Regular", size: 5))
                                 }
                             }
-
-                            // MOCK APRESENTAÇÃO - REMOVER DEPOIS
-                            Button("Alternar dia/noite") { vm.mockToggleDayPeriod() }
-                            Button("Mudar clima") { vm.mockCycleWeather() }
-
                         } label: {
                             Image("customPlus")
                                 .scaledToFit()
@@ -504,10 +499,7 @@ struct VisionOSImmersiveSceneView: View {
                             id: "CanvasWindow",
                             value: style
                         )
-                    },
-                    // MOCK APRESENTAÇÃO - REMOVER DEPOIS
-                    onMockToggleDayPeriod: { vm.mockToggleDayPeriod() },
-                    onMockCycleWeather: { vm.mockCycleWeather() }
+                    }
                 )
 
             }
