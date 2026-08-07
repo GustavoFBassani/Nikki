@@ -11,12 +11,10 @@ import SwiftUI
 
 struct VisionScrapMenu: View {
     @Binding var isPaperMenuOpen: Bool
+    /// `false` quando a árvore já está cheia: a seção de criar página some.
+    var canAddNewPage: Bool = true
     let onVisualizeOrigamis: () -> Void
     let onSelectStyle: (String) -> Void
-    // MARK: MOCK APRESENTAÇÃO
-    var onMockToggleDayPeriod: () -> Void = { }
-    var onMockCycleWeather: () -> Void = { }
-    ///
 
     var body: some View {
         VStack(alignment: .leading, spacing: 26) {
@@ -38,77 +36,8 @@ struct VisionScrapMenu: View {
             }
             .buttonStyle(.plain)
 
-            // MARK: MOCK APRESENTAÇÃO
-            Button {
-                onMockToggleDayPeriod()
-            } label: {
-                Text("Alternar dia/noite")
-                    .font(.custom("CaveatBrush-Regular", size: 30))
-                    .foregroundStyle(.white)
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                onMockCycleWeather()
-            } label: {
-                Text("Mudar clima")
-                    .font(.custom("CaveatBrush-Regular", size: 30))
-                    .foregroundStyle(.white)
-            }
-            .buttonStyle(.plain)
-            ///
-
-            VStack(alignment: .leading, spacing: 24) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.22)) {
-                        isPaperMenuOpen.toggle()
-                    }
-                } label: {
-                    HStack(spacing: 24) {
-                        Image("plusVision")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 58, height: 58)
-
-                        Text(StringCatalog.createYourScrap)
-                            .font(.custom("CaveatBrush-Regular", size: 30))
-                            .foregroundStyle(.white)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .rotationEffect(.degrees(isPaperMenuOpen ? 90 : 0))
-                    }
-                }
-                .buttonStyle(.plain)
-
-                if isPaperMenuOpen {
-                    VStack(alignment: .leading, spacing: 26) {
-                        PaperOptionButton(
-                            imageName: "dottedVision",
-                            title: StringCatalog.dottedPaper
-                        ) {
-                            openStyle(at: 0)
-                        }
-
-                        PaperOptionButton(
-                            imageName: "lanternVision",
-                            title: StringCatalog.lanterns
-                        ) {
-                            openStyle(at: 1)
-                        }
-
-                        PaperOptionButton(
-                            imageName: "fanVision",
-                            title: StringCatalog.fan
-                        ) {
-                            openStyle(at: 2)
-                        }
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
+            if canAddNewPage {
+                createScrapSection
             }
         }
         .padding(.horizontal, 48)
@@ -118,6 +47,62 @@ struct VisionScrapMenu: View {
             in: RoundedRectangle(cornerRadius: 48)
         )
         
+    }
+
+    /// Botão de criar página + a lista de papéis que ele expande.
+    private var createScrapSection: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.22)) {
+                    isPaperMenuOpen.toggle()
+                }
+            } label: {
+                HStack(spacing: 24) {
+                    Image("plusVision")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 58, height: 58)
+
+                    Text(StringCatalog.createYourScrap)
+                        .font(.custom("CaveatBrush-Regular", size: 30))
+                        .foregroundStyle(.white)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .rotationEffect(.degrees(isPaperMenuOpen ? 90 : 0))
+                }
+            }
+            .buttonStyle(.plain)
+
+            if isPaperMenuOpen {
+                VStack(alignment: .leading, spacing: 26) {
+                    PaperOptionButton(
+                        imageName: "dottedVision",
+                        title: StringCatalog.dottedPaper
+                    ) {
+                        openStyle(at: 0)
+                    }
+
+                    PaperOptionButton(
+                        imageName: "lanternVision",
+                        title: StringCatalog.lanterns
+                    ) {
+                        openStyle(at: 1)
+                    }
+
+                    PaperOptionButton(
+                        imageName: "fanVision",
+                        title: StringCatalog.fan
+                    ) {
+                        openStyle(at: 2)
+                    }
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
     }
 
     private func openStyle(at index: Int) {

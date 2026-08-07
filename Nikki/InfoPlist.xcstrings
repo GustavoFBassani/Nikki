@@ -1,0 +1,156 @@
+{
+  "sourceLanguage" : "pt-BR",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Nikki Journal"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Nikki"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Alerta de permissão da câmera.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We use the camera so you can add photos to your pages."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usamos a câmera para você adicionar fotos às suas páginas."
+          }
+        }
+      }
+    },
+    "NSHandsTrackingUsageDescription" : {
+      "comment" : "Alerta de permissão de rastreamento das mãos (visionOS).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We use hand tracking so you can interact with the scene and fold your origami."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usamos o rastreamento das mãos para você interagir com a cena e dobrar seus origamis."
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription" : {
+      "comment" : "Alerta de permissão de localização. Usada só para consultar o clima da região no WeatherKit.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We use your location to match the scene's weather to your region."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usamos sua localização para deixar o clima do cenário igual ao da sua região."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Alerta de permissão do microfone. Usada pelo AudioRecorder para gravar áudios anexados às páginas.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We use the microphone to record audio notes and attach them to your pages."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usamos o microfone para gravar áudios e anexá-los às suas páginas."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription" : {
+      "comment" : "Alerta de permissão de escrita na galeria. Usada pelo ShareService ao salvar a página exportada.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We need access to save your exported pages to your photo library."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Precisamos de acesso para salvar suas páginas exportadas na sua galeria."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription" : {
+      "comment" : "Alerta de permissão de leitura da galeria.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We use your photo library so you can pick photos to place on your pages."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usamos sua galeria para você escolher fotos e colocá-las nas suas páginas."
+          }
+        }
+      }
+    },
+    "NSWorldSensingUsageDescription" : {
+      "comment" : "Alerta de permissão de reconhecimento do ambiente (visionOS). Usada para posicionar o bonsai em superfícies reais.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We scan your surroundings to detect surfaces and place the bonsai in your space."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escaneamos o ambiente para detectar superfícies e posicionar o bonsai no seu espaço."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

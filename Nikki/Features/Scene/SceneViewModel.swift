@@ -11,7 +11,7 @@ import SwiftUI
 import TipKit
 
 #if os(iOS)
-    import UIKit
+import UIKit
 #endif
 
 enum SceneImmersiveSpaceState {
@@ -23,12 +23,12 @@ enum SceneImmersiveSpaceState {
 @MainActor
 @Observable
 class SceneViewModel {
-
+    
     //MARK: - MANAGER
     #if os(visionOS)
-        var cameraManager: CameraManaging = VisionCameraManager()
+    var cameraManager: CameraManaging = VisionCameraManager()
     #else
-        var cameraManager: CameraManaging = CameraManager()
+    var cameraManager: CameraManaging = CameraManager()
     #endif
 
     var pageControlTsuru = PageControlTsurus()
@@ -54,11 +54,24 @@ class SceneViewModel {
     var orderedPages: [Page?] = []
     var orderedEntities: [Entity] = []
     var dict: [Entity: Page] = [:]
-    var lastAdded: Int = 0
 
     let tsuruPositions: [SIMD3<Float>] = TsuruPosition.allCases.map { tsuru in
         return tsuru.position
     }
+
+    /// Quantos tsurus a árvore comporta. É o número de posições modeladas na cena
+    /// (`TsuruPosition`), não um número solto: passar disso não tem onde pendurar.
+    var maxTsurus: Int { tsuruPositions.count }
+
+    /// Índice da posição livre para o próximo tsuru. Deriva de `orderedPages`, que é
+    /// recarregado do SwiftData ao criar e ao deletar — então apagar um scrap libera
+    /// a vaga sozinho. Era um contador à parte (`lastAdded`) que só crescia, e por
+    /// isso descolava da contagem real e travava o botão de criar.
+    var nextTsuruIndex: Int { orderedPages.count }
+
+    /// `false` quando a árvore já está cheia. A UI usa isso para esconder o botão de
+    /// criar página, já que uma página a mais não teria posição no galho.
+    var canAddNewPage: Bool { nextTsuruIndex < maxTsurus }
 
     var currentPage: Page? = nil
     var selectedPage: Page?
@@ -72,7 +85,7 @@ class SceneViewModel {
     var currentPageControl: Int { pageControlTsuru.currentPageControl }
 
     #if os(iOS)
-        let generator = UIImpactFeedbackGenerator(style: .rigid)
+    let generator = UIImpactFeedbackGenerator(style: .rigid)
     #endif
 
     // MARK: - PAGE CONTROL
@@ -88,7 +101,7 @@ class SceneViewModel {
     var showCredits = false
 
     #if os(visionOS)
-        var isLookingAtTree: Bool = false
+    var isLookingAtTree: Bool = false
         var isNearBridge: Bool = false
     #endif
 
@@ -161,7 +174,7 @@ class SceneViewModel {
                 credits.generateCollisionShapes(recursive: true)
                 credits.components[InputTargetComponent.self] = .init()
             }
-
+            
             if let bridgeHitbox = scene.findEntity(named: "bridgeHitbox") {
                 bridgeHitbox.generateCollisionShapes(recursive: true)
                 bridgeHitbox.components[InputTargetComponent.self] = .init()
@@ -171,20 +184,20 @@ class SceneViewModel {
             await applyScenarioTexture(environmentManager.dayPeriod.scenarioTextureName, in: scene)
 
             #if os(visionOS)
-                // No visionOS, ajustamos a posição inicial do mundo ANTES de ele ser adicionado
-                // na view (antes do self.scene = scene), para que o primeiro frame já nasça
-                // no lugar certo e não pule.
-                self.cameraManager.repositioningCameraToTree(animated: false, tree: tree)
+            // No visionOS, ajustamos a posição inicial do mundo ANTES de ele ser adicionado
+            // na view (antes do self.scene = scene), para que o primeiro frame já nasça
+            // no lugar certo e não pule.
+            self.cameraManager.repositioningCameraToTree(animated: false, tree: tree)
 
-                tree?.generateCollisionShapes(recursive: true)
-                tree?.components[InputTargetComponent.self] = .init(allowedInputTypes: .indirect)
+            tree?.generateCollisionShapes(recursive: true)
+            tree?.components[InputTargetComponent.self] = .init(allowedInputTypes: .indirect)
                 tree?.components.set(
                     CollisionComponent(shapes: [.generateBox(size: [0.5, 0.5, 0.5])]))
             #endif
-
+            
             // Só agora liberamos a cena para a View desenhar!
             self.scene = scene
-
+            
             // Cria uma nova câmera perspectiva
             // PerspectiveCamera simula visão humana com perspectiva realista
 
@@ -193,8 +206,6 @@ class SceneViewModel {
 
             try orderedPages = scrapService.fetchAllPages()
             await loadTsurusAtScene()
-
-            lastAdded = orderedPages.count
 
             updateCamera()
         } catch {
@@ -265,27 +276,27 @@ class SceneViewModel {
 
     func setScenePaused(_ paused: Bool) {
         #if os(visionOS)
-            // No visionOS, NÃO desligue a Entity raiz.
-            // Desligar a cena pode fazer o usuário ver o ambiente default do sistema.
-            // Para o canvas, tratamos "paused" como "canvas apresentado".
-            setCanvasPresented(paused)
+        // No visionOS, NÃO desligue a Entity raiz.
+        // Desligar a cena pode fazer o usuário ver o ambiente default do sistema.
+        // Para o canvas, tratamos "paused" como "canvas apresentado".
+        setCanvasPresented(paused)
         #else
-            isScenePaused = paused
-            finishingResumeScene = false
+        isScenePaused = paused
+        finishingResumeScene = false
 
-            scene?.isEnabled = !paused
+        scene?.isEnabled = !paused
 
-            // Para/retoma o áudio ambiente junto com a pausa da cena.
-            if paused {
-                environmentManager.pauseEnvironmentAudio()
-            } else {
-                environmentManager.resumeEnvironmentAudio()
-            }
+        // Para/retoma o áudio ambiente junto com a pausa da cena.
+        if paused {
+            environmentManager.pauseEnvironmentAudio()
+        } else {
+            environmentManager.resumeEnvironmentAudio()
+        }
 
-            if !paused {
-                finishingResumeScene = true
-                updateCamera()
-            }
+        if !paused {
+            finishingResumeScene = true
+            updateCamera()
+        }
         #endif
     }
 
@@ -298,10 +309,21 @@ class SceneViewModel {
     // MARK: - PERSISTENCE FUNCTIONS
 
     func parseCanvasDateAndAddNewTsuruAtScene() async {
+        // Rede de segurança: a UI já esconde o botão de criar quando a árvore lota,
+        // mas a página é salva antes deste método rodar. Sem esta guarda, indexar
+        // `tsuruPositions` fora do range derrubaria o app.
+        guard canAddNewPage else {
+            print("Árvore cheia: o limite é \(maxTsurus) tsurus")
+            fetchUpdatedTsurusAtOrderedPages()
+            return
+        }
+
         newTsuru = tsuru?.clone(recursive: true)
 
         if let newTsuru {
-            newTsuru.position = tsuruPositions[lastAdded]
+            // Ainda com `orderedPages` anterior ao refetch abaixo, então a contagem
+            // aqui é justamente o índice da primeira posição livre.
+            newTsuru.position = tsuruPositions[nextTsuruIndex]
 
             do {
                 let newPage = try scrapService.fetchLastPage()
@@ -324,18 +346,16 @@ class SceneViewModel {
             selectedPage = dict[newTsuru]
         }
 
-        lastAdded += 1
-
         #if os(visionOS)
-            cameraManager.repositioningCameraNewToTsuru(
-                animated: false,
-                tsuruToFocus: newTsuru?.children.first
-            )
+        cameraManager.repositioningCameraNewToTsuru(
+            animated: false,
+            tsuruToFocus: newTsuru?.children.first
+        )
         #else
-            cameraManager.repositioningCameraNewToTsuru(
-                animated: false,
-                tsuruToFocus: newTsuru
-            )
+        cameraManager.repositioningCameraNewToTsuru(
+            animated: false,
+            tsuruToFocus: newTsuru
+        )
 
         #endif
 
@@ -354,8 +374,6 @@ class SceneViewModel {
         dict.removeAll()
 
         fetchUpdatedTsurusAtOrderedPages()
-
-        lastAdded = orderedPages.count
 
         await loadTsurusAtScene()
 
@@ -381,31 +399,32 @@ class SceneViewModel {
 
             scene.isEnabled = true
 
-            for i in 0..<orderedPages.count {
-                if orderedPages.count < 30 {
-                    if let page = orderedPages[i] {
-                        guard let tsuru else { return }
+            // Uma página por posição modelada. A condição antiga (`orderedPages.count < 30`)
+            // era invariante no loop: a partir de 30 páginas ela zerava a renderização
+            // inteira e a árvore aparecia vazia, sem erro nenhum.
+            for i in 0..<min(orderedPages.count, maxTsurus) {
+                if let page = orderedPages[i] {
+                    guard let tsuru else { return }
 
-                        let obj = tsuru.clone(recursive: true)
-                        fixTsuruPos(obj)
+                    let obj = tsuru.clone(recursive: true)
+                    fixTsuruPos(obj)
 
-                        obj.transform.rotation = simd_quatf(
-                            angle: .pi,
-                            axis: [0, 1, 0]
-                        )
+                    obj.transform.rotation = simd_quatf(
+                        angle: .pi,
+                        axis: [0, 1, 0]
+                    )
 
-                        obj.position = tsuruPositions[i]
+                    obj.position = tsuruPositions[i]
 
-                        await applyTexture(to: obj, texture: page.markupImage)
+                    await applyTexture(to: obj, texture: page.markupImage)
 
-                        scene.addChild(obj)
-                        playTsuruAnimation(tsuruToAnimate: obj)
+                    scene.addChild(obj)
+                    playTsuruAnimation(tsuruToAnimate: obj)
 
-                        if let newFlapBird = obj.children.first(where: {
-                            $0.name == "flappingBird___0PercentFolded"
-                        }) {
-                            dict.updateValue(page, forKey: newFlapBird)
-                        }
+                    if let newFlapBird = obj.children.first(where: {
+                        $0.name == "flappingBird___0PercentFolded"
+                    }) {
+                        dict.updateValue(page, forKey: newFlapBird)
                     }
                 }
             }
@@ -489,29 +508,34 @@ class SceneViewModel {
     // MARK: - ENVIRONMENT (PERÍODO, CLIMA e ÁUDIO)
 
     func startEnvironment() {
-        environmentManager.updateAudioForWeather()
+        // Chamado com a cena já montada: é aqui que o áudio ambiente é liberado,
+        // para o app não tocar nada durante splash/onboarding. Toca já a trilha do
+        // clima conhecido para não abrir em silêncio, e em seguida consulta o clima
+        // real: se tiver mudado, a faixa é trocada.
+        environmentManager.activateEnvironmentAudio()
+
+        Task {
+            if await environmentManager.refreshWeather() {
+                environmentManager.updateAudioForWeather()
+            }
+        }
     }
 
     func refreshEnvironmentOnActive() async {
-        // Só mexe no ambiente se a cena já existe
-        guard scene != nil else { return }
-
         environmentManager.refreshDayPeriod()
+        // No-op enquanto a cena não liberou o áudio (splash / onboarding).
         environmentManager.updateAudioForWeather()
-        applyScenario(environmentManager.dayPeriod.scenarioTextureName)
+
+        // O cenário só pode ser aplicado depois que a cena carregou. No cold launch
+        // esse método roda antes do loadScene(), e o startEnvironment() do onAppear
+        // cuida da textura inicial.
+        if scene != nil {
+            applyScenario(environmentManager.dayPeriod.scenarioTextureName)
+        }
 
         if await environmentManager.refreshWeather() {
             environmentManager.updateAudioForWeather()
         }
-    }
-
-    func mockToggleDayPeriod() {
-        environmentManager.mockToggleDayPeriod()
-        applyScenario(environmentManager.dayPeriod.scenarioTextureName)
-    }
-
-    func mockCycleWeather() {
-        environmentManager.mockCycleWeather()
     }
 
     // MARK: - SCENARIO (DIA / NOITE)
@@ -655,7 +679,7 @@ class SceneViewModel {
         )
 
         #if os(iOS)
-            generator.impactOccurred()
+        generator.impactOccurred()
         #endif
 
         Task {
