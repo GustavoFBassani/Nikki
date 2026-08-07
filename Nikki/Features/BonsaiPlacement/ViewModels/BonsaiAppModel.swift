@@ -33,5 +33,6 @@ class BonsaiAppModel {
     var placementTarget: PlacementTarget = .bonsai
     var isTreePlaced = false
     var windowScreen: WindowScreen = .environmentSelection
+    var hasCompletedSplash = false
 }
 #endif

@@ -102,6 +102,7 @@ class SceneViewModel {
 
     #if os(visionOS)
     var isLookingAtTree: Bool = false
+        var isNearBridge: Bool = false
     #endif
 
     // MARK: - SCENE ENTITIES
@@ -174,6 +175,11 @@ class SceneViewModel {
                 credits.components[InputTargetComponent.self] = .init()
             }
             
+            if let bridgeHitbox = scene.findEntity(named: "bridgeHitbox") {
+                bridgeHitbox.generateCollisionShapes(recursive: true)
+                bridgeHitbox.components[InputTargetComponent.self] = .init()
+            }
+
             environmentManager.refreshDayPeriod()
             await applyScenarioTexture(environmentManager.dayPeriod.scenarioTextureName, in: scene)
 
@@ -185,7 +191,8 @@ class SceneViewModel {
 
             tree?.generateCollisionShapes(recursive: true)
             tree?.components[InputTargetComponent.self] = .init(allowedInputTypes: .indirect)
-            tree?.components.set(CollisionComponent(shapes: [.generateBox(size: [0.5, 0.5, 0.5])]))
+                tree?.components.set(
+                    CollisionComponent(shapes: [.generateBox(size: [0.5, 0.5, 0.5])]))
             #endif
             
             // Só agora liberamos a cena para a View desenhar!
@@ -213,8 +220,8 @@ class SceneViewModel {
 
         // Esconde ou mostra o tsuru atual
         if let page = currentPage,
-           let entity = dict.first(where: { $0.value.id == page.id })?.key {
-            
+            let entity = dict.first(where: { $0.value.id == page.id })?.key
+        {
             if entity.name == "flappingBird___0PercentFolded" {
                 // entity é a malha "newFlapBird". O seu "parent" é o contêiner "obj" do tsuru.
                 entity.parent?.isEnabled = !isPresented
@@ -255,6 +262,12 @@ class SceneViewModel {
 
     func markImmersiveClosed() {
         immersiveSpaceState = .closed
+
+        environmentManager.pauseEnvironmentAudio()
+
+        #if os(visionOS)
+            isNearBridge = false
+        #endif
     }
 
     func markImmersiveOpening() {
@@ -447,7 +460,8 @@ class SceneViewModel {
 
         newFlapBird.generateCollisionShapes(recursive: true)
         newFlapBird.components[InputTargetComponent.self] = .init()
-        newFlapBird.components.set(CollisionComponent(shapes: [.generateBox(size: [0.15, 0.15, 0.15])]))
+        newFlapBird.components.set(
+            CollisionComponent(shapes: [.generateBox(size: [0.15, 0.15, 0.15])]))
     }
 
     func applyTexture(to tsuru: Entity?, texture scrapImage: UIImage?) async {
@@ -603,6 +617,25 @@ class SceneViewModel {
             current = ent.parent
         }
     }
+
+    #if os(visionOS)
+        func handleBridgeTap(on entity: Entity) -> Bool {
+            guard canInteractWithImmersiveScene else { return false }
+
+            var current: Entity? = entity
+
+            while let ent = current {
+                if ent.name == "bridgeHitbox" {
+                    isNearBridge.toggle()
+                    return true
+                }
+
+                current = ent.parent
+            }
+
+            return false
+        }
+    #endif
 
     func openTsuru() {
         guard !isCanvasPresented else { return }

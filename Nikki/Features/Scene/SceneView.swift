@@ -140,7 +140,9 @@ struct NormalSceneView: View {
                         vm.lastScale = vm.currentScale
                     }
             ) // zoom
-            .navigationDestination(item: $vm.openCanvasWithStyle, destination: { style in
+            .navigationDestination(
+                item: $vm.openCanvasWithStyle,
+                destination: { style in
                 CanvasView(
                     page: vm.currentPage,
                     paperStyle: style,
@@ -153,7 +155,8 @@ struct NormalSceneView: View {
                     },
                     onCanvasDisappear: { vm.setScenePaused(false) }
                 )
-            })
+                }
+            )
             .navigationDestination(isPresented: $vm.showCredits){ CreditsView() }
             .simultaneousGesture(
                 TapGesture()
@@ -362,7 +365,8 @@ struct NormalSceneView: View {
                         
                         Task {
                             vm.isCamerMovingToTree = true
-                            try? await Task.sleep(nanoseconds: 1_200_000_000
+                            try? await Task.sleep(
+                                nanoseconds: 1_200_000_000
                             )
                             vm.isCamerMovingToTree = false
                         }
@@ -405,6 +409,7 @@ struct NormalSceneView: View {
 struct VisionOSImmersiveSceneView: View {
     @Environment(SceneViewModel.self) var vm
     @Environment(\.openWindow) private var openWindow
+        @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
 
     @State private var isPaperMenuOpen = false
     
@@ -415,7 +420,6 @@ struct VisionOSImmersiveSceneView: View {
             if let scene = vm.scene {
                 content.add(scene)
             }
-            
             
             if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
                 buttonNextTsuru.position = [-1.48, tabBarHeight, 6.4]
@@ -444,7 +448,13 @@ struct VisionOSImmersiveSceneView: View {
             if let buttonScrapMenu = attachments.entity(for: "ScrapMenu") {
                 buttonScrapMenu.position = [-1.3, 0, 6]
                 content.add(buttonScrapMenu)
+                }
                 
+                if let exitImmersiveButton = attachments.entity(for: "ExitImmersiveButton") {
+                    exitImmersiveButton.position = [0.5, 0, 6]
+                    exitImmersiveButton.orientation = simd_quatf(angle: -.pi / 3, axis: [0, 1, 0])
+                    exitImmersiveButton.isEnabled = vm.isNearBridge
+                    content.add(exitImmersiveButton)
             }
 
         } update: { content, attachments in
@@ -457,11 +467,13 @@ struct VisionOSImmersiveSceneView: View {
             }
             
             if let buttonNextTsuru = attachments.entity(for: "moveToLeftTsuru") {
-                buttonNextTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft && !vm.isCanvasPresented
+                    buttonNextTsuru.isEnabled =
+                        vm.isFocusedOnTsuru && vm.thereIsTsuruAtLeft && !vm.isCanvasPresented
             }
             
             if let buttonPreviousTsuru = attachments.entity(for: "moveToRightTsuru") {
-                buttonPreviousTsuru.isEnabled = vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight && !vm.isCanvasPresented
+                    buttonPreviousTsuru.isEnabled =
+                        vm.isFocusedOnTsuru && vm.thereIsTsuruAtRight && !vm.isCanvasPresented
             }
             
             if let doneBtn = attachments.entity(for: "doneTsuruTab") {
@@ -476,6 +488,10 @@ struct VisionOSImmersiveSceneView: View {
                 buttonScrapMenu.isEnabled = vm.isLookingAtTree && !vm.isFocusedOnTsuru
             }
             
+                if let exitImmersiveButton = attachments.entity(for: "ExitImmersiveButton") {
+                    exitImmersiveButton.isEnabled = vm.isNearBridge
+                }
+
         } attachments: {
             
             Attachment(id: "ScrapMenu") {
@@ -503,7 +519,17 @@ struct VisionOSImmersiveSceneView: View {
                         )
                     }
                 )
+                }
 
+                Attachment(id: "ExitImmersiveButton") {
+                    ExitImmersiveButton {
+                        Task { @MainActor in
+                            // Reabrir a janela antes de fechar o espaco, senao o
+                            // app fica sem nenhuma cena aberta e e suspenso.
+                            openWindow(id: "Launcher")
+                            await dismissImmersiveSpace()
+                        }
+                    }
             }
                         
             Attachment(id: "moveToLeftTsuru") {
@@ -550,28 +576,29 @@ struct VisionOSImmersiveSceneView: View {
             Attachment(id: "tabBarBackground") {
                 Color.clear
                     .frame(width: 280, height: 84)
-#if os(visionOS)
                     .glassBackgroundEffect(
                         in: RoundedRectangle(cornerRadius: 42)
                     )
-#endif
             }
 
         }
         .gesture(
-            
             SpatialTapGesture()
                 .targetedToAnyEntity()
                 .onEnded { value in
                     let clickedEntity = value.entity
                     
-                        if (value.entity.name == "v176CherryTree02_Shape_v176CherryFlower_0" ||
-                            value.entity.name == "v176CherryTree02_Shape_v176CherryBranch01_0") {
+                        if value.entity.name == "v176CherryTree02_Shape_v176CherryFlower_0"
+                            || value.entity.name == "v176CherryTree02_Shape_v176CherryBranch01_0"
+                        {
                             vm.isLookingAtTree.toggle()
-                        } else {
-                            let page = vm.dict[clickedEntity] ??
-                            vm.dict.first(where: { $0.key.parent == clickedEntity })?.value ??
-                            (clickedEntity.parent != nil ? vm.dict[clickedEntity.parent!] : nil)
+                        } else if !vm.handleBridgeTap(on: clickedEntity) {
+                            let page =
+                                vm.dict[clickedEntity] ?? vm.dict.first(where: {
+                                    $0.key.parent == clickedEntity
+                                })?.value
+                                ?? (clickedEntity.parent != nil
+                                    ? vm.dict[clickedEntity.parent!] : nil)
                             
                             if let page {
                                 vm.currentPage = page
@@ -580,7 +607,6 @@ struct VisionOSImmersiveSceneView: View {
                                 openWindow(id: "CanvasWindow", value: style)
                             }
                         }
-                    
                 }
         )
         .gesture(
@@ -611,4 +637,3 @@ struct VisionOSImmersiveSceneView: View {
     SceneView()
         .environment(SceneViewModel())
 }
-
